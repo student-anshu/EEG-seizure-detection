@@ -1,6 +1,6 @@
 from pathlib import Path
 import numpy as np
-from EEG_Seizure_Detection.config import PROCESSED_DIR
+from config import PROCESSED_DIR
 
 files = sorted(PROCESSED_DIR.glob("*.npz"))
 
