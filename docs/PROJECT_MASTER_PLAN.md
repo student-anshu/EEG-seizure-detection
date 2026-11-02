@@ -2,7 +2,7 @@
 
 **Working repository:** https://github.com/shivkumar15/EEG  
 **Original source repository:** https://github.com/student-anshu/EEG-seizure-detection  
-**Current status:** Phase 0 — audit and correctness.
+**Current status:** Phase 0 — final audit and synchronization preparation.
 
 ## Objective
 Build an academic binary EEG-window seizure detection system. This is seizure detection, not prediction of a future seizure. It is not a medical device and must not be used for diagnosis or treatment decisions.
@@ -12,15 +12,41 @@ Proposed primary model: EEG preprocessing and channel harmonization → training
 
 Required baselines and ablations: feature-based SVM/Random Forest, 1D CNN, CNN+BiLSTM, and CNN+BiLSTM+attention. This architecture is a research hypothesis; compare all models under identical subject-wise splits.
 
-## Data and preprocessing
-Initial dataset: CHB-MIT Scalp EEG. The current repository contains selected EDF and summary files under CHB01–CHB03; completeness and processed outputs have not been established. Current code settings include 10-second windows, 5-second stride, 0.5–40 Hz bandpass and 60 Hz notch. Validate these choices against the data and sampling rate.
+## Current verified data subset
+The working repository currently contains 10 selected EDF recordings from CHB01–CHB03:
+- CHB01: 8 EDFs.
+- CHB02: 1 EDF.
+- CHB03: 1 EDF.
 
-Rules:
+All 10 inspected recordings have 256 Hz sampling, 23 raw channels, and the same 17 selected EEG channels. Nine recordings are 3,600 seconds; `chb01_26.edf` is 2,325 seconds. No resampling was needed for this inspected subset.
+
+Verified preprocessing settings:
+- 10-second windows.
+- 5-second stride (50% overlap).
+- Fourth-order Butterworth bandpass: 0.5–40 Hz.
+- Optional 60 Hz notch (skipped if at/above Nyquist).
+- Median/IQR normalization computed over each complete recording (offline, non-causal).
+
+Verified generated dataset:
+| Subject | Recordings | Windows | Normal | Seizure |
+|---|---:|---:|---:|---:|
+| CHB01 | 8 | 5,497 | 5,397 | 100 |
+| CHB02 | 1 | 719 | 719 | 0 |
+| CHB03 | 1 | 719 | 707 | 12 |
+| **Total** | **10** | **6,935** | **6,823** | **112** |
+
+All 10 NPZ files and 10 metadata CSV files passed checks for expected dimensions, finite EEG values, binary labels, matching row counts, matching labels/timestamps and no missing CSV values. The current selected subset has approximately 1.61% seizure windows.
+
+**Scope warning:** This is a small, selected subset covering only three subjects. It is suitable for pipeline verification, not for claiming robust patient-independent seizure detection or generalization.
+
+## Data and preprocessing rules
 - Parse real CHB-MIT seizure start/end annotation formats correctly. Never silently convert annotation failures into non-seizure labels.
 - Retain subject ID, EDF filename, recording ID, window start/end, sampling rate, channels and label in metadata.
 - Never randomly split overlapping windows from the same patient across train and test.
 - Fit normalization, channel/feature selection, class weights, thresholds and hyperparameters using training/validation subjects only. Never fit them on a held-out test subject.
 - Record exclusions and their reasons.
+- Re-check sampling rates and channel availability when expanding beyond the currently inspected 10 EDFs.
+- Current whole-recording median/IQR normalization is offline and non-causal. Revisit its suitability for the chosen evaluation protocol and make inference preprocessing consistent with training.
 
 ## Evaluation
 Preferred protocol: Leave-One-Subject-Out (LOSO), with patient-wise validation inside the training subjects. If cohort size makes this unstable, report limitations and use an explicitly defined grouped split; do not use random window splits.
@@ -39,21 +65,21 @@ Add SHAP or another justified method only after model selection and evaluation a
 - Inference preprocessing must match validated training preprocessing.
 - UI must call outputs model estimates, not diagnoses.
 
-React is a proposed direction; no completed React application was found in the inspected tree.
-
 ## Execution roadmap
-### Phase 0 — audit and correctness (CURRENT)
-- [ ] Verify layout, imports and paths.
-- [ ] Correct CHB-MIT annotation parsing against actual summaries.
-- [ ] Add tests for seizure/non-seizure recordings, missing/malformed annotations and interval boundaries.
-- [ ] Validate channel matching, filtering, resampling and normalization policy.
-- [ ] Correct .gitignore scope for dataset/generated artifacts.
-- [ ] Decide raw EDF storage/distribution policy.
-- [ ] Reproduce previously reported CHB01 processing counts from a clean run.
+### Phase 0 — audit and correctness
+- [x] Verify layout, imports and paths.
+- [x] Correct CHB-MIT annotation parsing against actual summaries.
+- [x] Add tests for annotation parsing and edge cases.
+- [x] Validate channel matching, filtering, segmentation and normalization behavior for the current subset.
+- [x] Reproduce CHB01 processing counts from a clean processed-output run.
+- [x] Finalize raw EDF provenance/license and storage/distribution policy; keep raw EDFs out of Git and preserve local copies.
+- [x] Correct README dataset path, repository links, documentation links, and setup examples to match the verified folder layout.
+- [ ] Synchronize to the original repository and complete its clean-checkout/test verification.
 
 ### Phase 1 — multi-subject preparation
+- [ ] Expand and document a justified subject/recording cohort.
 - [ ] Create subject/recording inventory and annotation audit.
-- [ ] Process a defined cohort reproducibly.
+- [ ] Process the defined cohort reproducibly.
 - [ ] Export windows with traceable metadata.
 - [ ] Generate subject/class distribution and quality-control report.
 
@@ -99,16 +125,24 @@ React is a proposed direction; no completed React application was found in the i
 - [ ] Prepare report, presentation, diagrams and demo.
 - [ ] Document dataset provenance, ethics, limits and contributions.
 
-## Audit findings to verify before code changes
-1. Current parser uses numbered keys such as `Seizure 1 Start Time`; CHB-MIT summaries may use unnumbered `Seizure Start Time` / `Seizure End Time`. The parser in this repository still uses numbered-only regexes.
-2. `config.py` derives `dataset` beneath the code folder, but the tree places `dataset` beside `EEG_Seizure_Detection` under `EEG_Seizure_Detection_Phase1`. Confirm and correct.
-3. README setup commands and Python import/package conventions need verification against actual run paths.
-4. Channel selection exists as a separate module; integration into the active pipeline is not yet established.
-5. Earlier reported CHB01 counts: 8 EDFs, 5,497 windows (5,397 normal; 100 seizure), 17 channels, 256 Hz, 10s windows and 5s stride. These are **reported but not independently reproduced**.
-6. Raw EDF binaries exist in the repository. Review provenance, dataset terms, repository size and storage before adding more.
+## Dataset provenance and distribution policy
+- Source: [CHB-MIT Scalp EEG Database, PhysioNet v1.0.0](https://physionet.org/content/chbmit/1.0.0/).
+- DOI: `10.13026/C2K01R`.
+- PhysioNet lists the [Open Data Commons Attribution License v1.0 (ODC-By)](https://physionet.org/content/chbmit/view-license/1.0.0/).
+- ODC-By governs rights in the database; the license text says it does not automatically cover separate rights in individual contents. This project records the dataset's stated database license but does not make a blanket legal determination about every recording.
+- Raw EDFs and subject summary files are excluded from the current Git tree. Local copies remain available to the developer, and the root `.gitignore` prevents accidental recommit.
+- Do not copy raw EDFs or summary files into the original team repository. Team members should download the dataset from PhysioNet independently and preserve attribution/license notices.
+- If the database or a derivative database is publicly conveyed, follow ODC-By notice and license requirements. If produced works are publicly used, include the source/license notice required by the license. Cite PhysioNet in reports and project documentation.
+- Commit `abfd931` removed 10 EDFs and 3 summary files from current Git tracking. Earlier Git history still contains the prior versions; no history rewrite was performed.
+
+## Remaining audit items
+1. The active `main.py --all` loop catches per-file exceptions and prints `SKIPPED`; future larger-cohort runs must record and audit skips explicitly.
+2. The selected montage's `T8-P8` channel was not present under the expected name in the inspected recordings; the 17 selected channels were otherwise consistent.
+3. Channel ranking exists as a helper and must be integrated only inside training folds, never globally before splitting.
+4. The original `student-anshu/EEG-seizure-detection` repository remains untouched until synchronization and verification are explicitly completed.
 
 ## Upstream synchronization policy
-Develop and test in `shivkumar15/EEG` first. The original `student-anshu/EEG-seizure-detection` repository remains untouched unless a separate successful upstream update is explicitly performed. For every code change, record exact paths, rationale, test commands/results and a copy-ready patch in `docs/CHANGELOG_FOR_UPSTREAM.md`. Never claim an upstream change was made unless verified. Do not sync secrets, local environments, generated data, raw EEG or model weights without an explicit decision.
+Develop and test in `shivkumar15/EEG` first. Once Phase 0 is complete, back up the original code folder, copy the verified code folder, preserve the original dataset, and exclude virtual environments and generated outputs. Review the diff, commit/push to the original repository, then run the complete tests and `python main.py --inspect` there. Never claim the original repository was updated until confirmed.
 
 ## Working rules
-One phase at a time. Do not train before annotation correctness is established. Every change needs a test or explanation of why testing is unavailable. Distinguish verified results from plans, assumptions and unverified reports. Explain each change and exactly what the user must mirror upstream.
+One phase at a time. Do not train before annotation correctness, cohort design and leakage-safe splitting are established. Every change needs a test or explanation of why testing is unavailable. Distinguish verified results from plans, assumptions and unverified reports.

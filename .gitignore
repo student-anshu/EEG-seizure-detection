@@ -1,0 +1,22 @@
+# Python virtual environments
+.venv/
+.venv311/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Generated files
+*.log
+.pytest_cache/
+.mypy_cache/
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+# CHB-MIT raw dataset (keep local; do not commit)
+EEG_Seizure_Detection_Phase1/dataset/chbmit/
