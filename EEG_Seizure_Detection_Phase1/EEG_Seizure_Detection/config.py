@@ -1,7 +1,7 @@
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-DATASET_DIR = PROJECT_ROOT / "dataset" / "chbmit"
+DATASET_DIR = PROJECT_ROOT.parent / "dataset" / "chbmit"
 PROCESSED_DIR = PROJECT_ROOT / "processed"
 LOG_DIR = PROJECT_ROOT / "logs"
 
