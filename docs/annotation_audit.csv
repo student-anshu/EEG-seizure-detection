@@ -1,0 +1,11 @@
+subject,recording,status,seizure_count,intervals,error
+chb01,chb01_01.edf,OK,0,,
+chb01,chb01_03.edf,OK,1,2996.0-3036.0,
+chb01,chb01_04.edf,OK,1,1467.0-1494.0,
+chb01,chb01_15.edf,OK,1,1732.0-1772.0,
+chb01,chb01_16.edf,OK,1,1015.0-1066.0,
+chb01,chb01_18.edf,OK,1,1720.0-1810.0,
+chb01,chb01_21.edf,OK,1,327.0-420.0,
+chb01,chb01_26.edf,OK,1,1862.0-1963.0,
+chb02,chb02_01.edf,OK,0,,
+chb03,chb03_01.edf,OK,1,362.0-414.0,
