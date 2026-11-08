@@ -1,0 +1,27 @@
+Cache directory exists: True
+manifest.json exists: True
+X.npy exists: True
+y.npy exists: True
+
+=== MANIFEST ===
+{
+  "signature": "b917b4b378a3220294a9cd9311b54dc6d7ec981ec266660e0262d360e8cd0dc2",
+  "shape": [
+    216005,
+    170
+  ],
+  "completed_recordings": 139,
+  "cursor": 216005,
+  "complete": true
+}
+
+=== ARRAY INFORMATION ===
+X shape: (216005, 170), dtype: float32
+y shape: (216005,), dtype: int8
+
+=== VALIDATION CHECKS ===
+Labels binary: True
+Positive labels: 514
+Negative labels: 215491
+All feature values finite: True
+Labels match saved validation scores: True

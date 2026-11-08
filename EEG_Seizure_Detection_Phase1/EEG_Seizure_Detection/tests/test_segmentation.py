@@ -53,5 +53,30 @@ class MakeWindowsTests(unittest.TestCase):
             make_windows(data, 1, [])
 
 
+    def test_window_starting_exactly_at_seizure_end_is_negative(self):
+        data = np.zeros((1, 30), dtype=np.float32)
+        _, labels, starts = make_windows(
+            data, 1, [(10, 20)], window_seconds=10, stride_seconds=10
+        )
+        np.testing.assert_array_equal(starts, [0, 10, 20])
+        np.testing.assert_array_equal(labels, [0, 1, 0])
+
+    def test_partial_overlap_at_both_seizure_boundaries_is_positive(self):
+        data = np.zeros((1, 40), dtype=np.float32)
+        _, labels, starts = make_windows(
+            data, 1, [(12, 28)], window_seconds=10, stride_seconds=5
+        )
+        np.testing.assert_array_equal(starts, [0, 5, 10, 15, 20, 25, 30])
+        np.testing.assert_array_equal(labels, [0, 1, 1, 1, 1, 1, 0])
+
+    def test_multiple_seizure_intervals_are_labelled(self):
+        data = np.zeros((1, 50), dtype=np.float32)
+        _, labels, starts = make_windows(
+            data, 1, [(6, 9), (31, 34)], window_seconds=10, stride_seconds=10
+        )
+        np.testing.assert_array_equal(starts, [0, 10, 20, 30, 40])
+        np.testing.assert_array_equal(labels, [1, 0, 0, 1, 0])
+
+
 if __name__ == "__main__":
     unittest.main()

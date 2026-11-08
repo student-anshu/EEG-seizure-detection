@@ -1,0 +1,1018 @@
+===========================================================================
+PROCESSED RECORDING LOADER
+===========================================================================
+1: """Leakage-safe, recording-at-a-time data preparation for one LOPO fold."""
+2: from __future__ import annotations
+3: 
+4: from dataclasses import dataclass
+5: from pathlib import Path
+6: from typing import Iterator
+7: 
+8: import numpy as np
+9: 
+10: from config import PREFERRED_CHANNELS
+11: from data_management.dataset_split import LopoFold
+12: from data_management.patient_mapping import Recording
+13: from data_management.validation_split import build_patient_validation_split
+14: from feature_selection.feature_extraction import FEATURE_NAMES, extract_features
+15: from preprocessing.normalization import (
+16:     FoldChannelStandardizer, scaler_checkpoint_signature,
+17: )
+18: 
+19: _NORMALIZATION_POLICY = "none_fold_train_only_scaling_required"
+20: _REQUIRED_ARRAYS = {
+21:     "X", "y", "starts", "channels", "sfreq", "subject",
+22:     "source_file", "normalization",
+23: }
+24: 
+25: 
+26: @dataclass(frozen=True, slots=True)
+27: class RecordingWindows:
+28:     recording: Recording
+29:     X: np.ndarray
+30:     y: np.ndarray
+31:     starts: np.ndarray
+32:     sfreq: float
+33: 
+34: 
+35: @dataclass(frozen=True, slots=True)
+36: class RecordingFeatures:
+37:     """Features and aligned labels/metadata for one recording."""
+38: 
+39:     recording: Recording
+40:     features: np.ndarray
+41:     y: np.ndarray
+42:     starts: np.ndarray
+43:     sfreq: float
+44: 
+45: 
+46: @dataclass(frozen=True, slots=True)
+47: class PreparedFold:
+48:     fold_id: int
+49:     test_patient_id: str
+50:     fit_recordings: tuple[Recording, ...]
+51:     validation_recordings: tuple[Recording, ...]
+52:     test_recordings: tuple[Recording, ...]
+53:     standardizer: FoldChannelStandardizer
+54:     processed_dir: Path
+55: 
+56:     def iter_split(self, split: str) -> Iterator[RecordingWindows]:
+57:         """Stream fold-standardized EEG windows, one recording at a time."""
+58:         groups = {
+59:             "fit": self.fit_recordings,
+60:             "validation": self.validation_recordings,
+61:             "test": self.test_recordings,
+62:         }
+63:         if split not in groups:
+64:             raise ValueError("split must be one of: fit, validation, test")
+65:         for recording in groups[split]:
+66:             item = load_recording_windows(self.processed_dir, recording)
+67:             yield RecordingWindows(
+68:                 recording, self.standardizer.transform(item.X),
+69:                 item.y, item.starts, item.sfreq,
+70:             )
+71: 
+72:     def iter_features(self, split: str) -> Iterator[RecordingFeatures]:
+73:         """Stream deterministic feature matrices, one recording at a time.
+74: 
+75:         Channel standardization is applied by iter_split before extraction.
+76:         The extractor itself does not fit on labels or data, so validation
+77:         and outer-test recordings cannot influence fitted preprocessing.
+78:         """
+79:         expected_features = len(PREFERRED_CHANNELS) * len(FEATURE_NAMES)
+80:         for item in self.iter_split(split):
+81:             matrix = extract_features(item.X, item.sfreq)
+82:             if matrix.shape != (len(item.y), expected_features):
+83:                 raise RuntimeError(
+84:                     "Feature extractor returned an unexpected shape: "
+85:                     f"{matrix.shape}; expected ({len(item.y)}, {expected_features})."
+86:                 )
+87:             if matrix.dtype != np.float32 or not np.isfinite(matrix).all():
+88:                 raise RuntimeError("Feature matrix must be finite float32.")
+89:             yield RecordingFeatures(
+90:                 item.recording, matrix, item.y, item.starts, item.sfreq
+91:             )
+92: 
+93: 
+94: def processed_path_for_recording(processed_dir: str | Path, recording: Recording) -> Path:
+95:     return Path(processed_dir) / f"{recording.subject}_{Path(recording.edf_file).stem}.npz"
+96: 
+97: 
+98: def load_recording_windows(processed_dir: str | Path, recording: Recording) -> RecordingWindows:
+99:     path = processed_path_for_recording(processed_dir, recording)
+100:     if not path.is_file():
+101:         raise FileNotFoundError(
+102:             f"Processed windows missing for {recording.relative_path}: {path}"
+103:         )
+104:     with np.load(path, allow_pickle=False) as saved:
+105:         missing = _REQUIRED_ARRAYS - set(saved.files)
+106:         if missing:
+107:             raise ValueError(f"{path.name} is missing arrays: {', '.join(sorted(missing))}")
+108:         X = np.asarray(saved["X"])
+109:         y = np.asarray(saved["y"])
+110:         starts = np.asarray(saved["starts"], dtype=np.float64)
+111:         channels = [str(value) for value in saved["channels"].tolist()]
+112:         sfreq = float(saved["sfreq"])
+113:         subject = str(saved["subject"])
+114:         source_file = str(saved["source_file"])
+115:         normalization = str(saved["normalization"])
+116: 
+117:     if subject != recording.subject or source_file != recording.edf_file:
+118:         raise ValueError(f"Saved recording identity does not match manifest: {path.name}")
+119:     if normalization != _NORMALIZATION_POLICY:
+120:         raise ValueError(
+121:             f"{path.name} uses incompatible normalization policy; regenerate windows."
+122:         )
+123:     if channels != list(PREFERRED_CHANNELS):
+124:         raise ValueError(f"{path.name} does not use the configured fixed channel order.")
+125:     if X.ndim != 3 or X.shape[1] != len(PREFERRED_CHANNELS):
+126:         raise ValueError(f"{path.name} has invalid X shape {X.shape}.")
+127:     if y.ndim != 1 or starts.ndim != 1 or len(X) != len(y) or len(y) != len(starts):
+128:         raise ValueError(f"{path.name} has inconsistent X/y/starts lengths.")
+129:     if len(y) == 0 or not np.isin(y, [0, 1]).all():
+130:         raise ValueError(f"{path.name} has empty or non-binary labels.")
+131:     if not np.isfinite(X).all() or not np.isfinite(starts).all() or not np.isfinite(sfreq):
+132:         raise ValueError(f"{path.name} contains non-finite values.")
+133:     if sfreq <= 0:
+134:         raise ValueError(f"{path.name} has invalid sampling frequency.")
+135:     if bool(np.any(y == 1)) != (recording.seizure_count > 0):
+136:         raise ValueError(
+137:             f"{path.name} labels disagree with audited seizure annotation presence."
+138:         )
+139:     return RecordingWindows(recording, X, y.astype(np.int64), starts, sfreq)
+140: 
+141: 
+142: def prepare_lopo_fold(
+143:     fold: LopoFold,
+144:     processed_dir: str | Path,
+145:     validation_fraction: float = 0.2,
+146:     random_state: int = 42,
+147:     scaler_checkpoint_dir: str | Path | None = None,
+148: ) -> PreparedFold:
+149:     """Split outer-training patients, then fit scaler on inner-fit recordings only."""
+150:     train_patients = {item.patient_id for item in fold.train_recordings}
+151:     test_patients = {item.patient_id for item in fold.test_recordings}
+152:     if test_patients != {fold.test_patient_id}:
+153:         raise ValueError("Outer fold test recordings do not match its test patient.")
+154:     if train_patients & test_patients:
+155:         raise ValueError("Patient leakage detected in supplied outer fold.")
+156: 
+157:     inner = build_patient_validation_split(
+158:         fold.train_recordings, validation_fraction, random_state
+159:     )
+160:     fit_patients = set(inner.train_patient_ids)
+161:     validation_patients = set(inner.validation_patient_ids)
+162:     if fit_patients & validation_patients or fit_patients & test_patients:
+163:         raise RuntimeError("Patient leakage detected before normalization fitting.")
+164:     if validation_patients & test_patients:
+165:         raise RuntimeError("Outer test patient entered inner validation.")
+166: 
+167:     directory = Path(processed_dir)
+168:     scaler = FoldChannelStandardizer()
+169: 
+170:     def training_batches(start_index=0):
+171:         for recording in inner.train_recordings[start_index:]:
+172:             yield load_recording_windows(directory, recording).X
+173: 
+174:     if scaler_checkpoint_dir is None:
+175:         scaler.fit_batches(training_batches())
+176:     else:
+177:         checkpoint_context = {
+178:             "stage": "inner_fit_channel_scaler",
+179:             "fold_id": fold.fold_id,
+180:             "outer_test_patient": fold.test_patient_id,
+181:             "inner_fit_patients": sorted(fit_patients),
+182:             "inner_validation_patients": sorted(validation_patients),
+183:             "random_state": int(random_state),
+184:             "validation_fraction": float(validation_fraction),
+185:         }
+186:         signature = scaler_checkpoint_signature(
+187:             inner.train_recordings, directory, checkpoint_context, scaler.epsilon
+188:         )
+189:         scaler.fit_batches_checkpointed(
+190:             training_batches,
+191:             total_batches=len(inner.train_recordings),
+192:             checkpoint_dir=scaler_checkpoint_dir,
+193:             signature=signature,
+194:             progress_label="inner-fit channel-scaler fit",
+195:         )
+196:     return PreparedFold(
+197:         fold.fold_id, fold.test_patient_id,
+198:         inner.train_recordings, inner.validation_recordings,
+199:         fold.test_recordings, scaler, directory,
+200:     )
+
+===========================================================================
+ROBUST EXPERIMENT REFERENCES
+===========================================================================
+
+FILE: scripts\audit_cross_patient_feature_stability.py
+...
+88:     return X, y, manifest
+89: 
+90: 
+91: def _build_patient_segments(outer_train, audit_path: Path):
+92:     split = build_patient_validation_split(
+93:         outer_train, validation_fraction=0.2, random_state=RANDOM_STATE
+94:     )
+95:     fit_x, fit_y, fit_manifest = _load_feature_split(ROBUST_ROOT / "inner_fit")
+96:     val_x, val_y, val_manifest = _load_feature_split(ROBUST_ROOT / "inner_validation")
+97:     segments: dict[str, list[dict]] = {}
+98:     seen_paths: set[str] = set()
+99: 
+100:     for split_name, source_x, source_y, records in (
+101:         ("inner_fit", fit_x, fit_y, split.train_recordings),
+102:         ("inner_validation", val_x, val_y, split.validation_recordings),
+103:     ):
+104:         cursor = 0
+105:         for rec in records:
+106:             if rec.patient_id == "patient_01":
+107:                 raise RuntimeError("Sealed patient_01 appeared in a feature-cache split")
+108:             if rec.relative_path in seen_paths:
+109:                 raise RuntimeError(f"Duplicate recording in cache ordering: {rec.relative_path}")
+110:             source = processed_path_for_recording(ROOT / "processed", rec)
+111:             with np.load(source, allow_pickle=False) as saved:
+112:                 labels = np.asarray(saved["y"], dtype=np.int8)
+113:             end = cursor + len(labels)
+114:             if end > len(source_y) or not np.array_equal(source_y[cursor:end], labels):
+115:                 raise RuntimeError(f"Feature/label row alignment mismatch: {rec.relative_path}")
+116:             if bool(np.any(labels == 1)) != (rec.seizure_count > 0):
+...
+307:             "recordings": len(outer.train_recordings),
+308:             "windows": int(sum(row["window_count"] for row in patient_summary)),
+309:             "positive_windows": int(sum(row["positive_windows"] for row in patient_summary)),
+310:             "feature_count": FEATURE_COUNT,
+311:             "channel_count": len(PREFERRED_CHANNELS),
+312:         },
+313:         "cache_signatures": {
+314:             "inner_fit": fit_manifest.get("signature"),
+315:             "inner_validation": val_manifest.get("signature"),
+316:         },
+317:         "method": {
+318:             "feature_source": "existing robust_feature_first_fold_v1 inner_fit and inner_validation caches",
+319:             "row_alignment": "Every recording label vector checked against its processed NPZ before inclusion",
+320:             "patient_weighting": "Cross-patient reference uses one median per patient, not pooled windows",
+321:             "shift_metric": "Patient median minus peer-patient median, divided by peer-patient IQR",
+322:             "zero_peer_iqr": "Effect left null; no division by zero",
+323:             "window_dependence": "10-second windows with 5-second stride overlap and are correlated",
+324:         },
+325:         "oof_ranking_context": {
+326:             "source": "existing inner OOF report; descriptive only",
+327:             "patient_metrics": oof_metrics,
+328:         },
+329:         "largest_descriptive_shifts": ranked[:30],
+330:         "files": {
+331:             "patient_feature_distributions": str(feature_csv.relative_to(ROOT)),
+332:             "patient_cohort_summary": str(patient_csv.relative_to(ROOT)),
+
+FILE: scripts\build_oof_recording_stats_cache.py
+...
+21: 
+22: PROJECT_ROOT = Path(__file__).resolve().parents[1]
+23: if str(PROJECT_ROOT) not in sys.path:
+24:     sys.path.insert(0, str(PROJECT_ROOT))
+25: 
+26: from config import PROCESSED_DIR, PREFERRED_CHANNELS
+27: from data_management.cohort import filter_primary_cohort
+28: from data_management.dataset_split import build_lopo_folds
+29: from data_management.fold_data import load_recording_windows, processed_path_for_recording
+30: from data_management.patient_mapping import load_recording_manifest
+31: from evaluation.oof_scaler_cache import channel_sufficient_statistics
+32: 
+33: CACHE_VERSION = "oof_recording_channel_stats_v1"
+34: 
+35: 
+36: def _atomic_json(path: Path, payload: dict) -> None:
+37:     path.parent.mkdir(parents=True, exist_ok=True)
+38:     temporary = path.with_suffix(path.suffix + ".tmp")
+39:     temporary.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+40:     os.replace(temporary, path)
+41: 
+42: 
+43: def _artifact_name(relative_path: str) -> str:
+...
+83:                         and saved["m2"].shape == (len(PREFERRED_CHANNELS),)
+84:                         and np.isfinite(saved["mean"]).all()
+85:                         and np.isfinite(saved["m2"]).all()
+86:                         and np.all(saved["m2"] >= 0)
+87:                     )
+88:             except (OSError, EOFError, ValueError, KeyError, zipfile.BadZipFile):
+89:                 valid = False
+90:         if not valid:
+91:             item = load_recording_windows(PROCESSED_DIR, recording)
+92:             state = channel_sufficient_statistics(item.X)
+93:             if len(item.y) == 0:
+94:                 raise RuntimeError(f"Empty recording windows: {recording.relative_path}")
+95:             temporary = artifact.with_suffix(".npz.tmp")
+96:             with temporary.open("wb") as handle:
+97:                 np.savez_compressed(
+98:                     handle,
+99:                     signature=np.asarray(signature),
+100:                     count=np.asarray(state["count"], dtype=np.int64),
+101:                     mean=state["mean"], m2=state["m2"],
+102:                 )
+103:                 handle.flush()
+104:                 os.fsync(handle.fileno())
+105:             os.replace(temporary, artifact)
+
+FILE: scripts\build_oof_window_std_cache.py
+...
+6: import numpy as np
+7: 
+8: ROOT = Path(__file__).resolve().parents[1]
+9: if str(ROOT) not in sys.path:
+10:     sys.path.insert(0, str(ROOT))
+11: from config import PROCESSED_DIR, PREFERRED_CHANNELS
+12: from data_management.cohort import filter_primary_cohort
+13: from data_management.dataset_split import build_lopo_folds
+14: from data_management.fold_data import load_recording_windows, processed_path_for_recording
+15: from data_management.patient_mapping import load_recording_manifest
+16: from evaluation.oof_scaler_cache import window_channel_standard_deviations
+17: 
+18: VERSION = "oof_window_channel_std_v1"
+19: 
+20: def atomic_json(path, value):
+21:     path.parent.mkdir(parents=True, exist_ok=True)
+22:     temp = path.with_suffix(path.suffix + ".tmp")
+23:     temp.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+24:     os.replace(temp, path)
+25: 
+26: def build(audit, cache):
+27:     recordings = filter_primary_cohort(load_recording_manifest(audit))
+28:     fold = build_lopo_folds(recordings)[0]
+...
+48:                     a = z["std"]
+49:                     valid = (str(z["signature"].item()) == signature and a.ndim == 2
+50:                              and int(z["window_count"]) == a.shape[0]
+51:                              and a.shape[1] == len(PREFERRED_CHANNELS) and a.shape[0] > 0
+52:                              and a.dtype == np.float32 and np.isfinite(a).all() and np.all(a >= 0))
+53:             except (OSError, EOFError, ValueError, KeyError, zipfile.BadZipFile):
+54:                 valid = False
+55:         if not valid:
+56:             item = load_recording_windows(PROCESSED_DIR, rec)
+57:             std = window_channel_standard_deviations(item.X, chunk_size=256)
+58:             if len(std) != len(item.y):
+59:                 raise RuntimeError("Window/std alignment mismatch: " + rec.relative_path)
+60:             tmp = artifact.with_suffix(".npz.tmp")
+61:             with tmp.open("wb") as h:
+62:                 np.savez_compressed(h, signature=np.asarray(signature), std=std,
+63:                                     window_count=np.asarray(len(std), dtype=np.int64))
+64:                 h.flush()
+65:                 os.fsync(h.fileno())
+66:             os.replace(tmp, artifact)
+67:             del item, std
+68:         with np.load(artifact, allow_pickle=False) as z:
+69:             count = int(z["window_count"])
+70:             if z["std"].shape != (count, len(PREFERRED_CHANNELS)):
+
+FILE: scripts\diagnose_patient14_features.py
+...
+23: 
+24: ROOT = Path(__file__).resolve().parents[1]
+25: if str(ROOT) not in sys.path:
+26:     sys.path.insert(0, str(ROOT))
+27: 
+28: from config import PROCESSED_DIR, PREFERRED_CHANNELS
+29: from data_management.cohort import filter_primary_cohort
+30: from data_management.dataset_split import build_lopo_folds
+31: from data_management.fold_data import load_recording_windows
+32: from data_management.patient_mapping import load_recording_manifest
+33: from feature_selection.robust_feature_extraction import (
+34:     ROBUST_FEATURE_NAMES, extract_robust_features,
+35: )
+36: from scripts.run_inner_patient_oof import (
+37:     aggregate_patient_statistics, prepare_base_rows, fold_channel_scale,
+38: )
+39: 
+40: PATIENT = "patient_14"
+41: OOF_ROOT = ROOT / "cache" / "oof_patient_scores_v1"
+42: ROBUST_ROOT = ROOT / "cache" / "robust_feature_first_fold_v1"
+43: STATS_ROOT = ROOT / "cache" / "oof_recording_stats_v1"
+44: OUTPUT_ROOT = ROOT / "results" / "diagnostics"
+45: 
+46: 
+47: def _json_value(value):
+48:     if isinstance(value, (np.integer,)):
+...
+109:     labels_all, scores_all, offsets = _validate_fold_artifact(
+110:         OOF_ROOT / "folds" / f"{PATIENT}.npz", patient_recordings
+111:     )
+112: 
+113:     feature_rows = []
+114:     invariance_rows = []
+115:     recording_summary = []
+116:     for rec in patient_recordings:
+117:         windows = load_recording_windows(PROCESSED_DIR, rec)
+118:         start, end = offsets[rec.relative_path]
+119:         if end - start != len(windows.y):
+120:             raise RuntimeError(f"OOF window count mismatch: {rec.relative_path}")
+121:         if not np.array_equal(labels_all[start:end], windows.y.astype(np.int8)):
+122:             raise RuntimeError(f"OOF labels do not align with processed labels: {rec.relative_path}")
+123: 
+124:         source_x, source_y, base_start, base_end = row_lookup[rec.relative_path]
+125:         if base_end - base_start != len(windows.y):
+126:             raise RuntimeError(f"Base feature row count mismatch: {rec.relative_path}")
+127:         if not np.array_equal(source_y[base_start:base_end], windows.y.astype(np.int8)):
+128:             raise RuntimeError(f"Base feature labels do not align: {rec.relative_path}")
+129: 
+130:         standardized = (
+131:             (windows.X.astype(np.float64) - fold_mean[None, :, None])
+132:             / fold_scale[None, :, None]
+133:         ).astype(np.float32)
+134:         recomputed = extract_robust_features(standardized, windows.sfreq, chunk_size=128)
+135:         if recomputed.shape != (len(windows.y), len(PREFERRED_CHANNELS) * len(ROBUST_FEATURE_NAMES)):
+136:             raise RuntimeError(f"Unexpected recomputed feature shape: {rec.relative_path}")
+137:         if not np.isfinite(recomputed).all():
+138:             raise RuntimeError(f"Non-finite recomputed features: {rec.relative_path}")
+139: 
+140:         cached = np.asarray(source_x[base_start:base_end], dtype=np.float32)
+141:         # Compare features 1..9 per channel. log_std is intentionally fold-specific.
+142:         for channel_index, channel in enumerate(PREFERRED_CHANNELS):
+143:             for feature_index, feature_name in enumerate(ROBUST_FEATURE_NAMES[1:], start=1):
+144:                 column = channel_index * len(ROBUST_FEATURE_NAMES) + feature_index
+145:                 delta = np.abs(recomputed[:, column].astype(np.float64)
+146:                                - cached[:, column].astype(np.float64))
+147:                 invariance_rows.append({
+148:                     "recording": rec.relative_path,
+
+FILE: scripts\evaluate_first_fold_events.py
+...
+235:         fold.train_recordings, validation_fraction=0.2, random_state=RANDOM_STATE
+236:     )
+237:     context = _build_checkpoint_context(fold, inner_split, RANDOM_STATE)
+238:     root = checkpoint_dir or (
+239:         result_path.parent / "checkpoints"
+240:         / "first_fold_patient_01_logistic_regression_f1_f2_v1"
+241:     )
+242:     store = ModelStageCheckpointStore(root, context)
+243:     validation_scores = store.load_scores("inner_validation_scores")
+244:     outer_scores = store.load_scores("outer_test_scores")
+245:     if validation_scores is None or outer_scores is None:
+246:         raise RuntimeError(
+247:             "Required durable score artifacts are missing, corrupt, or have an "
+248:             "incompatible signature. No model training was attempted."
+249:         )
+250:     if not result_path.is_file():
+251:         raise FileNotFoundError(f"First-fold result JSON not found: {result_path}")
+252:     baseline = json.loads(result_path.read_text(encoding="utf-8"))
+253:     if (
+254:         baseline.get("status") != "completed"
+255:         or baseline.get("fold_id") != fold.fold_id
+256:         or baseline.get("held_out_patient") != fold.test_patient_id
+257:     ):
+...
+290:             "merge_gap_seconds": 0.0,
+291:             "positive_window_rule": "score >= inner-validation-selected threshold",
+292:             "event_match": "any half-open interval overlap",
+293:         },
+294:         "thresholds": thresholds,
+295:         "validation": {
+296:             "f1_threshold": _evaluate_threshold(
+297:                 inner_split.validation_recordings, validation_y, validation_values,
+298:                 processed_dir, thresholds["validation_f1"], "inner_validation", duration_by_path,
+299:             ),
+300:             "f2_threshold": _evaluate_threshold(
+301:                 inner_split.validation_recordings, validation_y, validation_values,
+302:                 processed_dir, thresholds["validation_f2"], "inner_validation", duration_by_path,
+303:             ),
+304:         },
+305:         "outer_test": {
+306:             "f1_threshold": _evaluate_threshold(
+307:                 fold.test_recordings, test_y, test_values,
+308:                 processed_dir, thresholds["validation_f1"], "outer_test", duration_by_path,
+309:             ),
+310:             "f2_threshold": _evaluate_threshold(
+311:                 fold.test_recordings, test_y, test_values,
+312:                 processed_dir, thresholds["validation_f2"], "outer_test", duration_by_path,
+313:             ),
+314:         },
+315:         "limitations": [
+316:             "Only the first LOPO fold is evaluated; this is not a 23-patient result.",
+
+FILE: scripts\evaluate_robust_first_fold_events.py
+...
+75:     validation_y, validation_scores = _load_scores(score_dir / "validation_scores.npz")
+76:     test_y, test_scores = _load_scores(score_dir / "outer_test_scores.npz")
+77:     if inventory_path is None:
+78:         inventory_path = Path(__file__).resolve().parents[3] / "docs" / "signal_inventory.csv"
+79:     duration_by_path, duration_audit = load_recording_durations(inventory_path, recordings)
+80: 
+81:     validation = _evaluate_threshold(
+82:         inner_split.validation_recordings, validation_y, validation_scores,
+83:         processed_dir, threshold, "robust_inner_validation", duration_by_path,
+84:     )
+85:     outer_test = _evaluate_threshold(
+86:         fold.test_recordings, test_y, test_scores,
+87:         processed_dir, threshold, "robust_outer_test", duration_by_path,
+88:     )
+89:     result = {
+90:         "experiment": "robust_feature_first_fold_event_evaluation",
+91:         "version": "saved_robust_score_event_metrics_v1_exact_inventory_duration",
+92:         "status": "completed",
+93:         "source_experiment_result": str(result_path),
+94:         "score_artifact_directory": str(score_dir),
+95:         "fold_id": fold.fold_id,
+96:         "held_out_patient": fold.test_patient_id,
+97:         "model": "logistic_regression",
+
+FILE: scripts\run_first_baseline_fold.py
+...
+183:         "fold_id": fold.fold_id,
+184:         "held_out_patient": fold.test_patient_id,
+185:         "random_state": int(seed),
+186:         "model": {
+187:             "name": "LogisticRegression", "solver": "liblinear",
+188:             "class_weight": "balanced", "max_iter": 1000,
+189:         },
+190:         "inner_fit": _recording_fingerprint(inner_split.train_recordings),
+191:         "inner_validation": _recording_fingerprint(inner_split.validation_recordings),
+192:         "outer_train": _recording_fingerprint(fold.train_recordings),
+193:         "outer_test": _recording_fingerprint(fold.test_recordings),
+194:         "features": {
+195:             "channels": list(PREFERRED_CHANNELS),
+196:             "feature_names": list(FEATURE_NAMES),
+197:         },
+198:     }
+199: 
+200: 
+201: def run_first_fold(audit_path: Path, output_path: Path, seed: int = RANDOM_STATE):
+202:     started = perf_counter()
+203:     recordings = filter_primary_cohort(load_recording_manifest(audit_path))
+204:     folds = build_lopo_folds(recordings)
+205:     fold = folds[0]
+...
+227:         if not _is_compatible_completed_result(completed_result, fold):
+228:             raise RuntimeError(
+229:                 "A completed durable result has an incompatible or incomplete "
+230:                 "experiment/result schema. Preserve it; do not reuse it as the "
+231:                 "current F1/F2 experiment."
+232:             )
+233:         # A completed result is only reusable when both score artifacts are
+234:         # present and signature/checksum-valid.
+235:         if (completed_store.load_scores("inner_validation_scores") is None
+236:                 or completed_store.load_scores("outer_test_scores") is None):
+237:             raise RuntimeError(
+238:                 "Completed fold result is missing durable score artifacts. "
+239:                 "Preserve it and run a deliberate new experiment with a new "
+240:                 "--output path; do not silently treat summary metrics as recoverable."
+241:             )
+242:         _write_result(output_path, completed_result)
+243:         print(f"Recovered completed fold result: {output_path}", flush=True)
+244:         return completed_result
+245: 
+246:     # A legacy output JSON is not a trusted checkpoint because it has no
+247:     # context signature or artifact manifest. Stop rather than retrain silently.
+248:     _check_existing_completed_result(output_path)
+249: 
+250:     stage_store = ModelStageCheckpointStore(
+251:         cache_root / "model_stages" / "fold_1_logistic_regression_f1_f2_v1",
+252:         checkpoint_context,
+253:     )
+254:     print("Preparing inner fit/validation split and fit-only channel scaler...", flush=True)
+255:     prepared = prepare_lopo_fold(
+256:         fold, PROCESSED_DIR, validation_fraction=0.2, random_state=seed,
+257:         scaler_checkpoint_dir=cache_root / "scalers" / "fold_1_inner_fit",
+258:     )
+259:     print("Extracting/resuming inner-fit features...", flush=True)
+260:     fit_batch = collect_features(
+261:         prepared.fit_recordings, PROCESSED_DIR, prepared.standardizer,
+262:         cache_dir=cache_root, cache_key="inner_fit",
+263:     )
+264:     print("Extracting/resuming inner-validation features...", flush=True)
+265:     validation_batch = collect_features(
+266:         prepared.validation_recordings, PROCESSED_DIR, prepared.standardizer,
+267:         cache_dir=cache_root, cache_key="inner_validation",
+268:     )
+269: 
+270:     inner_model = stage_store.load_estimator("inner_model_fit")
+271:     if inner_model is None:
+272:         print("Fitting inner Logistic Regression (an interrupted fit restarts)...", flush=True)
+273:         inner_model = build_baseline_estimators(random_state=seed)["logistic_regression"]
+274:         inner_model.fit(fit_batch.X, fit_batch.y)
+275:         stage_store.save_estimator("inner_model_fit", inner_model)
+276:     else:
+277:         print("Reusing completed inner Logistic Regression fit checkpoint.", flush=True)
+278: 
+279:     validation_scores = stage_store.load_scores("inner_validation_scores")
+280:     if validation_scores is None:
+281:         print("Scoring inner-validation windows...", flush=True)
+282:         validation_y = np.asarray(validation_batch.y, dtype=np.int8)
+283:         validation_values = positive_scores(inner_model, validation_batch.X)
+284:         stage_store.save_scores("inner_validation_scores", validation_y, validation_values)
+285:     else:
+286:         validation_y, validation_values = validation_scores
+287:         if not np.array_equal(validation_y, validation_batch.y):
+288:             raise RuntimeError("Cached validation labels do not match current validation split")
+289:         print("Reusing completed validation-score checkpoint.", flush=True)
+290:     # Keep a durable copy outside the disposable working cache.
+291:     completed_store.save_scores("inner_validation_scores", validation_y, validation_values)
+292: 
+293:     threshold_payload = stage_store.load_json("inner_validation_threshold")
+294:     if threshold_payload is None:
+295:         from modeling.baseline import choose_f1_threshold
+296:         threshold = choose_f1_threshold(validation_batch.y, validation_values)
+297:         validation_metrics = calculate_metrics(validation_batch.y, validation_values, threshold)
+298:         stage_store.save_json("inner_validation_threshold", {
+299:             "threshold": float(threshold), "metrics": validation_metrics,
+300:             "selection": "maximize validation F1",
+301:         })
+302:     else:
+303:         threshold = float(threshold_payload["threshold"])
+304:         validation_metrics = threshold_payload["metrics"]
+305: 
+306:     f2_threshold_payload = stage_store.load_json("inner_validation_f2_threshold")
+307:     if f2_threshold_payload is None:
+308:         f2_threshold = choose_fbeta_threshold(validation_y, validation_values, beta=2.0)
+309:         validation_metrics_f2 = calculate_metrics(validation_y, validation_values, f2_threshold)
+310:         stage_store.save_json("inner_validation_f2_threshold", {
+311:             "threshold": float(f2_threshold),
+312:             "metrics": validation_metrics_f2,
+313:             "selection": "maximize validation F2 (beta=2)",
+314:             "beta": 2.0,
+315:         })
+316:     else:
+317:         f2_threshold = float(f2_threshold_payload["threshold"])
+318:         validation_metrics_f2 = f2_threshold_payload["metrics"]
+319: 
+320:     print(f"Validation F1 threshold selected: {threshold:.8g}", flush=True)
+321:     print(f"Validation F2 threshold selected: {f2_threshold:.8g}", flush=True)
+322:     print(
+323:         "Validation metrics: "
+324:         + json.dumps(validation_metrics, sort_keys=True),
+...
+388:         "created_at_utc": datetime.now(timezone.utc).isoformat(),
+389:         "fold_id": fold.fold_id,
+390:         "held_out_patient": fold.test_patient_id,
+391:         "primary_cohort": {
+392:             "recordings": len(recordings),
+393:             "patients": len({item.patient_id for item in recordings}),
+394:         },
+395:         "inner_fit": _split_summary(prepared.fit_recordings),
+396:         "inner_validation": _split_summary(prepared.validation_recordings),
+397:         "outer_train": _split_summary(fold.train_recordings),
+398:         "outer_test": _split_summary(fold.test_recordings),
+399:         "model": {
+400:             "name": "LogisticRegression",
+401:             "solver": "liblinear",
+402:             "class_weight": "balanced",
+403:             "max_iter": 1000,
+404:             "random_state": seed,
+405:         },
+406:         "preprocessing": {
+407:             "sampling_rate_hz": 256,
+408:             "window_seconds": 10,
+409:             "stride_seconds": 5,
+410:             "channels": list(PREFERRED_CHANNELS),
+
+FILE: scripts\run_inner_patient_oof.py
+...
+14: from sklearn.preprocessing import StandardScaler
+15: 
+16: ROOT = Path(__file__).resolve().parents[1]
+17: if str(ROOT) not in sys.path:
+18:     sys.path.insert(0, str(ROOT))
+19: from config import PROCESSED_DIR, PREFERRED_CHANNELS, RANDOM_STATE
+20: from data_management.cohort import filter_primary_cohort
+21: from data_management.dataset_split import build_lopo_folds
+22: from data_management.fold_data import load_recording_windows, processed_path_for_recording
+23: from data_management.patient_mapping import load_recording_manifest
+24: from data_management.validation_split import build_patient_validation_split
+25: from evaluation.oof_scaler_cache import (
+26:     exact_log_std_fallback_mask, finalize_channel_statistics,
+27:     log_std_from_raw_standard_deviations, merge_channel_statistics,
+28:     patient_grouped_channel_scale, recompute_log_std_features,
+29: )
+30: from modeling.baseline import calculate_metrics
+31: 
+32: FEATURES_PER_CHANNEL = 10
+33: FEATURE_COUNT = len(PREFERRED_CHANNELS) * FEATURES_PER_CHANNEL
+34: VERSION = "patient_grouped_oof_robust_v3"
+35: 
+36: 
+...
+101:     return X, y, manifest
+102: 
+103: 
+104: def prepare_base_rows(robust_root, outer_train):
+105:     split = build_patient_validation_split(
+106:         outer_train, validation_fraction=0.2, random_state=RANDOM_STATE
+107:     )
+108:     fit_x, fit_y, fit_m = validate_feature_split(robust_root / "inner_fit")
+109:     val_x, val_y, val_m = validate_feature_split(robust_root / "inner_validation")
+110:     row_lookup = {}
+111:     for split_name, source_x, source_y, records in (
+112:         ("inner_fit", fit_x, fit_y, split.train_recordings),
+113:         ("inner_validation", val_x, val_y, split.validation_recordings),
+114:     ):
+115:         cursor = 0
+116:         for rec in records:
+117:             path = processed_path_for_recording(PROCESSED_DIR, rec)
+118:             with np.load(path, allow_pickle=False) as saved:
+119:                 labels = np.asarray(saved["y"], dtype=np.int8)
+120:             end = cursor + len(labels)
+121:             if end > len(source_y) or not np.array_equal(source_y[cursor:end], labels):
+122:                 raise RuntimeError(f"Feature cache row alignment mismatch: {rec.relative_path}")
+123:             if bool(np.any(labels == 1)) != (rec.seizure_count > 0):
+124:                 raise RuntimeError(f"Annotation/label mismatch: {rec.relative_path}")
+125:             row_lookup[rec.relative_path] = (source_x, source_y, cursor, end)
+126:             cursor = end
+127:         if cursor != len(source_y):
+...
+134:         "validation_cache_signature": val_m.get("signature"),
+135:         "ordered_recordings": [r.relative_path for r in outer_train],
+136:     })
+137:     return row_lookup, base_signature, split
+138: 
+139: 
+140: def audit_raw_std_approximation(robust_root, std_root, std_manifest, row_lookup, validation_recordings):
+141:     """Compare raw-std reconstruction with cached real validation log_std values."""
+142:     checkpoint = robust_root / "scaler_checkpoint"
+143:     checkpoint_manifest = json.loads((checkpoint / "manifest.json").read_text(encoding="utf-8"))
+144:     if not checkpoint_manifest.get("complete"):
+145:         raise RuntimeError("Original inner-fit scaler checkpoint is incomplete")
+146:     state_name = checkpoint_manifest.get("state_file")
+147:     if not isinstance(state_name, str) or Path(state_name).name != state_name:
+148:         raise RuntimeError("Invalid original scaler checkpoint state filename")
+149:     with np.load(checkpoint / state_name, allow_pickle=False) as saved:
+150:         state = {"count": int(saved["count"]), "mean": saved["mean"], "m2": saved["m2"]}
+151:     original_mean, original_scale = finalize_channel_statistics(state)
+152:     fallback_window_count = 0
+153:     entries = {e["relative_path"]: e for e in std_manifest["entries"]}
+154:     columns = np.arange(len(PREFERRED_CHANNELS)) * FEATURES_PER_CHANNEL
+155:     max_error, mismatch_count, floor_mismatches, checked = 0.0, 0, 0, 0
+156:     floor = float(np.log(1e-12))
+...
+159:         entry = entries[rec.relative_path]
+160:         with np.load(std_root / "recordings" / entry["artifact"], allow_pickle=False) as saved:
+161:             raw_std = saved["std"]
+162:             if str(saved["signature"].item()) != entry["signature"]:
+163:                 raise RuntimeError(f"Raw-std signature mismatch during numerical audit: {rec.relative_path}")
+164:             reconstructed = log_std_from_raw_standard_deviations(raw_std, original_scale)
+165:             fallback_mask = exact_log_std_fallback_mask(raw_std, original_scale)
+166:             if np.any(fallback_mask):
+167:                 original_windows = load_recording_windows(PROCESSED_DIR, rec)
+168:                 if len(original_windows.X) != len(raw_std):
+169:                     raise RuntimeError(f"Fallback window alignment mismatch: {rec.relative_path}")
+170:                 exact_values = recompute_log_std_features(
+171:                     original_windows.X[fallback_mask], original_mean, original_scale
+172:                 )
+173:                 reconstructed[fallback_mask] = exact_values
+174:                 fallback_window_count += int(np.count_nonzero(fallback_mask))
+175:                 del original_windows, exact_values
+176:         actual = np.asarray(source_x[start:end, :][:, columns], dtype=np.float32)
+177:         if reconstructed.shape != actual.shape:
+178:             raise RuntimeError(f"Raw-std numerical audit shape mismatch: {rec.relative_path}")
+179:         delta = np.abs(reconstructed - actual)
+180:         max_error = max(max_error, float(np.max(delta)))
+181:         mismatch_count += int(np.count_nonzero(delta > 5e-4))
+...
+302:                 if str(saved["signature"].item()) != entry["signature"] or raw_std.shape != (count, len(PREFERRED_CHANNELS)):
+303:                     raise RuntimeError(f"Invalid raw std artifact: {rec.relative_path}")
+304:         except (OSError, EOFError, ValueError, KeyError, zipfile.BadZipFile) as exc:
+305:             raise RuntimeError(f"Could not load raw std for {rec.relative_path}") from exc
+306: 
+307:         fallback_mask = exact_log_std_fallback_mask(raw_std, fold_scale)
+308:         original_windows = None
+309:         if np.any(fallback_mask):
+310:             original_windows = load_recording_windows(PROCESSED_DIR, rec)
+311:             if len(original_windows.X) != count:
+312:                 raise RuntimeError(f"Fallback window alignment mismatch: {rec.relative_path}")
+313: 
+314:         for chunk_start in range(0, count, 4096):
+315:             chunk_end = min(chunk_start + 4096, count)
+316:             block = np.asarray(source_x[source_start + chunk_start:source_start + chunk_end],
+317:                                dtype=np.float32).copy()
+318:             chunk_raw_std = raw_std[chunk_start:chunk_end]
+319:             chunk_log_std = log_std_from_raw_standard_deviations(chunk_raw_std, fold_scale)
+320:             local_fallback = fallback_mask[chunk_start:chunk_end]
+321:             if np.any(local_fallback):
+322:                 exact_values = recompute_log_std_features(
+323:                     original_windows.X[chunk_start:chunk_end][local_fallback],
+324:                     fold_mean, fold_scale,
+
+FILE: scripts\run_robust_feature_first_fold.py
+...
+27: 
+28: PROJECT_ROOT = Path(__file__).resolve().parents[1]
+29: if str(PROJECT_ROOT) not in sys.path:
+30:     sys.path.insert(0, str(PROJECT_ROOT))
+31: 
+32: from config import PROCESSED_DIR, PREFERRED_CHANNELS, RANDOM_STATE
+33: from data_management.cohort import filter_primary_cohort
+34: from data_management.dataset_split import build_lopo_folds
+35: from data_management.fold_data import load_recording_windows, processed_path_for_recording, prepare_lopo_fold
+36: from data_management.patient_mapping import load_recording_manifest
+37: from feature_selection.robust_feature_extraction import (
+38:     ROBUST_FEATURE_NAMES, ROBUST_FEATURE_VERSION, extract_robust_features,
+39: )
+40: from modeling.baseline import calculate_metrics, choose_fbeta_threshold, positive_scores
+41: from modeling.baseline import FeatureBatch
+42: 
+43: 
+44: def _write_json(path: Path, payload: dict) -> None:
+45:     path.parent.mkdir(parents=True, exist_ok=True)
+46:     temporary = path.with_suffix(path.suffix + ".tmp")
+47:     temporary.write_text(json.dumps(payload, indent=2, allow_nan=False) + "\n", encoding="utf-8")
+48:     temporary.replace(path)
+49: 
+50: 
+51: def _cache_signature(recordings, scaler) -> str:
+52:     entries = []
+...
+66:         "scaler_mean": np.asarray(scaler.mean_, dtype=np.float64).tolist(),
+67:         "scaler_scale": np.asarray(scaler.scale_, dtype=np.float64).tolist(),
+68:         "recordings": entries,
+69:     }
+70:     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+71:     return hashlib.sha256(encoded).hexdigest()
+72: 
+73: 
+74: def collect_robust_batch(recordings, split_name: str, scaler, cache_root: Path) -> FeatureBatch:
+75:     """Build/resume one split's robust features using recording-level commits."""
+76:     if not recordings:
+77:         raise ValueError(f"{split_name} split is empty")
+78:     signature = _cache_signature(recordings, scaler)
+79:     directory = cache_root / split_name
+80:     directory.mkdir(parents=True, exist_ok=True)
+81:     manifest_path = directory / "manifest.json"
+82:     x_path, y_path = directory / "X.npy", directory / "y.npy"
+83: 
+84:     lengths = []
+85:     for recording in recordings:
+86:         source = processed_path_for_recording(PROCESSED_DIR, recording)
+87:         with np.load(source, allow_pickle=False) as saved:
+88:             labels = np.asarray(saved["y"])
+...
+132:             "completed_recordings": 0, "cursor": 0, "complete": False,
+133:         }
+134:         _write_json(manifest_path, manifest)
+135:     else:
+136:         print(f"  Resuming {split_name} feature cache at {completed}/{len(recordings)} recordings", flush=True)
+137: 
+138:     for index in range(completed, len(recordings)):
+139:         recording = recordings[index]
+140:         item = load_recording_windows(PROCESSED_DIR, recording)
+141:         next_cursor = cursor + len(item.y)
+142:         if len(item.y) != lengths[index]:
+143:             raise RuntimeError(f"Window count changed for {recording.relative_path}")
+144: 
+145:         # Bound temporary standardized EEG and Welch PSD memory. A recording is
+146:         # committed to the resumable manifest only after every chunk is written.
+147:         chunk_size = 256
+148:         for chunk_start in range(0, len(item.y), chunk_size):
+149:             chunk_end = min(chunk_start + chunk_size, len(item.y))
+150:             standardized_chunk = scaler.transform(item.X[chunk_start:chunk_end])
+151:             features = extract_robust_features(
+152:                 standardized_chunk, item.sfreq, chunk_size=chunk_size
+153:             )
+154:             expected_shape = (chunk_end - chunk_start, feature_count)
+155:             if features.shape != expected_shape or not np.isfinite(features).all():
+156:                 raise RuntimeError(
+157:                     f"Invalid robust feature chunk for {recording.relative_path} "
+158:                     f"at windows {chunk_start}:{chunk_end}"
+159:                 )
+160:             destination_start = cursor + chunk_start
+161:             destination_end = cursor + chunk_end
+162:             X[destination_start:destination_end] = features
+163:             del standardized_chunk, features
+164: 
+165:         y[cursor:next_cursor] = item.y.astype(np.int8, copy=False)
+...
+225:     fold = build_lopo_folds(recordings)[0]
+226:     if fold.fold_id != 1:
+227:         raise RuntimeError("Expected deterministic first LOPO fold")
+228:     print(f"Primary cohort: {len(recordings)} recordings; held-out: {fold.test_patient_id}", flush=True)
+229: 
+230:     cache_root = PROJECT_ROOT / "cache" / "robust_feature_first_fold_v1"
+231:     prepared = prepare_lopo_fold(
+232:         fold, PROCESSED_DIR, validation_fraction=0.2, random_state=seed,
+233:         scaler_checkpoint_dir=cache_root / "scaler_checkpoint",
+234:     )
+235:     print("Extracting robust inner-fit features...", flush=True)
+236:     fit_batch = collect_robust_batch(prepared.fit_recordings, "inner_fit",
+237:                                      prepared.standardizer, cache_root)
+238:     print("Extracting robust inner-validation features...", flush=True)
+239:     validation_batch = collect_robust_batch(prepared.validation_recordings, "inner_validation",
+240:                                             prepared.standardizer, cache_root)
+241:     print("Extracting robust held-out test features...", flush=True)
+242:     test_batch = collect_robust_batch(prepared.test_recordings, "outer_test",
+243:                                       prepared.standardizer, cache_root)
+244: 
+245:     result = {
+246:         "experiment": "patient_robust_feature_first_fold",
+247:         "experiment_version": "robust_features_same_model_validation_test_v1",
+248:         "feature_version": ROBUST_FEATURE_VERSION,
+249:         "status": "completed",
+250:         "created_at_utc": datetime.now(timezone.utc).isoformat(),
+251:         "fold_id": fold.fold_id,
+252:         "held_out_patient": fold.test_patient_id,
+253:         "cohort": {"recordings": len(recordings), "patients": len({r.patient_id for r in recordings})},
+254:         "split": {
+255:             "inner_fit_recordings": len(prepared.fit_recordings),
+256:             "inner_validation_recordings": len(prepared.validation_recordings),
+257:             "outer_test_recordings": len(prepared.test_recordings),
+258:             "inner_fit_patients": sorted({r.patient_id for r in prepared.fit_recordings}),
+259:             "inner_validation_patients": sorted({r.patient_id for r in prepared.validation_recordings}),
+260:         },
+261:         "features": {
+262:             "channels": list(PREFERRED_CHANNELS),
+263:             "per_channel": list(ROBUST_FEATURE_NAMES),
+264:             "feature_count": len(PREFERRED_CHANNELS) * len(ROBUST_FEATURE_NAMES),
+265:             "scaler_fit": "inner_fit_recordings_only",
+266:         },
+267:         "threshold_protocol": (
+268:             "F2 threshold selected on inner validation; the exact same fitted model "
+269:             "scores validation and outer test. No refit occurs between these splits."
+270:         ),
+271:         "models": {},
+272:         "limitations": [
+273:             "First LOPO fold only; not a complete 23-fold estimate.",
+
+FILE: scripts\simulate_validation_alarm_policies.py
+...
+189:                 "patient_macro_event_f2_proxy": sum(macro_f2) / len(macro_f2) if macro_f2 else None,
+190:                 "patients": patient_summaries,
+191:             })
+192: 
+193:     return {
+194:         "status": "completed",
+195:         "experiment": "robust_validation_alarm_policy_interval_simulation",
+196:         "version": "duration_filter_gap_grouping_v2_evidence_preserving",
+197:         "scope": "inner_validation_only",
+198:         "source_result": str(input_path),
+199:         "model_retrained": False,
+200:         "features_reextracted": False,
+201:         "thresholds_changed": False,
+202:         "outer_test_read": False,
+203:         "policy_grid": {
+204:             "minimum_alarm_duration_seconds": list(MIN_DURATIONS),
+205:             "merge_gap_seconds": list(MERGE_GAPS),
+206:             "combination_count": len(simulations),
+207:             "order": "filter each actual alarm by duration first, then group retained alarms by gap",
+208:         },
+209:         "metric_notes": [
+210:             "Seizure detection and delay use only actual retained model-positive intervals; gap envelopes cannot create seizure detections.",
+211:             "Minimum duration is applied to each actual alarm run before gap grouping; silent gaps do not count as positive evidence.",
+
+FILE: scripts\sweep_event_thresholds.py
+...
+182:         fold.train_recordings, validation_fraction=0.2, random_state=RANDOM_STATE
+183:     )
+184:     context = _build_checkpoint_context(fold, split, RANDOM_STATE)
+185:     root = checkpoint_dir or (
+186:         baseline_path.parent / "checkpoints"
+187:         / "first_fold_patient_01_logistic_regression_f1_f2_v1"
+188:     )
+189:     store = ModelStageCheckpointStore(root, context)
+190:     validation_scores = store.load_scores("inner_validation_scores")
+191:     test_scores = store.load_scores("outer_test_scores")
+192:     if validation_scores is None or test_scores is None:
+193:         raise RuntimeError("Checksum-valid saved validation/test scores are required; no training was attempted")
+194:     if not baseline_path.is_file():
+195:         raise FileNotFoundError(f"Baseline result not found: {baseline_path}")
+196:     baseline = json.loads(baseline_path.read_text(encoding="utf-8"))
+197:     if baseline.get("status") != "completed" or baseline.get("held_out_patient") != fold.test_patient_id:
+198:         raise ValueError("Baseline result does not match the completed first LOPO fold")
+199: 
+200:     val_y, val_scores = validation_scores
+201:     test_y, test_values = test_scores
+202:     val_data = _load_recording_score_data(
+203:         split.validation_recordings, val_y, val_scores, processed_dir, "inner_validation"
+204:     )
+205:     test_data = _load_recording_score_data(
+206:         fold.test_recordings, test_y, test_values, processed_dir, "outer_test"
+207:     )
+208: 
+209:     selection = baseline["threshold_selection"]
+210:     existing = {
+211:         "validation_f1": float(selection["validation_threshold"]),
+212:         "validation_f2": float(selection["f2_validation_threshold"]),
+213:     }
+214:     thresholds = _candidate_thresholds(val_scores, list(existing.values()))
+215:     candidate_rows = []
+216:     for index, threshold in enumerate(thresholds, start=1):
+217:         evaluated = _evaluate_loaded(val_data, threshold)
+...
+239:     result = {
+240:         "experiment": "first_fold_validation_event_threshold_sweep",
+241:         "version": SWEEP_VERSION,
+242:         "status": "completed",
+243:         "model_retrained": False,
+244:         "score_artifacts_checksum_validated": True,
+245:         "fold_id": fold.fold_id,
+246:         "held_out_patient": fold.test_patient_id,
+247:         "threshold_selection_split": "inner_validation_only",
+248:         "outer_test_used_for_selection": False,
+249:         "objective": (
+250:             "Maximize macro-average patient event F2 proxy on seizure-bearing "
+251:             "inner-validation patients. Event precision proxy = detected seizure "
+252:             "events / (detected seizure events + false-alarm episodes)."
+253:         ),
+254:         "limitations": [
+255:             "False-alarm episodes are reported as counts; false alarms/hour is unavailable because exact recording durations are absent.",
+256:             "The event F2 proxy is an exploratory threshold-selection objective, not a clinical false-alarm-rate metric.",
+257:             "Only the first LOPO fold is evaluated; the result is not a 23-patient estimate.",
+258:             "Threshold selection uses only the three seizure-bearing inner-validation patients in this fold.",
+259:         ],
+260:         "candidate_generation": {
+261:             "method": "score quantiles from 0.95 through 1.00, plus existing validation F1/F2 thresholds",

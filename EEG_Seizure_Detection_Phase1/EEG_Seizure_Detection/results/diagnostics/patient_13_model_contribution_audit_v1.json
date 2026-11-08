@@ -1,0 +1,2532 @@
+{
+  "channel_feature_contributions": [
+    {
+      "channel": "FP1-F7",
+      "feature": "log_std",
+      "mean_absolute_contribution": 0.6799680486529056,
+      "mean_contribution_negative": 0.06700562970452033,
+      "mean_contribution_positive": 0.9298157593071258,
+      "positive_minus_negative": 0.8628101296026055
+    },
+    {
+      "channel": "FP1-F7",
+      "feature": "normalized_line_length",
+      "mean_absolute_contribution": 0.41340965707290395,
+      "mean_contribution_negative": 0.05234088412776284,
+      "mean_contribution_positive": -0.4067743310229849,
+      "positive_minus_negative": -0.4591152151507477
+    },
+    {
+      "channel": "FP1-F7",
+      "feature": "skewness",
+      "mean_absolute_contribution": 0.0279310379204222,
+      "mean_contribution_negative": -0.01368339127380964,
+      "mean_contribution_positive": -0.0041656621619663185,
+      "positive_minus_negative": 0.009517729111843322
+    },
+    {
+      "channel": "FP1-F7",
+      "feature": "excess_kurtosis",
+      "mean_absolute_contribution": 0.09168075034984072,
+      "mean_contribution_negative": 0.05823691010460912,
+      "mean_contribution_positive": 0.11425585893299096,
+      "positive_minus_negative": 0.05601894882838184
+    },
+    {
+      "channel": "FP1-F7",
+      "feature": "relative_delta_power",
+      "mean_absolute_contribution": 0.11411161343353192,
+      "mean_contribution_negative": -0.04015149767953119,
+      "mean_contribution_positive": 0.163011211558367,
+      "positive_minus_negative": 0.2031627092378982
+    },
+    {
+      "channel": "FP1-F7",
+      "feature": "relative_theta_power",
+      "mean_absolute_contribution": 0.19326551533996741,
+      "mean_contribution_negative": 0.14673395458961302,
+      "mean_contribution_positive": -0.08885863127380936,
+      "positive_minus_negative": -0.23559258586342238
+    },
+    {
+      "channel": "FP1-F7",
+      "feature": "relative_alpha_power",
+      "mean_absolute_contribution": 0.0561922198349091,
+      "mean_contribution_negative": -0.05019507845482247,
+      "mean_contribution_positive": -0.09958222808589327,
+      "positive_minus_negative": -0.049387149631070805
+    },
+    {
+      "channel": "FP1-F7",
+      "feature": "relative_beta_power",
+      "mean_absolute_contribution": 0.32370376751993657,
+      "mean_contribution_negative": 0.07494060843770002,
+      "mean_contribution_positive": 0.3412981456301753,
+      "positive_minus_negative": 0.2663575371924753
+    },
+    {
+      "channel": "FP1-F7",
+      "feature": "relative_gamma_power",
+      "mean_absolute_contribution": 0.3037838339200723,
+      "mean_contribution_negative": 0.08978154869257016,
+      "mean_contribution_positive": -0.15969668242991839,
+      "positive_minus_negative": -0.24947823112248854
+    },
+    {
+      "channel": "FP1-F7",
+      "feature": "spectral_entropy",
+      "mean_absolute_contribution": 0.057895515336888505,
+      "mean_contribution_negative": -0.02018698620155762,
+      "mean_contribution_positive": 0.11619222610621949,
+      "positive_minus_negative": 0.1363792123077771
+    },
+    {
+      "channel": "F7-T7",
+      "feature": "log_std",
+      "mean_absolute_contribution": 0.22051393360271188,
+      "mean_contribution_negative": -0.11192320058272158,
+      "mean_contribution_positive": -0.40422802328523516,
+      "positive_minus_negative": -0.29230482270251357
+    },
+    {
+      "channel": "F7-T7",
+      "feature": "normalized_line_length",
+      "mean_absolute_contribution": 0.29631736051293794,
+      "mean_contribution_negative": 0.0393998195473562,
+      "mean_contribution_positive": 0.29008065311449865,
+      "positive_minus_negative": 0.25068083356714244
+    },
+    {
+      "channel": "F7-T7",
+      "feature": "skewness",
+      "mean_absolute_contribution": 0.14430894099216793,
+      "mean_contribution_negative": -0.020003519475551807,
+      "mean_contribution_positive": -0.1881843085118636,
+      "positive_minus_negative": -0.16818078903631178
+    },
+    {
+      "channel": "F7-T7",
+      "feature": "excess_kurtosis",
+      "mean_absolute_contribution": 0.07070996175050691,
+      "mean_contribution_negative": 0.03674297060036594,
+      "mean_contribution_positive": 0.07721953080929002,
+      "positive_minus_negative": 0.04047656020892408
+    },
+    {
+      "channel": "F7-T7",
+      "feature": "relative_delta_power",
+      "mean_absolute_contribution": 0.04474215118116246,
+      "mean_contribution_negative": 0.016482959323968264,
+      "mean_contribution_positive": -0.06955424989198072,
+      "positive_minus_negative": -0.08603720921594898
+    },
+    {
+      "channel": "F7-T7",
+      "feature": "relative_theta_power",
+      "mean_absolute_contribution": 0.5435314064795869,
+      "mean_contribution_negative": -0.4928188012986398,
+      "mean_contribution_positive": 0.18478541569877127,
+      "positive_minus_negative": 0.677604216997411
+    },
+    {
+      "channel": "F7-T7",
+      "feature": "relative_alpha_power",
+      "mean_absolute_contribution": 0.15066986244819128,
+      "mean_contribution_negative": -0.135041447294492,
+      "mean_contribution_positive": -0.268581611298428,
+      "positive_minus_negative": -0.133540164003936
+    },
+    {
+      "channel": "F7-T7",
+      "feature": "relative_beta_power",
+      "mean_absolute_contribution": 0.13707474998440675,
+      "mean_contribution_negative": -0.06983134716753248,
+      "mean_contribution_positive": -0.15763757168990566,
+      "positive_minus_negative": -0.08780622452237319
+    },
+    {
+      "channel": "F7-T7",
+      "feature": "relative_gamma_power",
+      "mean_absolute_contribution": 0.10786364454890755,
+      "mean_contribution_negative": 0.010884373893945953,
+      "mean_contribution_positive": 0.06624119211500425,
+      "positive_minus_negative": 0.05535681822105829
+    },
+    {
+      "channel": "F7-T7",
+      "feature": "spectral_entropy",
+      "mean_absolute_contribution": 0.17884928656709123,
+      "mean_contribution_negative": 0.025918906852994156,
+      "mean_contribution_positive": -0.38291613910380295,
+      "positive_minus_negative": -0.4088350459567971
+    },
+    {
+      "channel": "T7-P7",
+      "feature": "log_std",
+      "mean_absolute_contribution": 1.6253606960046385,
+      "mean_contribution_negative": 1.5645390871289333,
+      "mean_contribution_positive": 1.9172369200257071,
+      "positive_minus_negative": 0.3526978328967738
+    },
+    {
+      "channel": "T7-P7",
+      "feature": "normalized_line_length",
+      "mean_absolute_contribution": 0.7414592763000907,
+      "mean_contribution_negative": -0.2034864734129062,
+      "mean_contribution_positive": -0.36430116320588846,
+      "positive_minus_negative": -0.16081468979298225
+    },
+    {
+      "channel": "T7-P7",
+      "feature": "skewness",
+      "mean_absolute_contribution": 0.10690552983559116,
+      "mean_contribution_negative": 0.07879955810635231,
+      "mean_contribution_positive": 0.016068808379433072,
+      "positive_minus_negative": -0.06273074972691924
+    },
+    {
+      "channel": "T7-P7",
+      "feature": "excess_kurtosis",
+      "mean_absolute_contribution": 0.1311988970902837,
+      "mean_contribution_negative": 0.011864370529356386,
+      "mean_contribution_positive": 0.07116034961637462,
+      "positive_minus_negative": 0.05929597908701823
+    },
+    {
+      "channel": "T7-P7",
+      "feature": "relative_delta_power",
+      "mean_absolute_contribution": 0.147013363392989,
+      "mean_contribution_negative": -0.02243184104976997,
+      "mean_contribution_positive": 0.09171478165325446,
+      "positive_minus_negative": 0.11414662270302443
+    },
+    {
+      "channel": "T7-P7",
+      "feature": "relative_theta_power",
+      "mean_absolute_contribution": 0.5873114381048021,
+      "mean_contribution_negative": 0.48833236292409615,
+      "mean_contribution_positive": 0.0899983891088917,
+      "positive_minus_negative": -0.39833397381520447
+    },
+    {
+      "channel": "T7-P7",
+      "feature": "relative_alpha_power",
+      "mean_absolute_contribution": 0.3486106353696349,
+      "mean_contribution_negative": -0.3408444075330001,
+      "mean_contribution_positive": -0.4550806105567689,
+      "positive_minus_negative": -0.1142362030237688
+    },
+    {
+      "channel": "T7-P7",
+      "feature": "relative_beta_power",
+      "mean_absolute_contribution": 0.789553609936213,
+      "mean_contribution_negative": 0.23121361769789012,
+      "mean_contribution_positive": 0.41862963540921694,
+      "positive_minus_negative": 0.18741601771132682
+    },
+    {
+      "channel": "T7-P7",
+      "feature": "relative_gamma_power",
+      "mean_absolute_contribution": 0.09611036415148493,
+      "mean_contribution_negative": -0.006477223621422374,
+      "mean_contribution_positive": -0.00957367887888729,
+      "positive_minus_negative": -0.0030964552574649154
+    },
+    {
+      "channel": "T7-P7",
+      "feature": "spectral_entropy",
+      "mean_absolute_contribution": 0.02034952424347704,
+      "mean_contribution_negative": 0.0038869297711432355,
+      "mean_contribution_positive": 0.014470386188166031,
+      "positive_minus_negative": 0.010583456417022796
+    },
+    {
+      "channel": "P7-O1",
+      "feature": "log_std",
+      "mean_absolute_contribution": 0.40274801490942397,
+      "mean_contribution_negative": 0.39301369850862866,
+      "mean_contribution_positive": 0.3466975571553565,
+      "positive_minus_negative": -0.04631614135327217
+    },
+    {
+      "channel": "P7-O1",
+      "feature": "normalized_line_length",
+      "mean_absolute_contribution": 0.13130243259495902,
+      "mean_contribution_negative": -0.03631770660842868,
+      "mean_contribution_positive": -0.028718605185691616,
+      "positive_minus_negative": 0.007599101422737065
+    },
+    {
+      "channel": "P7-O1",
+      "feature": "skewness",
+      "mean_absolute_contribution": 0.08407580508668056,
+      "mean_contribution_negative": 0.02563613202340451,
+      "mean_contribution_positive": 0.018484614269568777,
+      "positive_minus_negative": -0.007151517753835733
+    },
+    {
+      "channel": "P7-O1",
+      "feature": "excess_kurtosis",
+      "mean_absolute_contribution": 0.042069948041887795,
+      "mean_contribution_negative": 0.004593805251559765,
+      "mean_contribution_positive": -0.00692108540404248,
+      "positive_minus_negative": -0.011514890655602244
+    },
+    {
+      "channel": "P7-O1",
+      "feature": "relative_delta_power",
+      "mean_absolute_contribution": 0.12443850466087022,
+      "mean_contribution_negative": 0.005843668854015361,
+      "mean_contribution_positive": 0.027291154947182924,
+      "positive_minus_negative": 0.021447486093167562
+    },
+    {
+      "channel": "P7-O1",
+      "feature": "relative_theta_power",
+      "mean_absolute_contribution": 0.38714614767853545,
+      "mean_contribution_negative": 0.23769321992204837,
+      "mean_contribution_positive": 0.16176263694789475,
+      "positive_minus_negative": -0.07593058297415362
+    },
+    {
+      "channel": "P7-O1",
+      "feature": "relative_alpha_power",
+      "mean_absolute_contribution": 0.07125593358331411,
+      "mean_contribution_negative": 0.06746481370608776,
+      "mean_contribution_positive": 0.07745846865918574,
+      "positive_minus_negative": 0.00999365495309798
+    },
+    {
+      "channel": "P7-O1",
+      "feature": "relative_beta_power",
+      "mean_absolute_contribution": 0.3528753568615271,
+      "mean_contribution_negative": 0.08202234699467893,
+      "mean_contribution_positive": 0.10922243180438881,
+      "positive_minus_negative": 0.027200084809709882
+    },
+    {
+      "channel": "P7-O1",
+      "feature": "relative_gamma_power",
+      "mean_absolute_contribution": 0.0833779408023237,
+      "mean_contribution_negative": -0.0002901560547924458,
+      "mean_contribution_positive": -0.012830251223186196,
+      "positive_minus_negative": -0.01254009516839375
+    },
+    {
+      "channel": "P7-O1",
+      "feature": "spectral_entropy",
+      "mean_absolute_contribution": 0.14796352170587715,
+      "mean_contribution_negative": -0.021470567119830773,
+      "mean_contribution_positive": -0.02456878274677969,
+      "positive_minus_negative": -0.0030982156269489178
+    },
+    {
+      "channel": "FP1-F3",
+      "feature": "log_std",
+      "mean_absolute_contribution": 0.6567996192634139,
+      "mean_contribution_negative": -0.33218925776219443,
+      "mean_contribution_positive": -0.7588446847988878,
+      "positive_minus_negative": -0.42665542703669335
+    },
+    {
+      "channel": "FP1-F3",
+      "feature": "normalized_line_length",
+      "mean_absolute_contribution": 0.07128901821482479,
+      "mean_contribution_negative": -0.010219244297843494,
+      "mean_contribution_positive": 0.06209079419964796,
+      "positive_minus_negative": 0.07231003849749146
+    },
+    {
+      "channel": "FP1-F3",
+      "feature": "skewness",
+      "mean_absolute_contribution": 0.05683493611098857,
+      "mean_contribution_negative": 0.034552145824604585,
+      "mean_contribution_positive": 0.041730335122588606,
+      "positive_minus_negative": 0.007178189297984021
+    },
+    {
+      "channel": "FP1-F3",
+      "feature": "excess_kurtosis",
+      "mean_absolute_contribution": 0.06314089986787431,
+      "mean_contribution_negative": -0.04304288574462311,
+      "mean_contribution_positive": -0.07413675636979525,
+      "positive_minus_negative": -0.03109387062517214
+    },
+    {
+      "channel": "FP1-F3",
+      "feature": "relative_delta_power",
+      "mean_absolute_contribution": 0.24182876778372694,
+      "mean_contribution_negative": 0.19962634435824103,
+      "mean_contribution_positive": -0.049681860052769436,
+      "positive_minus_negative": -0.24930820441101048
+    },
+    {
+      "channel": "FP1-F3",
+      "feature": "relative_theta_power",
+      "mean_absolute_contribution": 0.616370201499417,
+      "mean_contribution_negative": 0.5820519328875079,
+      "mean_contribution_positive": 0.22758834695417873,
+      "positive_minus_negative": -0.35446358593332916
+    },
+    {
+      "channel": "FP1-F3",
+      "feature": "relative_alpha_power",
+      "mean_absolute_contribution": 0.08184440618178405,
+      "mean_contribution_negative": 0.041916521270208215,
+      "mean_contribution_positive": 0.12003246088251289,
+      "positive_minus_negative": 0.07811593961230467
+    },
+    {
+      "channel": "FP1-F3",
+      "feature": "relative_beta_power",
+      "mean_absolute_contribution": 0.12085687016244914,
+      "mean_contribution_negative": -0.030591005782015523,
+      "mean_contribution_positive": -0.11427828533585545,
+      "positive_minus_negative": -0.08368727955383992
+    },
+    {
+      "channel": "FP1-F3",
+      "feature": "relative_gamma_power",
+      "mean_absolute_contribution": 0.12718309701478567,
+      "mean_contribution_negative": 0.027131625541476967,
+      "mean_contribution_positive": -0.0637640669829228,
+      "positive_minus_negative": -0.09089569252439977
+    },
+    {
+      "channel": "FP1-F3",
+      "feature": "spectral_entropy",
+      "mean_absolute_contribution": 0.34696464272939403,
+      "mean_contribution_negative": -0.19187276059785163,
+      "mean_contribution_positive": 0.28922833415639776,
+      "positive_minus_negative": 0.4811010947542494
+    },
+    {
+      "channel": "F3-C3",
+      "feature": "log_std",
+      "mean_absolute_contribution": 0.17154534713729244,
+      "mean_contribution_negative": 0.1293135862498927,
+      "mean_contribution_positive": 0.38979465004202557,
+      "positive_minus_negative": 0.26048106379213287
+    },
+    {
+      "channel": "F3-C3",
+      "feature": "normalized_line_length",
+      "mean_absolute_contribution": 0.08889024589706286,
+      "mean_contribution_negative": -0.04968368431272296,
+      "mean_contribution_positive": -0.14595693099686816,
+      "positive_minus_negative": -0.09627324668414519
+    },
+    {
+      "channel": "F3-C3",
+      "feature": "skewness",
+      "mean_absolute_contribution": 0.00549429525020314,
+      "mean_contribution_negative": 0.002841169739669184,
+      "mean_contribution_positive": 0.008402578036496657,
+      "positive_minus_negative": 0.005561408296827473
+    },
+    {
+      "channel": "F3-C3",
+      "feature": "excess_kurtosis",
+      "mean_absolute_contribution": 0.015879903154156546,
+      "mean_contribution_negative": -0.010149241912977405,
+      "mean_contribution_positive": -0.017328122059495073,
+      "positive_minus_negative": -0.007178880146517668
+    },
+    {
+      "channel": "F3-C3",
+      "feature": "relative_delta_power",
+      "mean_absolute_contribution": 0.2193715970446786,
+      "mean_contribution_negative": -0.12539046269109183,
+      "mean_contribution_positive": 0.21212608063405072,
+      "positive_minus_negative": 0.3375165433251426
+    },
+    {
+      "channel": "F3-C3",
+      "feature": "relative_theta_power",
+      "mean_absolute_contribution": 0.3989225547533334,
+      "mean_contribution_negative": 0.3850522423929892,
+      "mean_contribution_positive": 0.0020784697520344537,
+      "positive_minus_negative": -0.3829737726409547
+    },
+    {
+      "channel": "F3-C3",
+      "feature": "relative_alpha_power",
+      "mean_absolute_contribution": 0.13030683376702443,
+      "mean_contribution_negative": 0.10254579057184894,
+      "mean_contribution_positive": 0.22085083688687684,
+      "positive_minus_negative": 0.1183050463150279
+    },
+    {
+      "channel": "F3-C3",
+      "feature": "relative_beta_power",
+      "mean_absolute_contribution": 0.13804667578801175,
+      "mean_contribution_negative": 0.12447240075357627,
+      "mean_contribution_positive": 0.18883642178818075,
+      "positive_minus_negative": 0.06436402103460448
+    },
+    {
+      "channel": "F3-C3",
+      "feature": "relative_gamma_power",
+      "mean_absolute_contribution": 0.20112690550786033,
+      "mean_contribution_negative": 0.14786697766762055,
+      "mean_contribution_positive": 0.23515314340434004,
+      "positive_minus_negative": 0.08728616573671949
+    },
+    {
+      "channel": "F3-C3",
+      "feature": "spectral_entropy",
+      "mean_absolute_contribution": 0.19756160861915378,
+      "mean_contribution_negative": -0.05618971492770095,
+      "mean_contribution_positive": -0.4899372888771088,
+      "positive_minus_negative": -0.4337475739494078
+    },
+    {
+      "channel": "C3-P3",
+      "feature": "log_std",
+      "mean_absolute_contribution": 0.07625617562754855,
+      "mean_contribution_negative": 0.06579856277582342,
+      "mean_contribution_positive": 0.04284221339625033,
+      "positive_minus_negative": -0.022956349379573096
+    },
+    {
+      "channel": "C3-P3",
+      "feature": "normalized_line_length",
+      "mean_absolute_contribution": 0.53029543812228,
+      "mean_contribution_negative": -0.3813024485686237,
+      "mean_contribution_positive": -0.6171760665035242,
+      "positive_minus_negative": -0.23587361793490047
+    },
+    {
+      "channel": "C3-P3",
+      "feature": "skewness",
+      "mean_absolute_contribution": 0.14014628688052222,
+      "mean_contribution_negative": 0.026358160532710707,
+      "mean_contribution_positive": 0.026688374110925728,
+      "positive_minus_negative": 0.00033021357821502034
+    },
+    {
+      "channel": "C3-P3",
+      "feature": "excess_kurtosis",
+      "mean_absolute_contribution": 0.043434989769108374,
+      "mean_contribution_negative": 0.005301039121124796,
+      "mean_contribution_positive": -0.021494763844247707,
+      "positive_minus_negative": -0.026795802965372505
+    },
+    {
+      "channel": "C3-P3",
+      "feature": "relative_delta_power",
+      "mean_absolute_contribution": 0.049362183967558274,
+      "mean_contribution_negative": -0.0016754419104364098,
+      "mean_contribution_positive": 0.029238437094588444,
+      "positive_minus_negative": 0.030913879005024854
+    },
+    {
+      "channel": "C3-P3",
+      "feature": "relative_theta_power",
+      "mean_absolute_contribution": 0.03352967066349937,
+      "mean_contribution_negative": 0.02785242793016453,
+      "mean_contribution_positive": 0.017640629853974927,
+      "positive_minus_negative": -0.010211798076189604
+    },
+    {
+      "channel": "C3-P3",
+      "feature": "relative_alpha_power",
+      "mean_absolute_contribution": 0.003081734076921389,
+      "mean_contribution_negative": 0.0025837493967845303,
+      "mean_contribution_positive": 0.003903896803102546,
+      "positive_minus_negative": 0.0013201474063180155
+    },
+    {
+      "channel": "C3-P3",
+      "feature": "relative_beta_power",
+      "mean_absolute_contribution": 0.01196879648330501,
+      "mean_contribution_negative": -0.009620384388880689,
+      "mean_contribution_positive": -0.013970461279632824,
+      "positive_minus_negative": -0.004350076890752135
+    },
+    {
+      "channel": "C3-P3",
+      "feature": "relative_gamma_power",
+      "mean_absolute_contribution": 0.22289511335018594,
+      "mean_contribution_negative": 0.20090821244399948,
+      "mean_contribution_positive": 0.24665705154894527,
+      "positive_minus_negative": 0.04574883910494579
+    },
+    {
+      "channel": "C3-P3",
+      "feature": "spectral_entropy",
+      "mean_absolute_contribution": 0.06500660846368016,
+      "mean_contribution_negative": 0.035500943266537355,
+      "mean_contribution_positive": 0.07762972138305706,
+      "positive_minus_negative": 0.0421287781165197
+    },
+    {
+      "channel": "P3-O1",
+      "feature": "log_std",
+      "mean_absolute_contribution": 0.5952434989438926,
+      "mean_contribution_negative": -0.590367584677637,
+      "mean_contribution_positive": -0.46800230982295093,
+      "positive_minus_negative": 0.12236527485468601
+    },
+    {
+      "channel": "P3-O1",
+      "feature": "normalized_line_length",
+      "mean_absolute_contribution": 0.39577620067699903,
+      "mean_contribution_negative": -0.29883125378844155,
+      "mean_contribution_positive": -0.3067651141830299,
+      "positive_minus_negative": -0.007933860394588321
+    },
+    {
+      "channel": "P3-O1",
+      "feature": "skewness",
+      "mean_absolute_contribution": 0.186442141614356,
+      "mean_contribution_negative": 0.06404432822300356,
+      "mean_contribution_positive": 0.06233840853399153,
+      "positive_minus_negative": -0.0017059196890120282
+    },
+    {
+      "channel": "P3-O1",
+      "feature": "excess_kurtosis",
+      "mean_absolute_contribution": 0.06646796698997876,
+      "mean_contribution_negative": 0.00038465316065568753,
+      "mean_contribution_positive": -0.040440385510333555,
+      "positive_minus_negative": -0.040825038670989244
+    },
+    {
+      "channel": "P3-O1",
+      "feature": "relative_delta_power",
+      "mean_absolute_contribution": 0.014776347806355975,
+      "mean_contribution_negative": 0.00620671654996575,
+      "mean_contribution_positive": 0.008732696097187445,
+      "positive_minus_negative": 0.0025259795472216953
+    },
+    {
+      "channel": "P3-O1",
+      "feature": "relative_theta_power",
+      "mean_absolute_contribution": 0.04577563507023364,
+      "mean_contribution_negative": -0.025413796659593906,
+      "mean_contribution_positive": -0.02262101306257664,
+      "positive_minus_negative": 0.0027927835970172656
+    },
+    {
+      "channel": "P3-O1",
+      "feature": "relative_alpha_power",
+      "mean_absolute_contribution": 0.1305069709750156,
+      "mean_contribution_negative": 0.11845773627186579,
+      "mean_contribution_positive": 0.14648018139117586,
+      "positive_minus_negative": 0.02802244511931007
+    },
+    {
+      "channel": "P3-O1",
+      "feature": "relative_beta_power",
+      "mean_absolute_contribution": 0.11493762736300833,
+      "mean_contribution_negative": -0.09908659177632845,
+      "mean_contribution_positive": -0.11526800015900224,
+      "positive_minus_negative": -0.01618140838267379
+    },
+    {
+      "channel": "P3-O1",
+      "feature": "relative_gamma_power",
+      "mean_absolute_contribution": 0.055492728151747446,
+      "mean_contribution_negative": 0.04642835606690318,
+      "mean_contribution_positive": 0.04053077762154651,
+      "positive_minus_negative": -0.005897578445356669
+    },
+    {
+      "channel": "P3-O1",
+      "feature": "spectral_entropy",
+      "mean_absolute_contribution": 0.1680096739427259,
+      "mean_contribution_negative": 0.08950768762156451,
+      "mean_contribution_positive": 0.0944100088910134,
+      "positive_minus_negative": 0.004902321269448895
+    },
+    {
+      "channel": "FP2-F4",
+      "feature": "log_std",
+      "mean_absolute_contribution": 0.6595653859394636,
+      "mean_contribution_negative": -0.3108285518039119,
+      "mean_contribution_positive": -0.8626260513794011,
+      "positive_minus_negative": -0.5517974995754892
+    },
+    {
+      "channel": "FP2-F4",
+      "feature": "normalized_line_length",
+      "mean_absolute_contribution": 0.8951269558665864,
+      "mean_contribution_negative": -0.31401597624718386,
+      "mean_contribution_positive": 0.6056499555817129,
+      "positive_minus_negative": 0.9196659318288967
+    },
+    {
+      "channel": "FP2-F4",
+      "feature": "skewness",
+      "mean_absolute_contribution": 0.1901489543495687,
+      "mean_contribution_negative": 0.0930949037323516,
+      "mean_contribution_positive": 0.21476065985349047,
+      "positive_minus_negative": 0.12166575612113886
+    },
+    {
+      "channel": "FP2-F4",
+      "feature": "excess_kurtosis",
+      "mean_absolute_contribution": 0.1168585183194099,
+      "mean_contribution_negative": 0.06137342677540417,
+      "mean_contribution_positive": 0.1253775788129289,
+      "positive_minus_negative": 0.06400415203752474
+    },
+    {
+      "channel": "FP2-F4",
+      "feature": "relative_delta_power",
+      "mean_absolute_contribution": 0.22918617326402946,
+      "mean_contribution_negative": 0.18870952151009382,
+      "mean_contribution_positive": -0.08894246717616916,
+      "positive_minus_negative": -0.27765198868626295
+    },
+    {
+      "channel": "FP2-F4",
+      "feature": "relative_theta_power",
+      "mean_absolute_contribution": 0.20627890153056402,
+      "mean_contribution_negative": -0.18825319374090746,
+      "mean_contribution_positive": -0.033711013400327804,
+      "positive_minus_negative": 0.15454218034057965
+    },
+    {
+      "channel": "FP2-F4",
+      "feature": "relative_alpha_power",
+      "mean_absolute_contribution": 0.1012624656777306,
+      "mean_contribution_negative": -0.04266187057096715,
+      "mean_contribution_positive": -0.1615643836183873,
+      "positive_minus_negative": -0.11890251304742014
+    },
+    {
+      "channel": "FP2-F4",
+      "feature": "relative_beta_power",
+      "mean_absolute_contribution": 0.10889419679201671,
+      "mean_contribution_negative": -0.0003415755523998964,
+      "mean_contribution_positive": -0.08411119602602525,
+      "positive_minus_negative": -0.08376962047362535
+    },
+    {
+      "channel": "FP2-F4",
+      "feature": "relative_gamma_power",
+      "mean_absolute_contribution": 0.3971902261958904,
+      "mean_contribution_negative": 0.17128243847116323,
+      "mean_contribution_positive": -0.11088126989300089,
+      "positive_minus_negative": -0.2821637083641641
+    },
+    {
+      "channel": "FP2-F4",
+      "feature": "spectral_entropy",
+      "mean_absolute_contribution": 0.26904976446973866,
+      "mean_contribution_negative": -0.17080518860258218,
+      "mean_contribution_positive": 0.25421795394625873,
+      "positive_minus_negative": 0.4250231425488409
+    },
+    {
+      "channel": "F4-C4",
+      "feature": "log_std",
+      "mean_absolute_contribution": 0.561457736740136,
+      "mean_contribution_negative": 0.44983380228983416,
+      "mean_contribution_positive": 0.7313860178823117,
+      "positive_minus_negative": 0.28155221559247756
+    },
+    {
+      "channel": "F4-C4",
+      "feature": "normalized_line_length",
+      "mean_absolute_contribution": 0.8052856416636516,
+      "mean_contribution_negative": -0.2206229276978897,
+      "mean_contribution_positive": -0.6506699749456593,
+      "positive_minus_negative": -0.43004704724776954
+    },
+    {
+      "channel": "F4-C4",
+      "feature": "skewness",
+      "mean_absolute_contribution": 0.015615955644012311,
+      "mean_contribution_negative": -0.0029914675593339986,
+      "mean_contribution_positive": -0.013931252924380336,
+      "positive_minus_negative": -0.010939785365046337
+    },
+    {
+      "channel": "F4-C4",
+      "feature": "excess_kurtosis",
+      "mean_absolute_contribution": 0.0009515428701084696,
+      "mean_contribution_negative": -0.0006652500453159437,
+      "mean_contribution_positive": -0.000698987709462413,
+      "positive_minus_negative": -3.3737664146469204e-05
+    },
+    {
+      "channel": "F4-C4",
+      "feature": "relative_delta_power",
+      "mean_absolute_contribution": 0.24105012336777043,
+      "mean_contribution_negative": 0.12403189719116194,
+      "mean_contribution_positive": -0.04702417673779745,
+      "positive_minus_negative": -0.17105607392895938
+    },
+    {
+      "channel": "F4-C4",
+      "feature": "relative_theta_power",
+      "mean_absolute_contribution": 0.5294395965932612,
+      "mean_contribution_negative": 0.5080698348569161,
+      "mean_contribution_positive": 0.3105698229716322,
+      "positive_minus_negative": -0.19750001188528393
+    },
+    {
+      "channel": "F4-C4",
+      "feature": "relative_alpha_power",
+      "mean_absolute_contribution": 0.03949986643447183,
+      "mean_contribution_negative": 0.032715293129875374,
+      "mean_contribution_positive": 0.04937549127012343,
+      "positive_minus_negative": 0.016660198140248057
+    },
+    {
+      "channel": "F4-C4",
+      "feature": "relative_beta_power",
+      "mean_absolute_contribution": 0.3981712445769656,
+      "mean_contribution_negative": -0.28533070333764254,
+      "mean_contribution_positive": -0.4368845124197698,
+      "positive_minus_negative": -0.15155380908212723
+    },
+    {
+      "channel": "F4-C4",
+      "feature": "relative_gamma_power",
+      "mean_absolute_contribution": 0.5700745451552424,
+      "mean_contribution_negative": 0.1684194848291454,
+      "mean_contribution_positive": 0.3655871330462187,
+      "positive_minus_negative": 0.1971676482170733
+    },
+    {
+      "channel": "F4-C4",
+      "feature": "spectral_entropy",
+      "mean_absolute_contribution": 0.3085622704476254,
+      "mean_contribution_negative": 0.04772157050915497,
+      "mean_contribution_positive": 0.22382086378101987,
+      "positive_minus_negative": 0.1760992932718649
+    },
+    {
+      "channel": "C4-P4",
+      "feature": "log_std",
+      "mean_absolute_contribution": 0.2959207606830903,
+      "mean_contribution_negative": -0.22683330859505887,
+      "mean_contribution_positive": -0.16026011338386162,
+      "positive_minus_negative": 0.06657319521119726
+    },
+    {
+      "channel": "C4-P4",
+      "feature": "normalized_line_length",
+      "mean_absolute_contribution": 0.39455400950966096,
+      "mean_contribution_negative": -0.3689765826341337,
+      "mean_contribution_positive": -0.36780600400202557,
+      "positive_minus_negative": 0.0011705786321081213
+    },
+    {
+      "channel": "C4-P4",
+      "feature": "skewness",
+      "mean_absolute_contribution": 0.03356229354519768,
+      "mean_contribution_negative": 0.003666590206687428,
+      "mean_contribution_positive": 0.008578832395146828,
+      "positive_minus_negative": 0.0049122421884594
+    },
+    {
+      "channel": "C4-P4",
+      "feature": "excess_kurtosis",
+      "mean_absolute_contribution": 0.09307290055628145,
+      "mean_contribution_negative": -0.03437747067359804,
+      "mean_contribution_positive": -0.053040109006991944,
+      "positive_minus_negative": -0.018662638333393905
+    },
+    {
+      "channel": "C4-P4",
+      "feature": "relative_delta_power",
+      "mean_absolute_contribution": 0.18057197870373237,
+      "mean_contribution_negative": 0.008457228446327002,
+      "mean_contribution_positive": 0.023774174392569354,
+      "positive_minus_negative": 0.015316945946242352
+    },
+    {
+      "channel": "C4-P4",
+      "feature": "relative_theta_power",
+      "mean_absolute_contribution": 0.33633604028876574,
+      "mean_contribution_negative": -0.2765909475482293,
+      "mean_contribution_positive": -0.2723589855382545,
+      "positive_minus_negative": 0.004231962009974832
+    },
+    {
+      "channel": "C4-P4",
+      "feature": "relative_alpha_power",
+      "mean_absolute_contribution": 0.2932229139913808,
+      "mean_contribution_negative": 0.2608733879234613,
+      "mean_contribution_positive": 0.3007499388835983,
+      "positive_minus_negative": 0.03987655096013698
+    },
+    {
+      "channel": "C4-P4",
+      "feature": "relative_beta_power",
+      "mean_absolute_contribution": 0.0749482502325919,
+      "mean_contribution_negative": -0.07191126923164899,
+      "mean_contribution_positive": -0.07611667698879848,
+      "positive_minus_negative": -0.00420540775714949
+    },
+    {
+      "channel": "C4-P4",
+      "feature": "relative_gamma_power",
+      "mean_absolute_contribution": 0.0377371043998771,
+      "mean_contribution_negative": -0.03564550686608361,
+      "mean_contribution_positive": -0.03508447246954592,
+      "positive_minus_negative": 0.0005610343965376866
+    },
+    {
+      "channel": "C4-P4",
+      "feature": "spectral_entropy",
+      "mean_absolute_contribution": 0.008527245792932415,
+      "mean_contribution_negative": 0.00616951361036972,
+      "mean_contribution_positive": 0.00578570008740758,
+      "positive_minus_negative": -0.00038381352296213995
+    },
+    {
+      "channel": "P4-O2",
+      "feature": "log_std",
+      "mean_absolute_contribution": 0.6863071298920558,
+      "mean_contribution_negative": -0.6728867670158244,
+      "mean_contribution_positive": -0.5901999511107133,
+      "positive_minus_negative": 0.08268681590511107
+    },
+    {
+      "channel": "P4-O2",
+      "feature": "normalized_line_length",
+      "mean_absolute_contribution": 1.0255709108896627,
+      "mean_contribution_negative": 0.8307145760653337,
+      "mean_contribution_positive": 0.7971053280153291,
+      "positive_minus_negative": -0.03360924805000465
+    },
+    {
+      "channel": "P4-O2",
+      "feature": "skewness",
+      "mean_absolute_contribution": 0.02066443788690545,
+      "mean_contribution_negative": -0.006994087006529151,
+      "mean_contribution_positive": -0.0029874491998030644,
+      "positive_minus_negative": 0.0040066378067260865
+    },
+    {
+      "channel": "P4-O2",
+      "feature": "excess_kurtosis",
+      "mean_absolute_contribution": 0.038505793783092004,
+      "mean_contribution_negative": 0.020729689950857298,
+      "mean_contribution_positive": 0.028276402386512665,
+      "positive_minus_negative": 0.0075467124356553665
+    },
+    {
+      "channel": "P4-O2",
+      "feature": "relative_delta_power",
+      "mean_absolute_contribution": 0.15228071501048895,
+      "mean_contribution_negative": -0.06296261948611682,
+      "mean_contribution_positive": -0.0791220269700685,
+      "positive_minus_negative": -0.01615940748395167
+    },
+    {
+      "channel": "P4-O2",
+      "feature": "relative_theta_power",
+      "mean_absolute_contribution": 0.23254044815388797,
+      "mean_contribution_negative": -0.134280109806645,
+      "mean_contribution_positive": -0.11638330636450442,
+      "positive_minus_negative": 0.01789680344214059
+    },
+    {
+      "channel": "P4-O2",
+      "feature": "relative_alpha_power",
+      "mean_absolute_contribution": 0.00993905477321705,
+      "mean_contribution_negative": -0.009279024507225007,
+      "mean_contribution_positive": -0.010804300339105882,
+      "positive_minus_negative": -0.0015252758318808745
+    },
+    {
+      "channel": "P4-O2",
+      "feature": "relative_beta_power",
+      "mean_absolute_contribution": 0.2643441250597026,
+      "mean_contribution_negative": -0.24722871081962844,
+      "mean_contribution_positive": -0.25412906096551735,
+      "positive_minus_negative": -0.006900350145888912
+    },
+    {
+      "channel": "P4-O2",
+      "feature": "relative_gamma_power",
+      "mean_absolute_contribution": 0.17400436413599787,
+      "mean_contribution_negative": -0.1432277110112191,
+      "mean_contribution_positive": -0.11753583804643136,
+      "positive_minus_negative": 0.025691872964787726
+    },
+    {
+      "channel": "P4-O2",
+      "feature": "spectral_entropy",
+      "mean_absolute_contribution": 0.11509467965825959,
+      "mean_contribution_negative": 0.08573325956258958,
+      "mean_contribution_positive": 0.0842151735719606,
+      "positive_minus_negative": -0.001518085990628984
+    },
+    {
+      "channel": "FP2-F8",
+      "feature": "log_std",
+      "mean_absolute_contribution": 1.0837173406694942,
+      "mean_contribution_negative": 0.29852462171187766,
+      "mean_contribution_positive": 1.3256957524372561,
+      "positive_minus_negative": 1.0271711307253786
+    },
+    {
+      "channel": "FP2-F8",
+      "feature": "normalized_line_length",
+      "mean_absolute_contribution": 0.49457798035738,
+      "mean_contribution_negative": 0.026855205612169232,
+      "mean_contribution_positive": -0.6184847688699949,
+      "positive_minus_negative": -0.6453399744821642
+    },
+    {
+      "channel": "FP2-F8",
+      "feature": "skewness",
+      "mean_absolute_contribution": 0.1312128645209241,
+      "mean_contribution_negative": -0.04311099832071891,
+      "mean_contribution_positive": -0.14271670358353317,
+      "positive_minus_negative": -0.09960570526281426
+    },
+    {
+      "channel": "FP2-F8",
+      "feature": "excess_kurtosis",
+      "mean_absolute_contribution": 0.020181004680986863,
+      "mean_contribution_negative": 0.007214387511479487,
+      "mean_contribution_positive": 0.021658746540104624,
+      "positive_minus_negative": 0.014444359028625137
+    },
+    {
+      "channel": "FP2-F8",
+      "feature": "relative_delta_power",
+      "mean_absolute_contribution": 0.08254407924418407,
+      "mean_contribution_negative": -0.030996311849465774,
+      "mean_contribution_positive": 0.10891667705896947,
+      "positive_minus_negative": 0.13991298890843523
+    },
+    {
+      "channel": "FP2-F8",
+      "feature": "relative_theta_power",
+      "mean_absolute_contribution": 0.1265594893647728,
+      "mean_contribution_negative": 0.09738822384638714,
+      "mean_contribution_positive": -0.05159540528170125,
+      "positive_minus_negative": -0.14898362912808838
+    },
+    {
+      "channel": "FP2-F8",
+      "feature": "relative_alpha_power",
+      "mean_absolute_contribution": 0.10066659485715507,
+      "mean_contribution_negative": 0.0697518654693696,
+      "mean_contribution_positive": 0.17333343819412703,
+      "positive_minus_negative": 0.10358157272475743
+    },
+    {
+      "channel": "FP2-F8",
+      "feature": "relative_beta_power",
+      "mean_absolute_contribution": 0.04799139436314194,
+      "mean_contribution_negative": 0.019931439206095147,
+      "mean_contribution_positive": 0.06080477417051572,
+      "positive_minus_negative": 0.04087333496442057
+    },
+    {
+      "channel": "FP2-F8",
+      "feature": "relative_gamma_power",
+      "mean_absolute_contribution": 0.02507934354955429,
+      "mean_contribution_negative": -0.0019074790126340571,
+      "mean_contribution_positive": 0.019455339376519817,
+      "positive_minus_negative": 0.021362818389153874
+    },
+    {
+      "channel": "FP2-F8",
+      "feature": "spectral_entropy",
+      "mean_absolute_contribution": 0.2390819797736795,
+      "mean_contribution_negative": 0.08577015177057168,
+      "mean_contribution_positive": -0.4292746422644567,
+      "positive_minus_negative": -0.5150447940350285
+    },
+    {
+      "channel": "F8-T8",
+      "feature": "log_std",
+      "mean_absolute_contribution": 0.03969770214669786,
+      "mean_contribution_negative": 0.02302699828908449,
+      "mean_contribution_positive": 0.02216940428361019,
+      "positive_minus_negative": -0.0008575940054742978
+    },
+    {
+      "channel": "F8-T8",
+      "feature": "normalized_line_length",
+      "mean_absolute_contribution": 0.6690800564461103,
+      "mean_contribution_negative": 0.14565258518081395,
+      "mean_contribution_positive": 0.26489416789610204,
+      "positive_minus_negative": 0.11924158271528809
+    },
+    {
+      "channel": "F8-T8",
+      "feature": "skewness",
+      "mean_absolute_contribution": 0.1507795286589287,
+      "mean_contribution_negative": -0.0404757110773018,
+      "mean_contribution_positive": -0.06694981280954458,
+      "positive_minus_negative": -0.02647410173224278
+    },
+    {
+      "channel": "F8-T8",
+      "feature": "excess_kurtosis",
+      "mean_absolute_contribution": 0.07299701739185017,
+      "mean_contribution_negative": 0.030776248758900192,
+      "mean_contribution_positive": 0.04360563791422004,
+      "positive_minus_negative": 0.01282938915531985
+    },
+    {
+      "channel": "F8-T8",
+      "feature": "relative_delta_power",
+      "mean_absolute_contribution": 0.11157832998659563,
+      "mean_contribution_negative": -0.03184686365254264,
+      "mean_contribution_positive": 0.023996374875041027,
+      "positive_minus_negative": 0.05584323852758367
+    },
+    {
+      "channel": "F8-T8",
+      "feature": "relative_theta_power",
+      "mean_absolute_contribution": 0.006525714391042837,
+      "mean_contribution_negative": 0.005619888561968186,
+      "mean_contribution_positive": 0.0037077678801452694,
+      "positive_minus_negative": -0.001912120681822917
+    },
+    {
+      "channel": "F8-T8",
+      "feature": "relative_alpha_power",
+      "mean_absolute_contribution": 0.20898367075220814,
+      "mean_contribution_negative": -0.16929771124486,
+      "mean_contribution_positive": -0.23155164922744598,
+      "positive_minus_negative": -0.062253937982585966
+    },
+    {
+      "channel": "F8-T8",
+      "feature": "relative_beta_power",
+      "mean_absolute_contribution": 0.3705379472234024,
+      "mean_contribution_negative": 0.21486578229016742,
+      "mean_contribution_positive": 0.3015820270093443,
+      "positive_minus_negative": 0.08671624471917685
+    },
+    {
+      "channel": "F8-T8",
+      "feature": "relative_gamma_power",
+      "mean_absolute_contribution": 0.11189385637842025,
+      "mean_contribution_negative": -0.023304744126479354,
+      "mean_contribution_positive": -0.032792379237095826,
+      "positive_minus_negative": -0.009487635110616472
+    },
+    {
+      "channel": "F8-T8",
+      "feature": "spectral_entropy",
+      "mean_absolute_contribution": 0.49872059573801736,
+      "mean_contribution_negative": -0.013751007049719764,
+      "mean_contribution_positive": -0.19069890011230423,
+      "positive_minus_negative": -0.17694789306258446
+    },
+    {
+      "channel": "P8-O2",
+      "feature": "log_std",
+      "mean_absolute_contribution": 0.9899099307707986,
+      "mean_contribution_negative": 0.9686894674069688,
+      "mean_contribution_positive": 0.8060404186297053,
+      "positive_minus_negative": -0.1626490487772635
+    },
+    {
+      "channel": "P8-O2",
+      "feature": "normalized_line_length",
+      "mean_absolute_contribution": 1.0332451644420761,
+      "mean_contribution_negative": -0.17938862175913683,
+      "mean_contribution_positive": -0.2096954475782858,
+      "positive_minus_negative": -0.030306825819148953
+    },
+    {
+      "channel": "P8-O2",
+      "feature": "skewness",
+      "mean_absolute_contribution": 0.04418978636456225,
+      "mean_contribution_negative": 0.011339117975779786,
+      "mean_contribution_positive": 0.008451662029903476,
+      "positive_minus_negative": -0.00288745594587631
+    },
+    {
+      "channel": "P8-O2",
+      "feature": "excess_kurtosis",
+      "mean_absolute_contribution": 0.02592198772098143,
+      "mean_contribution_negative": 0.004333894501350878,
+      "mean_contribution_positive": 0.010267430805691891,
+      "positive_minus_negative": 0.005933536304341013
+    },
+    {
+      "channel": "P8-O2",
+      "feature": "relative_delta_power",
+      "mean_absolute_contribution": 0.42111309195780905,
+      "mean_contribution_negative": 0.02122288809503446,
+      "mean_contribution_positive": 0.1186605997979857,
+      "positive_minus_negative": 0.09743771170295124
+    },
+    {
+      "channel": "P8-O2",
+      "feature": "relative_theta_power",
+      "mean_absolute_contribution": 0.1403138797467745,
+      "mean_contribution_negative": 0.059743486942919234,
+      "mean_contribution_positive": 0.03389360542079776,
+      "positive_minus_negative": -0.025849881522121476
+    },
+    {
+      "channel": "P8-O2",
+      "feature": "relative_alpha_power",
+      "mean_absolute_contribution": 0.1745907027077809,
+      "mean_contribution_negative": -0.15799172345162768,
+      "mean_contribution_positive": -0.18493934675924897,
+      "positive_minus_negative": -0.026947623307621293
+    },
+    {
+      "channel": "P8-O2",
+      "feature": "relative_beta_power",
+      "mean_absolute_contribution": 1.041744235520221,
+      "mean_contribution_negative": 0.10027503315722432,
+      "mean_contribution_positive": 0.2899458648990154,
+      "positive_minus_negative": 0.1896708317417911
+    },
+    {
+      "channel": "P8-O2",
+      "feature": "relative_gamma_power",
+      "mean_absolute_contribution": 0.07263665305031848,
+      "mean_contribution_negative": -0.010916676356340213,
+      "mean_contribution_positive": -0.017067624800301124,
+      "positive_minus_negative": -0.006150948443960911
+    },
+    {
+      "channel": "P8-O2",
+      "feature": "spectral_entropy",
+      "mean_absolute_contribution": 0.3073517523514137,
+      "mean_contribution_negative": -0.04916413643420253,
+      "mean_contribution_positive": -0.0926560628583423,
+      "positive_minus_negative": -0.043491926424139765
+    },
+    {
+      "channel": "FZ-CZ",
+      "feature": "log_std",
+      "mean_absolute_contribution": 1.1866744666300197,
+      "mean_contribution_negative": -1.0009169797825423,
+      "mean_contribution_positive": -2.2438442977868474,
+      "positive_minus_negative": -1.242927318004305
+    },
+    {
+      "channel": "FZ-CZ",
+      "feature": "normalized_line_length",
+      "mean_absolute_contribution": 0.5486738692295058,
+      "mean_contribution_negative": 0.40701348306152485,
+      "mean_contribution_positive": 1.0254125589210565,
+      "positive_minus_negative": 0.6183990758595317
+    },
+    {
+      "channel": "FZ-CZ",
+      "feature": "skewness",
+      "mean_absolute_contribution": 0.09974913539885373,
+      "mean_contribution_negative": 0.04868706531832431,
+      "mean_contribution_positive": 0.13622915712888542,
+      "positive_minus_negative": 0.0875420918105611
+    },
+    {
+      "channel": "FZ-CZ",
+      "feature": "excess_kurtosis",
+      "mean_absolute_contribution": 0.09200684287119938,
+      "mean_contribution_negative": -0.04046016794487251,
+      "mean_contribution_positive": -0.0770265569096393,
+      "positive_minus_negative": -0.03656638896476679
+    },
+    {
+      "channel": "FZ-CZ",
+      "feature": "relative_delta_power",
+      "mean_absolute_contribution": 0.26899812597424855,
+      "mean_contribution_negative": -0.1727225568656279,
+      "mean_contribution_positive": 0.13560300528127825,
+      "positive_minus_negative": 0.30832556214690615
+    },
+    {
+      "channel": "FZ-CZ",
+      "feature": "relative_theta_power",
+      "mean_absolute_contribution": 1.1415687777805203,
+      "mean_contribution_negative": -1.072088836412549,
+      "mean_contribution_positive": -0.2208128629039953,
+      "positive_minus_negative": 0.8512759735085537
+    },
+    {
+      "channel": "FZ-CZ",
+      "feature": "relative_alpha_power",
+      "mean_absolute_contribution": 0.1807368586820693,
+      "mean_contribution_negative": -0.13314289062231202,
+      "mean_contribution_positive": -0.26846440577973263,
+      "positive_minus_negative": -0.1353215151574206
+    },
+    {
+      "channel": "FZ-CZ",
+      "feature": "relative_beta_power",
+      "mean_absolute_contribution": 0.10768544704796151,
+      "mean_contribution_negative": 0.10060871151298557,
+      "mean_contribution_positive": 0.1331067869089112,
+      "positive_minus_negative": 0.03249807539592563
+    },
+    {
+      "channel": "FZ-CZ",
+      "feature": "relative_gamma_power",
+      "mean_absolute_contribution": 0.03185554832538553,
+      "mean_contribution_negative": -0.024686023346132457,
+      "mean_contribution_positive": -0.03594124747194609,
+      "positive_minus_negative": -0.011255224125813632
+    },
+    {
+      "channel": "FZ-CZ",
+      "feature": "spectral_entropy",
+      "mean_absolute_contribution": 0.05339046939550097,
+      "mean_contribution_negative": 0.007325374344479928,
+      "mean_contribution_positive": 0.09184405355450909,
+      "positive_minus_negative": 0.08451867921002916
+    },
+    {
+      "channel": "CZ-PZ",
+      "feature": "log_std",
+      "mean_absolute_contribution": 0.9922594558193819,
+      "mean_contribution_negative": 0.8414778389477083,
+      "mean_contribution_positive": 0.8797688116665467,
+      "positive_minus_negative": 0.03829097271883841
+    },
+    {
+      "channel": "CZ-PZ",
+      "feature": "normalized_line_length",
+      "mean_absolute_contribution": 0.7893801444716454,
+      "mean_contribution_negative": -0.6716029973628221,
+      "mean_contribution_positive": -0.9096865727310517,
+      "positive_minus_negative": -0.23808357536822955
+    },
+    {
+      "channel": "CZ-PZ",
+      "feature": "skewness",
+      "mean_absolute_contribution": 0.045065110547434006,
+      "mean_contribution_negative": -0.008867848868032161,
+      "mean_contribution_positive": -0.0003274107128011488,
+      "positive_minus_negative": 0.008540438155231013
+    },
+    {
+      "channel": "CZ-PZ",
+      "feature": "excess_kurtosis",
+      "mean_absolute_contribution": 0.024231667833815723,
+      "mean_contribution_negative": 0.00012208795936308818,
+      "mean_contribution_positive": 0.011400662662417049,
+      "positive_minus_negative": 0.01127857470305396
+    },
+    {
+      "channel": "CZ-PZ",
+      "feature": "relative_delta_power",
+      "mean_absolute_contribution": 0.17669848830759233,
+      "mean_contribution_negative": -0.06363591923859487,
+      "mean_contribution_positive": 0.011213672802039028,
+      "positive_minus_negative": 0.07484959204063389
+    },
+    {
+      "channel": "CZ-PZ",
+      "feature": "relative_theta_power",
+      "mean_absolute_contribution": 0.5026814965182814,
+      "mean_contribution_negative": 0.4411509874777658,
+      "mean_contribution_positive": 0.30603696941675274,
+      "positive_minus_negative": -0.13511401806101309
+    },
+    {
+      "channel": "CZ-PZ",
+      "feature": "relative_alpha_power",
+      "mean_absolute_contribution": 0.4411337573494683,
+      "mean_contribution_negative": 0.38541855969358807,
+      "mean_contribution_positive": 0.48635356694073417,
+      "positive_minus_negative": 0.1009350072471461
+    },
+    {
+      "channel": "CZ-PZ",
+      "feature": "relative_beta_power",
+      "mean_absolute_contribution": 0.24553995411224713,
+      "mean_contribution_negative": -0.1968412047480608,
+      "mean_contribution_positive": -0.24318559043566418,
+      "positive_minus_negative": -0.04634438568760338
+    },
+    {
+      "channel": "CZ-PZ",
+      "feature": "relative_gamma_power",
+      "mean_absolute_contribution": 0.5777053215290084,
+      "mean_contribution_negative": 0.4166687280126173,
+      "mean_contribution_positive": 0.46974183356589533,
+      "positive_minus_negative": 0.053073105553278044
+    },
+    {
+      "channel": "CZ-PZ",
+      "feature": "spectral_entropy",
+      "mean_absolute_contribution": 0.08226204396092825,
+      "mean_contribution_negative": -0.032421316938889534,
+      "mean_contribution_positive": -0.05099961104051943,
+      "positive_minus_negative": -0.018578294101629894
+    }
+  ],
+  "diagnostic_only": true,
+  "feature_group_contributions": [
+    {
+      "feature": "log_std",
+      "mean_absolute_contribution": 2.3097300755615477,
+      "mean_contribution_negative": 1.5552776427933812,
+      "mean_contribution_positive": 1.9034420732579984,
+      "positive_minus_negative": 0.3481644304646172
+    },
+    {
+      "feature": "normalized_line_length",
+      "mean_absolute_contribution": 2.0257199845504577,
+      "mean_contribution_negative": -1.2324713630951718,
+      "mean_contribution_positive": -1.5808015214966578,
+      "positive_minus_negative": -0.34833015840148596
+    },
+    {
+      "feature": "skewness",
+      "mean_absolute_contribution": 0.4130605627571279,
+      "mean_contribution_negative": 0.25289214810161054,
+      "mean_contribution_positive": 0.12247082995653838,
+      "positive_minus_negative": -0.13042131814507216
+    },
+    {
+      "feature": "excess_kurtosis",
+      "mean_absolute_contribution": 0.31318682003682924,
+      "mean_contribution_negative": 0.1129784679036398,
+      "mean_contribution_positive": 0.21213543166652307,
+      "positive_minus_negative": 0.09915696376288327
+    },
+    {
+      "feature": "relative_delta_power",
+      "mean_absolute_contribution": 0.9929096040145461,
+      "mean_contribution_negative": 0.018767709905630255,
+      "mean_contribution_positive": 0.6199540853637284,
+      "positive_minus_negative": 0.6011863754580982
+    },
+    {
+      "feature": "relative_theta_power",
+      "mean_absolute_contribution": 1.1376208965439594,
+      "mean_contribution_negative": 0.7902428768658113,
+      "mean_contribution_positive": 0.5317208361799045,
+      "positive_minus_negative": -0.2585220406859068
+    },
+    {
+      "feature": "relative_alpha_power",
+      "mean_absolute_contribution": 0.32914880429718346,
+      "mean_contribution_negative": 0.043273563753783204,
+      "mean_contribution_positive": -0.10203025575357418,
+      "positive_minus_negative": -0.14530381950735738
+    },
+    {
+      "feature": "relative_beta_power",
+      "mean_absolute_contribution": 1.8390206063024976,
+      "mean_contribution_negative": -0.062452852753819926,
+      "mean_contribution_positive": 0.34784473231957735,
+      "positive_minus_negative": 0.4102975850733973
+    },
+    {
+      "feature": "relative_gamma_power",
+      "mean_absolute_contribution": 1.1811665931922464,
+      "mean_contribution_negative": 1.0329162252243387,
+      "mean_contribution_positive": 0.8481989592452337,
+      "positive_minus_negative": -0.18471726597910498
+    },
+    {
+      "feature": "spectral_entropy",
+      "mean_absolute_contribution": 0.6070741537799501,
+      "mean_contribution_negative": -0.16832734056292986,
+      "mean_contribution_positive": -0.4092370053373045,
+      "positive_minus_negative": -0.24090966477437464
+    }
+  ],
+  "heldout_patient": "patient_13",
+  "heldout_positive_windows": 131,
+  "heldout_recording_count": 33,
+  "heldout_window_count": 23727,
+  "interpretation_caveats": [
+    "Coefficient contributions are additive contributions to the fitted logit, not causal effects.",
+    "Feature groups combine contributions across channels and may hide channel-level cancellation.",
+    "Only 48 positive windows occur in patient_14; summaries are descriptive and correlated windows are not independent observations.",
+    "A negative contribution means the feature pushes the model logit down relative to zero, not that the feature is biologically protective."
+  ],
+  "largest_absolute_coefficients": [
+    {
+      "absolute_coefficient": 3.4400520649785964,
+      "channel": "FZ-CZ",
+      "coefficient": -3.4400520649785964,
+      "feature": "log_std"
+    },
+    {
+      "absolute_coefficient": 2.954114247620642,
+      "channel": "CZ-PZ",
+      "coefficient": 2.954114247620642,
+      "feature": "log_std"
+    },
+    {
+      "absolute_coefficient": 2.8056630107957816,
+      "channel": "T7-P7",
+      "coefficient": 2.8056630107957816,
+      "feature": "log_std"
+    },
+    {
+      "absolute_coefficient": 1.948312307407849,
+      "channel": "FP2-F8",
+      "coefficient": 1.948312307407849,
+      "feature": "log_std"
+    },
+    {
+      "absolute_coefficient": 1.8676975999939205,
+      "channel": "CZ-PZ",
+      "coefficient": 1.8676975999939205,
+      "feature": "normalized_line_length"
+    },
+    {
+      "absolute_coefficient": 1.835935549721159,
+      "channel": "P8-O2",
+      "coefficient": 1.835935549721159,
+      "feature": "log_std"
+    },
+    {
+      "absolute_coefficient": 1.7210677944957438,
+      "channel": "F4-C4",
+      "coefficient": 1.7210677944957438,
+      "feature": "log_std"
+    },
+    {
+      "absolute_coefficient": 1.6902062179213941,
+      "channel": "FP1-F3",
+      "coefficient": -1.6902062179213941,
+      "feature": "log_std"
+    },
+    {
+      "absolute_coefficient": 1.6798276807502421,
+      "channel": "P4-O2",
+      "coefficient": -1.6798276807502421,
+      "feature": "normalized_line_length"
+    },
+    {
+      "absolute_coefficient": 1.5750341106009367,
+      "channel": "FP2-F4",
+      "coefficient": -1.5750341106009367,
+      "feature": "log_std"
+    },
+    {
+      "absolute_coefficient": 1.5513750137236162,
+      "channel": "FZ-CZ",
+      "coefficient": -1.5513750137236162,
+      "feature": "normalized_line_length"
+    },
+    {
+      "absolute_coefficient": 1.532420990272836,
+      "channel": "P4-O2",
+      "coefficient": -1.532420990272836,
+      "feature": "log_std"
+    },
+    {
+      "absolute_coefficient": 1.4884510628739984,
+      "channel": "FP1-F7",
+      "coefficient": 1.4884510628739984,
+      "feature": "log_std"
+    },
+    {
+      "absolute_coefficient": 1.3738269932925207,
+      "channel": "CZ-PZ",
+      "coefficient": -1.3738269932925207,
+      "feature": "relative_gamma_power"
+    },
+    {
+      "absolute_coefficient": 1.2581405133234111,
+      "channel": "FP2-F4",
+      "coefficient": -1.2581405133234111,
+      "feature": "normalized_line_length"
+    },
+    {
+      "absolute_coefficient": 1.2491076908869725,
+      "channel": "F4-C4",
+      "coefficient": 1.2491076908869725,
+      "feature": "normalized_line_length"
+    },
+    {
+      "absolute_coefficient": 1.144272142013695,
+      "channel": "F4-C4",
+      "coefficient": -1.144272142013695,
+      "feature": "relative_gamma_power"
+    },
+    {
+      "absolute_coefficient": 1.1145797414491245,
+      "channel": "P8-O2",
+      "coefficient": 1.1145797414491245,
+      "feature": "normalized_line_length"
+    },
+    {
+      "absolute_coefficient": 1.07909605722952,
+      "channel": "P8-O2",
+      "coefficient": -1.07909605722952,
+      "feature": "relative_beta_power"
+    },
+    {
+      "absolute_coefficient": 1.0413647381903837,
+      "channel": "P3-O1",
+      "coefficient": -1.0413647381903837,
+      "feature": "log_std"
+    },
+    {
+      "absolute_coefficient": 1.0309888010844812,
+      "channel": "FP2-F8",
+      "coefficient": 1.0309888010844812,
+      "feature": "normalized_line_length"
+    },
+    {
+      "absolute_coefficient": 0.9978676814575923,
+      "channel": "C4-P4",
+      "coefficient": -0.9978676814575923,
+      "feature": "log_std"
+    },
+    {
+      "absolute_coefficient": 0.9629822770160191,
+      "channel": "F8-T8",
+      "coefficient": -0.9629822770160191,
+      "feature": "normalized_line_length"
+    },
+    {
+      "absolute_coefficient": 0.9377844295990294,
+      "channel": "C3-P3",
+      "coefficient": 0.9377844295990294,
+      "feature": "normalized_line_length"
+    },
+    {
+      "absolute_coefficient": 0.9200971318038444,
+      "channel": "CZ-PZ",
+      "coefficient": -0.9200971318038444,
+      "feature": "relative_alpha_power"
+    },
+    {
+      "absolute_coefficient": 0.894462393863053,
+      "channel": "T7-P7",
+      "coefficient": -0.894462393863053,
+      "feature": "relative_beta_power"
+    },
+    {
+      "absolute_coefficient": 0.866825699945205,
+      "channel": "T7-P7",
+      "coefficient": 0.866825699945205,
+      "feature": "normalized_line_length"
+    },
+    {
+      "absolute_coefficient": 0.8409866973332256,
+      "channel": "F8-T8",
+      "coefficient": 0.8409866973332256,
+      "feature": "spectral_entropy"
+    },
+    {
+      "absolute_coefficient": 0.7555301347670984,
+      "channel": "C4-P4",
+      "coefficient": 0.7555301347670984,
+      "feature": "normalized_line_length"
+    },
+    {
+      "absolute_coefficient": 0.7418645547071464,
+      "channel": "P3-O1",
+      "coefficient": 0.7418645547071464,
+      "feature": "normalized_line_length"
+    },
+    {
+      "absolute_coefficient": 0.7345292733337269,
+      "channel": "P7-O1",
+      "coefficient": 0.7345292733337269,
+      "feature": "log_std"
+    },
+    {
+      "absolute_coefficient": 0.7166384380473018,
+      "channel": "F4-C4",
+      "coefficient": 0.7166384380473018,
+      "feature": "relative_beta_power"
+    },
+    {
+      "absolute_coefficient": 0.6981118517852377,
+      "channel": "FZ-CZ",
+      "coefficient": -0.6981118517852377,
+      "feature": "relative_theta_power"
+    },
+    {
+      "absolute_coefficient": 0.6964942632775044,
+      "channel": "FP1-F7",
+      "coefficient": 0.6964942632775044,
+      "feature": "normalized_line_length"
+    },
+    {
+      "absolute_coefficient": 0.6718928840113697,
+      "channel": "FP1-F7",
+      "coefficient": -0.6718928840113697,
+      "feature": "relative_beta_power"
+    },
+    {
+      "absolute_coefficient": 0.6363428334064838,
+      "channel": "F8-T8",
+      "coefficient": -0.6363428334064838,
+      "feature": "relative_beta_power"
+    },
+    {
+      "absolute_coefficient": 0.5441639565362217,
+      "channel": "T7-P7",
+      "coefficient": 0.5441639565362217,
+      "feature": "relative_alpha_power"
+    },
+    {
+      "absolute_coefficient": 0.540760819162467,
+      "channel": "C3-P3",
+      "coefficient": -0.540760819162467,
+      "feature": "relative_gamma_power"
+    },
+    {
+      "absolute_coefficient": 0.540393703322786,
+      "channel": "F3-C3",
+      "coefficient": 0.540393703322786,
+      "feature": "log_std"
+    },
+    {
+      "absolute_coefficient": 0.5398351915490578,
+      "channel": "F4-C4",
+      "coefficient": -0.5398351915490578,
+      "feature": "spectral_entropy"
+    }
+  ],
+  "logit_reconstruction_max_abs_error": 9.769962616701378e-15,
+  "meaning_of_retrained": "Deterministic reconstruction of the already evaluated patient_14 OOF fold; not a new model experiment.",
+  "model_retrained_for_diagnostic": true,
+  "outer_test_patient_loaded": false,
+  "per_recording_contributions": [
+    {
+      "excess_kurtosis_negative_mean": -0.04774854480690283,
+      "excess_kurtosis_positive_mean": null,
+      "log_std_negative_mean": 3.685695953492098,
+      "log_std_positive_mean": null,
+      "normalized_line_length_negative_mean": 1.1114704752193694,
+      "normalized_line_length_positive_mean": null,
+      "positive_windows": 0,
+      "recording": "chb13/chb13_02.edf",
+      "relative_alpha_power_negative_mean": -0.29685938160337355,
+      "relative_alpha_power_positive_mean": null,
+      "relative_beta_power_negative_mean": -2.9380467541312365,
+      "relative_beta_power_positive_mean": null,
+      "relative_delta_power_negative_mean": -1.3301244924054543,
+      "relative_delta_power_positive_mean": null,
+      "relative_gamma_power_negative_mean": 0.9113973101701754,
+      "relative_gamma_power_positive_mean": null,
+      "relative_theta_power_negative_mean": 0.8553240519180784,
+      "relative_theta_power_positive_mean": null,
+      "skewness_negative_mean": 0.4722481260490694,
+      "skewness_positive_mean": null,
+      "spectral_entropy_negative_mean": 0.5074453688228525,
+      "spectral_entropy_positive_mean": null,
+      "window_count": 719
+    },
+    {
+      "excess_kurtosis_negative_mean": 0.13414353754058994,
+      "excess_kurtosis_positive_mean": null,
+      "log_std_negative_mean": 4.051029214914116,
+      "log_std_positive_mean": null,
+      "normalized_line_length_negative_mean": 0.8134087341030863,
+      "normalized_line_length_positive_mean": null,
+      "positive_windows": 0,
+      "recording": "chb13/chb13_03.edf",
+      "relative_alpha_power_negative_mean": -0.24130712237808233,
+      "relative_alpha_power_positive_mean": null,
+      "relative_beta_power_negative_mean": -2.665459146976833,
+      "relative_beta_power_positive_mean": null,
+      "relative_delta_power_negative_mean": -1.2181677378771996,
+      "relative_delta_power_positive_mean": null,
+      "relative_gamma_power_negative_mean": 0.8763204076062768,
+      "relative_gamma_power_positive_mean": null,
+      "relative_theta_power_negative_mean": 0.6788164264389651,
+      "relative_theta_power_positive_mean": null,
+      "skewness_negative_mean": 0.41364767025574867,
+      "skewness_positive_mean": null,
+      "spectral_entropy_negative_mean": 0.34861172456492034,
+      "spectral_entropy_positive_mean": null,
+      "window_count": 719
+    },
+    {
+      "excess_kurtosis_negative_mean": 0.16681880903689722,
+      "excess_kurtosis_positive_mean": null,
+      "log_std_negative_mean": 4.493808542382472,
+      "log_std_positive_mean": null,
+      "normalized_line_length_negative_mean": 0.8745340454448756,
+      "normalized_line_length_positive_mean": null,
+      "positive_windows": 0,
+      "recording": "chb13/chb13_04.edf",
+      "relative_alpha_power_negative_mean": -0.33211468733692406,
+      "relative_alpha_power_positive_mean": null,
+      "relative_beta_power_negative_mean": -3.540373363774154,
+      "relative_beta_power_positive_mean": null,
+      "relative_delta_power_negative_mean": -1.3561398522290085,
+      "relative_delta_power_positive_mean": null,
+      "relative_gamma_power_negative_mean": 1.1159519183125803,
+      "relative_gamma_power_positive_mean": null,
+      "relative_theta_power_negative_mean": 0.22356572459679375,
+      "relative_theta_power_positive_mean": null,
+      "skewness_negative_mean": 0.4450680146444871,
+      "skewness_positive_mean": null,
+      "spectral_entropy_negative_mean": 0.25553809464780236,
+      "spectral_entropy_positive_mean": null,
+      "window_count": 719
+    },
+    {
+      "excess_kurtosis_negative_mean": 0.07543552156885253,
+      "excess_kurtosis_positive_mean": null,
+      "log_std_negative_mean": 4.571838872524863,
+      "log_std_positive_mean": null,
+      "normalized_line_length_negative_mean": 0.9057934137877294,
+      "normalized_line_length_positive_mean": null,
+      "positive_windows": 0,
+      "recording": "chb13/chb13_05.edf",
+      "relative_alpha_power_negative_mean": -0.37408064230149257,
+      "relative_alpha_power_positive_mean": null,
+      "relative_beta_power_negative_mean": -3.6758365760678946,
+      "relative_beta_power_positive_mean": null,
+      "relative_delta_power_negative_mean": -1.277642663093339,
+      "relative_delta_power_positive_mean": null,
+      "relative_gamma_power_negative_mean": 1.1482277652913102,
+      "relative_gamma_power_positive_mean": null,
+      "relative_theta_power_negative_mean": -0.15491685867062188,
+      "relative_theta_power_positive_mean": null,
+      "skewness_negative_mean": 0.4119032907624199,
+      "skewness_positive_mean": null,
+      "spectral_entropy_negative_mean": -0.008483807845488288,
+      "spectral_entropy_positive_mean": null,
+      "window_count": 719
+    },
+    {
+      "excess_kurtosis_negative_mean": 0.0790949269961718,
+      "excess_kurtosis_positive_mean": null,
+      "log_std_negative_mean": 3.6570832748575604,
+      "log_std_positive_mean": null,
+      "normalized_line_length_negative_mean": 0.08432690887874165,
+      "normalized_line_length_positive_mean": null,
+      "positive_windows": 0,
+      "recording": "chb13/chb13_06.edf",
+      "relative_alpha_power_negative_mean": -0.1756673304052863,
+      "relative_alpha_power_positive_mean": null,
+      "relative_beta_power_negative_mean": -2.653931205329581,
+      "relative_beta_power_positive_mean": null,
+      "relative_delta_power_negative_mean": -1.1823158325808596,
+      "relative_delta_power_positive_mean": null,
+      "relative_gamma_power_negative_mean": 1.7771113554059015,
+      "relative_gamma_power_positive_mean": null,
+      "relative_theta_power_negative_mean": 0.4440378410911624,
+      "relative_theta_power_positive_mean": null,
+      "skewness_negative_mean": 0.4381323145667673,
+      "skewness_positive_mean": null,
+      "spectral_entropy_negative_mean": 0.14379047717893792,
+      "spectral_entropy_positive_mean": null,
+      "window_count": 719
+    },
+    {
+      "excess_kurtosis_negative_mean": 0.18142407389785095,
+      "excess_kurtosis_positive_mean": null,
+      "log_std_negative_mean": 2.8315572391653103,
+      "log_std_positive_mean": null,
+      "normalized_line_length_negative_mean": -1.753519233449148,
+      "normalized_line_length_positive_mean": null,
+      "positive_windows": 0,
+      "recording": "chb13/chb13_07.edf",
+      "relative_alpha_power_negative_mean": 0.10111883482261232,
+      "relative_alpha_power_positive_mean": null,
+      "relative_beta_power_negative_mean": -0.15120858476185634,
+      "relative_beta_power_positive_mean": null,
+      "relative_delta_power_negative_mean": -0.25676908206879134,
+      "relative_delta_power_positive_mean": null,
+      "relative_gamma_power_negative_mean": 1.3469202678126888,
+      "relative_gamma_power_positive_mean": null,
+      "relative_theta_power_negative_mean": 0.9738610729070358,
+      "relative_theta_power_positive_mean": null,
+      "skewness_negative_mean": 0.16904758328057343,
+      "skewness_positive_mean": null,
+      "spectral_entropy_negative_mean": -0.49655179785948533,
+      "spectral_entropy_positive_mean": null,
+      "window_count": 719
+    },
+    {
+      "excess_kurtosis_negative_mean": 0.26525266951402277,
+      "excess_kurtosis_positive_mean": null,
+      "log_std_negative_mean": 1.120518823517258,
+      "log_std_positive_mean": null,
+      "normalized_line_length_negative_mean": -3.2352161083934687,
+      "normalized_line_length_positive_mean": null,
+      "positive_windows": 0,
+      "recording": "chb13/chb13_08.edf",
+      "relative_alpha_power_negative_mean": 0.16392849509415564,
+      "relative_alpha_power_positive_mean": null,
+      "relative_beta_power_negative_mean": 1.522317499531025,
+      "relative_beta_power_positive_mean": null,
+      "relative_delta_power_negative_mean": 1.044233350574673,
+      "relative_delta_power_positive_mean": null,
+      "relative_gamma_power_negative_mean": 1.127942773920415,
+      "relative_gamma_power_positive_mean": null,
+      "relative_theta_power_negative_mean": 0.7516905535698096,
+      "relative_theta_power_positive_mean": null,
+      "skewness_negative_mean": 0.1853601257724824,
+      "skewness_positive_mean": null,
+      "spectral_entropy_negative_mean": -0.5068716037191681,
+      "spectral_entropy_positive_mean": null,
+      "window_count": 719
+    },
+    {
+      "excess_kurtosis_negative_mean": 0.25082130321752083,
+      "excess_kurtosis_positive_mean": null,
+      "log_std_negative_mean": 0.6068289684051282,
+      "log_std_positive_mean": null,
+      "normalized_line_length_negative_mean": -2.983290330978457,
+      "normalized_line_length_positive_mean": null,
+      "positive_windows": 0,
+      "recording": "chb13/chb13_09.edf",
+      "relative_alpha_power_negative_mean": 0.1846727572214907,
+      "relative_alpha_power_positive_mean": null,
+      "relative_beta_power_negative_mean": 1.3117155180300513,
+      "relative_beta_power_positive_mean": null,
+      "relative_delta_power_negative_mean": 0.834741458872708,
+      "relative_delta_power_positive_mean": null,
+      "relative_gamma_power_negative_mean": 1.165831853728234,
+      "relative_gamma_power_positive_mean": null,
+      "relative_theta_power_negative_mean": 0.7089190590927457,
+      "relative_theta_power_positive_mean": null,
+      "skewness_negative_mean": 0.1552558261440718,
+      "skewness_positive_mean": null,
+      "spectral_entropy_negative_mean": -0.5092727535081395,
+      "spectral_entropy_positive_mean": null,
+      "window_count": 719
+    },
+    {
+      "excess_kurtosis_negative_mean": 0.26166501974031225,
+      "excess_kurtosis_positive_mean": null,
+      "log_std_negative_mean": 0.4135700358135846,
+      "log_std_positive_mean": null,
+      "normalized_line_length_negative_mean": -3.426946342976773,
+      "normalized_line_length_positive_mean": null,
+      "positive_windows": 0,
+      "recording": "chb13/chb13_10.edf",
+      "relative_alpha_power_negative_mean": 0.16657768838494558,
+      "relative_alpha_power_positive_mean": null,
+      "relative_beta_power_negative_mean": 1.5458605738083713,
+      "relative_beta_power_positive_mean": null,
+      "relative_delta_power_negative_mean": 1.4044025874323969,
+      "relative_delta_power_positive_mean": null,
+      "relative_gamma_power_negative_mean": 1.0769789597248893,
+      "relative_gamma_power_positive_mean": null,
+      "relative_theta_power_negative_mean": 0.3707839448750054,
+      "relative_theta_power_positive_mean": null,
+      "skewness_negative_mean": 0.16485217744088543,
+      "skewness_positive_mean": null,
+      "spectral_entropy_negative_mean": -0.4779346454375321,
+      "spectral_entropy_positive_mean": null,
+      "window_count": 719
+    },
+    {
+      "excess_kurtosis_negative_mean": 0.25081808051845766,
+      "excess_kurtosis_positive_mean": null,
+      "log_std_negative_mean": -0.8676150768774227,
+      "log_std_positive_mean": null,
+      "normalized_line_length_negative_mean": -1.8962533775725503,
+      "normalized_line_length_positive_mean": null,
+      "positive_windows": 0,
+      "recording": "chb13/chb13_11.edf",
+      "relative_alpha_power_negative_mean": 0.1559268583847038,
+      "relative_alpha_power_positive_mean": null,
+      "relative_beta_power_negative_mean": 1.3407779463320262,
+      "relative_beta_power_positive_mean": null,
+      "relative_delta_power_negative_mean": 0.6006424354340504,
+      "relative_delta_power_positive_mean": null,
+      "relative_gamma_power_negative_mean": 0.9903343041648636,
+      "relative_gamma_power_positive_mean": null,
+      "relative_theta_power_negative_mean": 1.137435809043652,
+      "relative_theta_power_positive_mean": null,
+      "skewness_negative_mean": 0.1965596024158325,
+      "skewness_positive_mean": null,
+      "spectral_entropy_negative_mean": -0.3044086544467105,
+      "spectral_entropy_positive_mean": null,
+      "window_count": 719
+    },
+    {
+      "excess_kurtosis_negative_mean": 0.25392191945336684,
+      "excess_kurtosis_positive_mean": null,
+      "log_std_negative_mean": -0.5100600069506062,
+      "log_std_positive_mean": null,
+      "normalized_line_length_negative_mean": -1.9426936993378208,
+      "normalized_line_length_positive_mean": null,
+      "positive_windows": 0,
+      "recording": "chb13/chb13_12.edf",
+      "relative_alpha_power_negative_mean": 0.15190287842971592,
+      "relative_alpha_power_positive_mean": null,
+      "relative_beta_power_negative_mean": 1.177326019890045,
+      "relative_beta_power_positive_mean": null,
+      "relative_delta_power_negative_mean": 0.9189050759875625,
+      "relative_delta_power_positive_mean": null,
+      "relative_gamma_power_negative_mean": 1.0749939444503283,
+      "relative_gamma_power_positive_mean": null,
+      "relative_theta_power_negative_mean": 0.6170945344450159,
+      "relative_theta_power_positive_mean": null,
+      "skewness_negative_mean": 0.14258750957911012,
+      "skewness_positive_mean": null,
+      "spectral_entropy_negative_mean": -0.4170359046106822,
+      "spectral_entropy_positive_mean": null,
+      "window_count": 719
+    },
+    {
+      "excess_kurtosis_negative_mean": 0.23666200988705846,
+      "excess_kurtosis_positive_mean": null,
+      "log_std_negative_mean": -0.6194158093118745,
+      "log_std_positive_mean": null,
+      "normalized_line_length_negative_mean": -1.7743000679091585,
+      "normalized_line_length_positive_mean": null,
+      "positive_windows": 0,
+      "recording": "chb13/chb13_13.edf",
+      "relative_alpha_power_negative_mean": 0.1989471571884311,
+      "relative_alpha_power_positive_mean": null,
+      "relative_beta_power_negative_mean": 1.3146117247630165,
+      "relative_beta_power_positive_mean": null,
+      "relative_delta_power_negative_mean": 0.7404661507452394,
+      "relative_delta_power_positive_mean": null,
+      "relative_gamma_power_negative_mean": 0.9249818818058682,
+      "relative_gamma_power_positive_mean": null,
+      "relative_theta_power_negative_mean": 1.0108363160836404,
+      "relative_theta_power_positive_mean": null,
+      "skewness_negative_mean": 0.12539552725284067,
+      "skewness_positive_mean": null,
+      "spectral_entropy_negative_mean": -0.28556307993149743,
+      "spectral_entropy_positive_mean": null,
+      "window_count": 719
+    },
+    {
+      "excess_kurtosis_negative_mean": 0.19770586850943106,
+      "excess_kurtosis_positive_mean": null,
+      "log_std_negative_mean": -0.8606279747702074,
+      "log_std_positive_mean": null,
+      "normalized_line_length_negative_mean": -1.1368281906768947,
+      "normalized_line_length_positive_mean": null,
+      "positive_windows": 0,
+      "recording": "chb13/chb13_14.edf",
+      "relative_alpha_power_negative_mean": 0.1999769339272137,
+      "relative_alpha_power_positive_mean": null,
+      "relative_beta_power_negative_mean": 1.2998305108128538,
+      "relative_beta_power_positive_mean": null,
+      "relative_delta_power_negative_mean": 0.39088895844484245,
+      "relative_delta_power_positive_mean": null,
+      "relative_gamma_power_negative_mean": 0.87931801237785,
+      "relative_gamma_power_positive_mean": null,
+      "relative_theta_power_negative_mean": 1.2247291113075118,
+      "relative_theta_power_positive_mean": null,
+      "skewness_negative_mean": 0.23215303745914126,
+      "skewness_positive_mean": null,
+      "spectral_entropy_negative_mean": -0.2129269259064419,
+      "spectral_entropy_positive_mean": null,
+      "window_count": 719
+    },
+    {
+      "excess_kurtosis_negative_mean": 0.20495322520919415,
+      "excess_kurtosis_positive_mean": null,
+      "log_std_negative_mean": -0.6407188483625942,
+      "log_std_positive_mean": null,
+      "normalized_line_length_negative_mean": -0.4733085558754294,
+      "normalized_line_length_positive_mean": null,
+      "positive_windows": 0,
+      "recording": "chb13/chb13_15.edf",
+      "relative_alpha_power_negative_mean": 0.2107016898300767,
+      "relative_alpha_power_positive_mean": null,
+      "relative_beta_power_negative_mean": 1.375012876546718,
+      "relative_beta_power_positive_mean": null,
+      "relative_delta_power_negative_mean": 0.4859216015240394,
+      "relative_delta_power_positive_mean": null,
+      "relative_gamma_power_negative_mean": 0.7708184189354081,
+      "relative_gamma_power_positive_mean": null,
+      "relative_theta_power_negative_mean": 1.0977652068701582,
+      "relative_theta_power_positive_mean": null,
+      "skewness_negative_mean": 0.07344810630662661,
+      "skewness_positive_mean": null,
+      "spectral_entropy_negative_mean": -0.3531296882531231,
+      "spectral_entropy_positive_mean": null,
+      "window_count": 719
+    },
+    {
+      "excess_kurtosis_negative_mean": 0.09063430191868135,
+      "excess_kurtosis_positive_mean": null,
+      "log_std_negative_mean": 0.3275619614116432,
+      "log_std_positive_mean": null,
+      "normalized_line_length_negative_mean": 0.2828299834816562,
+      "normalized_line_length_positive_mean": null,
+      "positive_windows": 0,
+      "recording": "chb13/chb13_16.edf",
+      "relative_alpha_power_negative_mean": 0.14035293175626967,
+      "relative_alpha_power_positive_mean": null,
+      "relative_beta_power_negative_mean": 0.843033274323689,
+      "relative_beta_power_positive_mean": null,
+      "relative_delta_power_negative_mean": -0.06016704272514271,
+      "relative_delta_power_positive_mean": null,
+      "relative_gamma_power_negative_mean": 0.9318712467339126,
+      "relative_gamma_power_positive_mean": null,
+      "relative_theta_power_negative_mean": 1.4435487084105174,
+      "relative_theta_power_positive_mean": null,
+      "skewness_negative_mean": 0.20507840680560263,
+      "skewness_positive_mean": null,
+      "spectral_entropy_negative_mean": -0.44132558932450333,
+      "spectral_entropy_positive_mean": null,
+      "window_count": 719
+    },
+    {
+      "excess_kurtosis_negative_mean": -0.23202857971657223,
+      "excess_kurtosis_positive_mean": null,
+      "log_std_negative_mean": 3.4546288091945443,
+      "log_std_positive_mean": null,
+      "normalized_line_length_negative_mean": 0.06815455573228664,
+      "normalized_line_length_positive_mean": null,
+      "positive_windows": 0,
+      "recording": "chb13/chb13_18.edf",
+      "relative_alpha_power_negative_mean": -0.1736734496202479,
+      "relative_alpha_power_positive_mean": null,
+      "relative_beta_power_negative_mean": -2.0156773862676434,
+      "relative_beta_power_positive_mean": null,
+      "relative_delta_power_negative_mean": -0.8652991838470002,
+      "relative_delta_power_positive_mean": null,
+      "relative_gamma_power_negative_mean": 1.6456465577105386,
+      "relative_gamma_power_positive_mean": null,
+      "relative_theta_power_negative_mean": 0.5267177260361093,
+      "relative_theta_power_positive_mean": null,
+      "skewness_negative_mean": 0.4913234444241992,
+      "skewness_positive_mean": null,
+      "spectral_entropy_negative_mean": -0.2156406454121456,
+      "spectral_entropy_positive_mean": null,
+      "window_count": 719
+    },
+    {
+      "excess_kurtosis_negative_mean": -0.23840950695713428,
+      "excess_kurtosis_positive_mean": -0.01346605408177218,
+      "log_std_negative_mean": 3.6916893730847233,
+      "log_std_positive_mean": 2.5820639705547426,
+      "normalized_line_length_negative_mean": 0.6272770709058075,
+      "normalized_line_length_positive_mean": 0.14117331443652928,
+      "positive_windows": 11,
+      "recording": "chb13/chb13_19.edf",
+      "relative_alpha_power_negative_mean": -0.2346794260068965,
+      "relative_alpha_power_positive_mean": -0.36320306120998536,
+      "relative_beta_power_negative_mean": -2.073392504149637,
+      "relative_beta_power_positive_mean": -1.472467409296101,
+      "relative_delta_power_negative_mean": -1.1399281113416397,
+      "relative_delta_power_positive_mean": -0.05417061316277143,
+      "relative_gamma_power_negative_mean": 0.9036602155819992,
+      "relative_gamma_power_positive_mean": 0.7308412351420004,
+      "relative_theta_power_negative_mean": 0.12489168287301146,
+      "relative_theta_power_positive_mean": 0.21268225563722387,
+      "skewness_negative_mean": 0.5747059662251492,
+      "skewness_positive_mean": 0.5240996347576782,
+      "spectral_entropy_negative_mean": -0.030042444454053144,
+      "spectral_entropy_positive_mean": -0.2957265857903657,
+      "window_count": 719
+    },
+    {
+      "excess_kurtosis_negative_mean": -0.1375397781181083,
+      "excess_kurtosis_positive_mean": 0.01887483524785541,
+      "log_std_negative_mean": 4.04167868392728,
+      "log_std_positive_mean": 5.394480094505658,
+      "normalized_line_length_negative_mean": 1.1250130378920833,
+      "normalized_line_length_positive_mean": 2.31604776792049,
+      "positive_windows": 16,
+      "recording": "chb13/chb13_21.edf",
+      "relative_alpha_power_negative_mean": -0.25994299854665054,
+      "relative_alpha_power_positive_mean": -0.41945905250126636,
+      "relative_beta_power_negative_mean": -3.5037667379272555,
+      "relative_beta_power_positive_mean": -4.482145051780657,
+      "relative_delta_power_negative_mean": -1.2559901171719021,
+      "relative_delta_power_positive_mean": -0.961348189509509,
+      "relative_gamma_power_negative_mean": 0.48281707254725503,
+      "relative_gamma_power_positive_mean": 0.005232080220235427,
+      "relative_theta_power_negative_mean": 0.0030599886723826214,
+      "relative_theta_power_positive_mean": -0.7525648338885348,
+      "skewness_negative_mean": 0.4329353811853188,
+      "skewness_positive_mean": 0.28179619259952804,
+      "spectral_entropy_negative_mean": 0.49612460933164626,
+      "spectral_entropy_positive_mean": 0.8033918466716091,
+      "window_count": 719
+    },
+    {
+      "excess_kurtosis_negative_mean": 0.09985931471715843,
+      "excess_kurtosis_positive_mean": null,
+      "log_std_negative_mean": 3.7240301935161,
+      "log_std_positive_mean": null,
+      "normalized_line_length_negative_mean": 0.18415571679789888,
+      "normalized_line_length_positive_mean": null,
+      "positive_windows": 0,
+      "recording": "chb13/chb13_22.edf",
+      "relative_alpha_power_negative_mean": -0.10318119956597466,
+      "relative_alpha_power_positive_mean": null,
+      "relative_beta_power_negative_mean": -1.8115754219303548,
+      "relative_beta_power_positive_mean": null,
+      "relative_delta_power_negative_mean": -0.9650491317037654,
+      "relative_delta_power_positive_mean": null,
+      "relative_gamma_power_negative_mean": 1.0090706936984382,
+      "relative_gamma_power_positive_mean": null,
+      "relative_theta_power_negative_mean": 0.9254246195198862,
+      "relative_theta_power_positive_mean": null,
+      "skewness_negative_mean": 0.4352049319088178,
+      "skewness_positive_mean": null,
+      "spectral_entropy_negative_mean": 0.23632866770099484,
+      "spectral_entropy_positive_mean": null,
+      "window_count": 719
+    },
+    {
+      "excess_kurtosis_negative_mean": 0.15713674379869833,
+      "excess_kurtosis_positive_mean": null,
+      "log_std_negative_mean": 1.8634737495508118,
+      "log_std_positive_mean": null,
+      "normalized_line_length_negative_mean": -1.3854154676271886,
+      "normalized_line_length_positive_mean": null,
+      "positive_windows": 0,
+      "recording": "chb13/chb13_24.edf",
+      "relative_alpha_power_negative_mean": 0.058796662612156825,
+      "relative_alpha_power_positive_mean": null,
+      "relative_beta_power_negative_mean": 0.3529250274176858,
+      "relative_beta_power_positive_mean": null,
+      "relative_delta_power_negative_mean": -0.3375907770843879,
+      "relative_delta_power_positive_mean": null,
+      "relative_gamma_power_negative_mean": 1.1016601607889616,
+      "relative_gamma_power_positive_mean": null,
+      "relative_theta_power_negative_mean": 1.4115848724052618,
+      "relative_theta_power_positive_mean": null,
+      "skewness_negative_mean": 0.17661755117692496,
+      "skewness_positive_mean": null,
+      "spectral_entropy_negative_mean": -0.03517585140643308,
+      "spectral_entropy_positive_mean": null,
+      "window_count": 719
+    },
+    {
+      "excess_kurtosis_negative_mean": -0.16512174188110296,
+      "excess_kurtosis_positive_mean": null,
+      "log_std_negative_mean": 3.895389395292703,
+      "log_std_positive_mean": null,
+      "normalized_line_length_negative_mean": 0.9067017874708257,
+      "normalized_line_length_positive_mean": null,
+      "positive_windows": 0,
+      "recording": "chb13/chb13_30.edf",
+      "relative_alpha_power_negative_mean": -0.10535467235067293,
+      "relative_alpha_power_positive_mean": null,
+      "relative_beta_power_negative_mean": -2.2083412257591446,
+      "relative_beta_power_positive_mean": null,
+      "relative_delta_power_negative_mean": -0.21971243357854392,
+      "relative_delta_power_positive_mean": null,
+      "relative_gamma_power_negative_mean": 0.6417276252905321,
+      "relative_gamma_power_positive_mean": null,
+      "relative_theta_power_negative_mean": -0.029731032110924205,
+      "relative_theta_power_positive_mean": null,
+      "skewness_negative_mean": 0.3503552903366996,
+      "skewness_positive_mean": null,
+      "spectral_entropy_negative_mean": -0.6227950541713396,
+      "spectral_entropy_positive_mean": null,
+      "window_count": 719
+    },
+    {
+      "excess_kurtosis_negative_mean": 0.21611067166044565,
+      "excess_kurtosis_positive_mean": null,
+      "log_std_negative_mean": 0.3393731402699549,
+      "log_std_positive_mean": null,
+      "normalized_line_length_negative_mean": -2.8919387243962755,
+      "normalized_line_length_positive_mean": null,
+      "positive_windows": 0,
+      "recording": "chb13/chb13_36.edf",
+      "relative_alpha_power_negative_mean": 0.18014218152530148,
+      "relative_alpha_power_positive_mean": null,
+      "relative_beta_power_negative_mean": 1.5135084810391046,
+      "relative_beta_power_positive_mean": null,
+      "relative_delta_power_negative_mean": 0.6545430178578503,
+      "relative_delta_power_positive_mean": null,
+      "relative_gamma_power_negative_mean": 1.024329180251071,
+      "relative_gamma_power_positive_mean": null,
+      "relative_theta_power_negative_mean": 1.185552161007135,
+      "relative_theta_power_positive_mean": null,
+      "skewness_negative_mean": 0.12262714844597734,
+      "skewness_positive_mean": null,
+      "spectral_entropy_negative_mean": -0.33876929125239663,
+      "spectral_entropy_positive_mean": null,
+      "window_count": 719
+    },
+    {
+      "excess_kurtosis_negative_mean": 0.18845820406375902,
+      "excess_kurtosis_positive_mean": null,
+      "log_std_negative_mean": 0.10971667668896354,
+      "log_std_positive_mean": null,
+      "normalized_line_length_negative_mean": -2.99743513669688,
+      "normalized_line_length_positive_mean": null,
+      "positive_windows": 0,
+      "recording": "chb13/chb13_37.edf",
+      "relative_alpha_power_negative_mean": 0.1393195022407785,
+      "relative_alpha_power_positive_mean": null,
+      "relative_beta_power_negative_mean": 1.4746068822019422,
+      "relative_beta_power_positive_mean": null,
+      "relative_delta_power_negative_mean": 0.937512654705818,
+      "relative_delta_power_positive_mean": null,
+      "relative_gamma_power_negative_mean": 1.0031705745820814,
+      "relative_gamma_power_positive_mean": null,
+      "relative_theta_power_negative_mean": 0.7815351263299104,
+      "relative_theta_power_positive_mean": null,
+      "skewness_negative_mean": 0.11693488835151072,
+      "skewness_positive_mean": null,
+      "spectral_entropy_negative_mean": -0.3108540884349334,
+      "spectral_entropy_positive_mean": null,
+      "window_count": 719
+    },
+    {
+      "excess_kurtosis_negative_mean": 0.18959863782086825,
+      "excess_kurtosis_positive_mean": null,
+      "log_std_negative_mean": -0.3084760059040694,
+      "log_std_positive_mean": null,
+      "normalized_line_length_negative_mean": -2.560805952228065,
+      "normalized_line_length_positive_mean": null,
+      "positive_windows": 0,
+      "recording": "chb13/chb13_38.edf",
+      "relative_alpha_power_negative_mean": 0.20817015100253247,
+      "relative_alpha_power_positive_mean": null,
+      "relative_beta_power_negative_mean": 1.3096023822559646,
+      "relative_beta_power_positive_mean": null,
+      "relative_delta_power_negative_mean": 0.8499405573564639,
+      "relative_delta_power_positive_mean": null,
+      "relative_gamma_power_negative_mean": 0.9349529752161725,
+      "relative_gamma_power_positive_mean": null,
+      "relative_theta_power_negative_mean": 0.8537127707961637,
+      "relative_theta_power_positive_mean": null,
+      "skewness_negative_mean": 0.11395292970658494,
+      "skewness_positive_mean": null,
+      "spectral_entropy_negative_mean": 0.006558534148807519,
+      "spectral_entropy_positive_mean": null,
+      "window_count": 719
+    },
+    {
+      "excess_kurtosis_negative_mean": 0.08347276350403188,
+      "excess_kurtosis_positive_mean": null,
+      "log_std_negative_mean": -0.31950031329451,
+      "log_std_positive_mean": null,
+      "normalized_line_length_negative_mean": -2.4223158488224663,
+      "normalized_line_length_positive_mean": null,
+      "positive_windows": 0,
+      "recording": "chb13/chb13_39.edf",
+      "relative_alpha_power_negative_mean": 0.24067387167993975,
+      "relative_alpha_power_positive_mean": null,
+      "relative_beta_power_negative_mean": 1.299385063068405,
+      "relative_beta_power_positive_mean": null,
+      "relative_delta_power_negative_mean": 0.4573882356944875,
+      "relative_delta_power_positive_mean": null,
+      "relative_gamma_power_negative_mean": 0.9606390257676451,
+      "relative_gamma_power_positive_mean": null,
+      "relative_theta_power_negative_mean": 1.1178673067625098,
+      "relative_theta_power_positive_mean": null,
+      "skewness_negative_mean": 0.21314610888691804,
+      "skewness_positive_mean": null,
+      "spectral_entropy_negative_mean": -0.030284273807274213,
+      "spectral_entropy_positive_mean": null,
+      "window_count": 719
+    },
+    {
+      "excess_kurtosis_negative_mean": 0.11012656626925403,
+      "excess_kurtosis_positive_mean": 0.25462997571030205,
+      "log_std_negative_mean": 0.003773286275765708,
+      "log_std_positive_mean": -0.15641663581094942,
+      "normalized_line_length_negative_mean": -1.775057714396795,
+      "normalized_line_length_positive_mean": -2.2208684244683097,
+      "positive_windows": 22,
+      "recording": "chb13/chb13_40.edf",
+      "relative_alpha_power_negative_mean": 0.34201071188759646,
+      "relative_alpha_power_positive_mean": 0.19751846160332526,
+      "relative_beta_power_negative_mean": 0.9403344436694985,
+      "relative_beta_power_positive_mean": 1.3791773132114657,
+      "relative_delta_power_negative_mean": 0.42955401351262196,
+      "relative_delta_power_positive_mean": 0.9326370013448535,
+      "relative_gamma_power_negative_mean": 0.9102333839801534,
+      "relative_gamma_power_positive_mean": 0.8532854726502205,
+      "relative_theta_power_negative_mean": 1.1100460103349625,
+      "relative_theta_power_positive_mean": 0.6793590227272277,
+      "skewness_negative_mean": 0.02653348863176263,
+      "skewness_positive_mean": 0.16478163918958114,
+      "spectral_entropy_negative_mean": 0.2632417212457908,
+      "spectral_entropy_positive_mean": -0.20934934530258706,
+      "window_count": 719
+    },
+    {
+      "excess_kurtosis_negative_mean": -0.11033298227600476,
+      "excess_kurtosis_positive_mean": null,
+      "log_std_negative_mean": 2.615969676521067,
+      "log_std_positive_mean": null,
+      "normalized_line_length_negative_mean": -0.5329848494266508,
+      "normalized_line_length_positive_mean": null,
+      "positive_windows": 0,
+      "recording": "chb13/chb13_47.edf",
+      "relative_alpha_power_negative_mean": 0.01701919744005678,
+      "relative_alpha_power_positive_mean": null,
+      "relative_beta_power_negative_mean": -0.017081050983571378,
+      "relative_beta_power_positive_mean": null,
+      "relative_delta_power_negative_mean": -1.1025706111406282,
+      "relative_delta_power_positive_mean": null,
+      "relative_gamma_power_negative_mean": 0.9129550070968315,
+      "relative_gamma_power_positive_mean": null,
+      "relative_theta_power_negative_mean": 1.63846453757273,
+      "relative_theta_power_positive_mean": null,
+      "skewness_negative_mean": 0.21780161451726587,
+      "skewness_positive_mean": null,
+      "spectral_entropy_negative_mean": 0.10238365719466407,
+      "spectral_entropy_positive_mean": null,
+      "window_count": 719
+    },
+    {
+      "excess_kurtosis_negative_mean": 0.09065773531811883,
+      "excess_kurtosis_positive_mean": 0.15807084040430863,
+      "log_std_negative_mean": 2.330419788549218,
+      "log_std_positive_mean": 2.335882207452532,
+      "normalized_line_length_negative_mean": -1.011546463458347,
+      "normalized_line_length_positive_mean": -0.7797578054214376,
+      "positive_windows": 11,
+      "recording": "chb13/chb13_55.edf",
+      "relative_alpha_power_negative_mean": 0.03401618724943348,
+      "relative_alpha_power_positive_mean": -0.1955575141674968,
+      "relative_beta_power_negative_mean": 0.3309044493432781,
+      "relative_beta_power_positive_mean": -0.26050339302824027,
+      "relative_delta_power_negative_mean": -0.4610469526475498,
+      "relative_delta_power_positive_mean": -0.0186862814611886,
+      "relative_gamma_power_negative_mean": 1.0328698436255808,
+      "relative_gamma_power_positive_mean": 0.9434137184203899,
+      "relative_theta_power_negative_mean": 1.4357336946260209,
+      "relative_theta_power_positive_mean": 0.5431007470029695,
+      "skewness_negative_mean": 0.33233644496967085,
+      "skewness_positive_mean": 0.3736114230971376,
+      "spectral_entropy_negative_mean": -0.42491482684323306,
+      "spectral_entropy_positive_mean": -0.8077992385412742,
+      "window_count": 719
+    },
+    {
+      "excess_kurtosis_negative_mean": 0.2745380983124272,
+      "excess_kurtosis_positive_mean": null,
+      "log_std_negative_mean": 1.4309853089850273,
+      "log_std_positive_mean": null,
+      "normalized_line_length_negative_mean": -3.78242755360758,
+      "normalized_line_length_positive_mean": null,
+      "positive_windows": 0,
+      "recording": "chb13/chb13_56.edf",
+      "relative_alpha_power_negative_mean": 0.25472262060548284,
+      "relative_alpha_power_positive_mean": null,
+      "relative_beta_power_negative_mean": 1.5888901638121073,
+      "relative_beta_power_positive_mean": null,
+      "relative_delta_power_negative_mean": 1.3367315366061867,
+      "relative_delta_power_positive_mean": null,
+      "relative_gamma_power_negative_mean": 1.111793504062643,
+      "relative_gamma_power_positive_mean": null,
+      "relative_theta_power_negative_mean": 0.5220727459108779,
+      "relative_theta_power_positive_mean": null,
+      "skewness_negative_mean": 0.20310403977207042,
+      "skewness_positive_mean": null,
+      "spectral_entropy_negative_mean": -0.4572884570039939,
+      "spectral_entropy_positive_mean": null,
+      "window_count": 719
+    },
+    {
+      "excess_kurtosis_negative_mean": 0.14003416994275922,
+      "excess_kurtosis_positive_mean": 0.2284081132295087,
+      "log_std_negative_mean": 0.6156835579166872,
+      "log_std_positive_mean": 0.8555385354794874,
+      "normalized_line_length_negative_mean": -2.319591508774234,
+      "normalized_line_length_positive_mean": -1.8331983319761875,
+      "positive_windows": 6,
+      "recording": "chb13/chb13_58.edf",
+      "relative_alpha_power_negative_mean": 0.2016969030306668,
+      "relative_alpha_power_positive_mean": -0.18593949190141393,
+      "relative_beta_power_negative_mean": 1.09069841375663,
+      "relative_beta_power_positive_mean": 1.659171897661081,
+      "relative_delta_power_negative_mean": 0.8759940159687477,
+      "relative_delta_power_positive_mean": 0.9828320356939603,
+      "relative_gamma_power_negative_mean": 1.0934708071941113,
+      "relative_gamma_power_positive_mean": 0.8697495178490867,
+      "relative_theta_power_negative_mean": 0.4230273849969354,
+      "relative_theta_power_positive_mean": 0.997198991156429,
+      "skewness_negative_mean": 0.11179425141223517,
+      "skewness_positive_mean": -0.20182707024248622,
+      "spectral_entropy_negative_mean": -0.46751048805337286,
+      "spectral_entropy_positive_mean": -0.7285844794834024,
+      "window_count": 719
+    },
+    {
+      "excess_kurtosis_negative_mean": 0.05940078895681071,
+      "excess_kurtosis_positive_mean": 0.29061329912829365,
+      "log_std_negative_mean": 0.8331544682682771,
+      "log_std_positive_mean": 0.6172171708300641,
+      "normalized_line_length_negative_mean": -1.37961051600424,
+      "normalized_line_length_positive_mean": -2.0427913754268703,
+      "positive_windows": 15,
+      "recording": "chb13/chb13_59.edf",
+      "relative_alpha_power_negative_mean": 0.12122082932343096,
+      "relative_alpha_power_positive_mean": 0.05640805403875424,
+      "relative_beta_power_negative_mean": 0.6822866295089476,
+      "relative_beta_power_positive_mean": 1.3601946446269888,
+      "relative_delta_power_negative_mean": -0.3710524650338654,
+      "relative_delta_power_positive_mean": 0.6831750047019904,
+      "relative_gamma_power_negative_mean": 1.1018433688635734,
+      "relative_gamma_power_positive_mean": 0.9530590858022158,
+      "relative_theta_power_negative_mean": 1.3799372912765733,
+      "relative_theta_power_positive_mean": 1.0687882380650373,
+      "skewness_negative_mean": 0.3425587794872081,
+      "skewness_positive_mean": -0.1646867058857367,
+      "spectral_entropy_negative_mean": -0.2952263042676391,
+      "spectral_entropy_positive_mean": -0.4326422125215226,
+      "window_count": 719
+    },
+    {
+      "excess_kurtosis_negative_mean": 0.25571187191384287,
+      "excess_kurtosis_positive_mean": 0.23040098566520265,
+      "log_std_negative_mean": 0.6765640962120502,
+      "log_std_positive_mean": 1.1774166650685363,
+      "normalized_line_length_negative_mean": -3.3495855598035713,
+      "normalized_line_length_positive_mean": -2.500479956626098,
+      "positive_windows": 6,
+      "recording": "chb13/chb13_60.edf",
+      "relative_alpha_power_negative_mean": 0.15347155598188847,
+      "relative_alpha_power_positive_mean": -0.10532099765846777,
+      "relative_beta_power_negative_mean": 1.5856626786297712,
+      "relative_beta_power_positive_mean": 1.7157426014292125,
+      "relative_delta_power_negative_mean": 1.2101294616805467,
+      "relative_delta_power_positive_mean": 0.8173572129037637,
+      "relative_gamma_power_negative_mean": 1.056723011870748,
+      "relative_gamma_power_positive_mean": 0.9643454255641024,
+      "relative_theta_power_negative_mean": 0.559971115855325,
+      "relative_theta_power_positive_mean": 0.6471770138075994,
+      "skewness_negative_mean": 0.11409055352145323,
+      "skewness_positive_mean": -0.10255756963219827,
+      "spectral_entropy_negative_mean": -0.4222641929819488,
+      "spectral_entropy_positive_mean": -0.26587503939159696,
+      "window_count": 719
+    },
+    {
+      "excess_kurtosis_negative_mean": 0.1352993589587665,
+      "excess_kurtosis_positive_mean": 0.2996176815654913,
+      "log_std_negative_mean": -0.009013002097642204,
+      "log_std_positive_mean": 2.066522712471114,
+      "normalized_line_length_negative_mean": -2.6745140641542906,
+      "normalized_line_length_positive_mean": -2.9912338295599197,
+      "positive_windows": 44,
+      "recording": "chb13/chb13_62.edf",
+      "relative_alpha_power_negative_mean": 0.10517717753153576,
+      "relative_alpha_power_positive_mean": -0.08982309916001882,
+      "relative_beta_power_negative_mean": 1.349106432412596,
+      "relative_beta_power_positive_mean": 1.4852352734846377,
+      "relative_delta_power_negative_mean": 0.866905593396089,
+      "relative_delta_power_positive_mean": 1.2688683514536625,
+      "relative_gamma_power_negative_mean": 1.023248884384148,
+      "relative_gamma_power_positive_mean": 1.1032002168772352,
+      "relative_theta_power_negative_mean": 0.719613837208123,
+      "relative_theta_power_positive_mean": 0.7395199034541633,
+      "skewness_negative_mean": 0.134169558237788,
+      "skewness_positive_mean": 0.052989326628965376,
+      "spectral_entropy_negative_mean": -0.2357632982315338,
+      "spectral_entropy_positive_mean": -0.8468967563762466,
+      "window_count": 719
+    }
+  ],
+  "reconstruction_check": {
+    "max_absolute_probability_difference": 0.0,
+    "mean_absolute_probability_difference": 0.0,
+    "passed": true,
+    "tolerance": 2e-06
+  },
+  "saved_fold_signature": "71d642474e533a64b480d44831749f387f6952a87918d1a5cafce745461e304b",
+  "saved_oof_artifact_modified": false,
+  "status": "completed",
+  "threshold_tuned": false,
+  "training_patient_count": 21,
+  "training_recording_count": 575
+}

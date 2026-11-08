@@ -1,0 +1,438 @@
+{
+  "status": "completed",
+  "scope": "inner_validation_only",
+  "model_retrained": false,
+  "thresholds_changed": false,
+  "legacy": {
+    "recording_count": 139,
+    "false_alarm_count": 1327,
+    "recordings_with_false_alarms": 102,
+    "false_alarm_duration_seconds": {
+      "count": 1327,
+      "median": 15.0,
+      "p90": 50.0,
+      "p95": 88.50000000000023,
+      "max": 1270.0
+    },
+    "gaps_between_false_alarms_seconds": {
+      "count": 1225,
+      "median": 40.0,
+      "p90": 510.0,
+      "p95": 1303.9999999999998,
+      "max": 11215.0
+    },
+    "gaps_between_all_alarms_seconds": {
+      "count": 1245,
+      "median": 40.0,
+      "p90": 523.0000000000007,
+      "p95": 1457.999999999995,
+      "max": 11215.0
+    },
+    "patient_false_alarm_counts": {
+      "patient_04": 852,
+      "patient_07": 128,
+      "patient_11": 245,
+      "patient_17": 35,
+      "patient_24": 67
+    },
+    "top_15_recordings": [
+      {
+        "recording": "chb04/chb04_33.edf",
+        "patient": "patient_04",
+        "false_alarms": 151,
+        "share_of_total": 0.11379050489826677
+      },
+      {
+        "recording": "chb04/chb04_32.edf",
+        "patient": "patient_04",
+        "false_alarms": 103,
+        "share_of_total": 0.07761868877166542
+      },
+      {
+        "recording": "chb04/chb04_36.edf",
+        "patient": "patient_04",
+        "false_alarms": 99,
+        "share_of_total": 0.0746043707611153
+      },
+      {
+        "recording": "chb04/chb04_17.edf",
+        "patient": "patient_04",
+        "false_alarms": 88,
+        "share_of_total": 0.06631499623210249
+      },
+      {
+        "recording": "chb04/chb04_34.edf",
+        "patient": "patient_04",
+        "false_alarms": 82,
+        "share_of_total": 0.06179351921627732
+      },
+      {
+        "recording": "chb04/chb04_16.edf",
+        "patient": "patient_04",
+        "false_alarms": 81,
+        "share_of_total": 0.06103993971363979
+      },
+      {
+        "recording": "chb07/chb07_14.edf",
+        "patient": "patient_07",
+        "false_alarms": 50,
+        "share_of_total": 0.037678975131876416
+      },
+      {
+        "recording": "chb04/chb04_37.edf",
+        "patient": "patient_04",
+        "false_alarms": 46,
+        "share_of_total": 0.0346646571213263
+      },
+      {
+        "recording": "chb04/chb04_31.edf",
+        "patient": "patient_04",
+        "false_alarms": 45,
+        "share_of_total": 0.03391107761868877
+      },
+      {
+        "recording": "chb11/chb11_08.edf",
+        "patient": "patient_11",
+        "false_alarms": 38,
+        "share_of_total": 0.028636021100226075
+      },
+      {
+        "recording": "chb11/chb11_27.edf",
+        "patient": "patient_11",
+        "false_alarms": 37,
+        "share_of_total": 0.027882441597588545
+      },
+      {
+        "recording": "chb11/chb11_07.edf",
+        "patient": "patient_11",
+        "false_alarms": 35,
+        "share_of_total": 0.02637528259231349
+      },
+      {
+        "recording": "chb04/chb04_38.edf",
+        "patient": "patient_04",
+        "false_alarms": 31,
+        "share_of_total": 0.023360964581763375
+      },
+      {
+        "recording": "chb07/chb07_12.edf",
+        "patient": "patient_07",
+        "false_alarms": 24,
+        "share_of_total": 0.01808590806330068
+      },
+      {
+        "recording": "chb04/chb04_35.edf",
+        "patient": "patient_04",
+        "false_alarms": 23,
+        "share_of_total": 0.01733232856066315
+      }
+    ]
+  },
+  "robust": {
+    "recording_count": 139,
+    "false_alarm_count": 1272,
+    "recordings_with_false_alarms": 112,
+    "false_alarm_duration_seconds": {
+      "count": 1272,
+      "median": 15.0,
+      "p90": 35.0,
+      "p95": 65.0,
+      "max": 670.0
+    },
+    "gaps_between_false_alarms_seconds": {
+      "count": 1160,
+      "median": 50.0,
+      "p90": 1046.500000000002,
+      "p95": 2108.499999999997,
+      "max": 10810.0
+    },
+    "gaps_between_all_alarms_seconds": {
+      "count": 1192,
+      "median": 55.0,
+      "p90": 1089.000000000001,
+      "p95": 2179.5000000000005,
+      "max": 10810.0
+    },
+    "patient_false_alarm_counts": {
+      "patient_04": 879,
+      "patient_07": 192,
+      "patient_11": 78,
+      "patient_17": 53,
+      "patient_24": 70
+    },
+    "top_15_recordings": [
+      {
+        "recording": "chb04/chb04_33.edf",
+        "patient": "patient_04",
+        "false_alarms": 161,
+        "share_of_total": 0.12657232704402516
+      },
+      {
+        "recording": "chb04/chb04_34.edf",
+        "patient": "patient_04",
+        "false_alarms": 137,
+        "share_of_total": 0.10770440251572327
+      },
+      {
+        "recording": "chb04/chb04_05.edf",
+        "patient": "patient_04",
+        "false_alarms": 106,
+        "share_of_total": 0.08333333333333333
+      },
+      {
+        "recording": "chb04/chb04_32.edf",
+        "patient": "patient_04",
+        "false_alarms": 99,
+        "share_of_total": 0.07783018867924528
+      },
+      {
+        "recording": "chb07/chb07_14.edf",
+        "patient": "patient_07",
+        "false_alarms": 72,
+        "share_of_total": 0.05660377358490566
+      },
+      {
+        "recording": "chb04/chb04_36.edf",
+        "patient": "patient_04",
+        "false_alarms": 48,
+        "share_of_total": 0.03773584905660377
+      },
+      {
+        "recording": "chb07/chb07_05.edf",
+        "patient": "patient_07",
+        "false_alarms": 30,
+        "share_of_total": 0.02358490566037736
+      },
+      {
+        "recording": "chb04/chb04_19.edf",
+        "patient": "patient_04",
+        "false_alarms": 27,
+        "share_of_total": 0.02122641509433962
+      },
+      {
+        "recording": "chb04/chb04_38.edf",
+        "patient": "patient_04",
+        "false_alarms": 26,
+        "share_of_total": 0.020440251572327043
+      },
+      {
+        "recording": "chb04/chb04_16.edf",
+        "patient": "patient_04",
+        "false_alarms": 25,
+        "share_of_total": 0.019654088050314465
+      },
+      {
+        "recording": "chb04/chb04_14.edf",
+        "patient": "patient_04",
+        "false_alarms": 24,
+        "share_of_total": 0.018867924528301886
+      },
+      {
+        "recording": "chb04/chb04_18.edf",
+        "patient": "patient_04",
+        "false_alarms": 24,
+        "share_of_total": 0.018867924528301886
+      },
+      {
+        "recording": "chb04/chb04_37.edf",
+        "patient": "patient_04",
+        "false_alarms": 23,
+        "share_of_total": 0.018081761006289308
+      },
+      {
+        "recording": "chb04/chb04_15.edf",
+        "patient": "patient_04",
+        "false_alarms": 22,
+        "share_of_total": 0.01729559748427673
+      },
+      {
+        "recording": "chb24/chb24_19.edf",
+        "patient": "patient_24",
+        "false_alarms": 19,
+        "share_of_total": 0.014937106918238994
+      }
+    ]
+  },
+  "recording_false_alarm_changes": {
+    "recordings_compared": 139,
+    "largest_increases": [
+      {
+        "recording": "chb04/chb04_05.edf",
+        "patient": "patient_04",
+        "legacy_false_alarms": 0,
+        "robust_false_alarms": 106,
+        "change": 106
+      },
+      {
+        "recording": "chb04/chb04_34.edf",
+        "patient": "patient_04",
+        "legacy_false_alarms": 82,
+        "robust_false_alarms": 137,
+        "change": 55
+      },
+      {
+        "recording": "chb07/chb07_05.edf",
+        "patient": "patient_07",
+        "legacy_false_alarms": 1,
+        "robust_false_alarms": 30,
+        "change": 29
+      },
+      {
+        "recording": "chb07/chb07_14.edf",
+        "patient": "patient_07",
+        "legacy_false_alarms": 50,
+        "robust_false_alarms": 72,
+        "change": 22
+      },
+      {
+        "recording": "chb04/chb04_14.edf",
+        "patient": "patient_04",
+        "legacy_false_alarms": 3,
+        "robust_false_alarms": 24,
+        "change": 21
+      },
+      {
+        "recording": "chb24/chb24_19.edf",
+        "patient": "patient_24",
+        "legacy_false_alarms": 0,
+        "robust_false_alarms": 19,
+        "change": 19
+      },
+      {
+        "recording": "chb04/chb04_19.edf",
+        "patient": "patient_04",
+        "legacy_false_alarms": 9,
+        "robust_false_alarms": 27,
+        "change": 18
+      },
+      {
+        "recording": "chb04/chb04_15.edf",
+        "patient": "patient_04",
+        "legacy_false_alarms": 10,
+        "robust_false_alarms": 22,
+        "change": 12
+      },
+      {
+        "recording": "chb04/chb04_18.edf",
+        "patient": "patient_04",
+        "legacy_false_alarms": 12,
+        "robust_false_alarms": 24,
+        "change": 12
+      },
+      {
+        "recording": "chb04/chb04_33.edf",
+        "patient": "patient_04",
+        "legacy_false_alarms": 151,
+        "robust_false_alarms": 161,
+        "change": 10
+      },
+      {
+        "recording": "chb17/chb17c_13.edf",
+        "patient": "patient_17",
+        "legacy_false_alarms": 2,
+        "robust_false_alarms": 11,
+        "change": 9
+      },
+      {
+        "recording": "chb07/chb07_04.edf",
+        "patient": "patient_07",
+        "legacy_false_alarms": 0,
+        "robust_false_alarms": 8,
+        "change": 8
+      },
+      {
+        "recording": "chb04/chb04_08.edf",
+        "patient": "patient_04",
+        "legacy_false_alarms": 1,
+        "robust_false_alarms": 8,
+        "change": 7
+      },
+      {
+        "recording": "chb04/chb04_13.edf",
+        "patient": "patient_04",
+        "legacy_false_alarms": 6,
+        "robust_false_alarms": 12,
+        "change": 6
+      },
+      {
+        "recording": "chb04/chb04_24.edf",
+        "patient": "patient_04",
+        "legacy_false_alarms": 1,
+        "robust_false_alarms": 7,
+        "change": 6
+      }
+    ],
+    "largest_decreases": [
+      {
+        "recording": "chb04/chb04_17.edf",
+        "patient": "patient_04",
+        "legacy_false_alarms": 88,
+        "robust_false_alarms": 1,
+        "change": -87
+      },
+      {
+        "recording": "chb04/chb04_16.edf",
+        "patient": "patient_04",
+        "legacy_false_alarms": 81,
+        "robust_false_alarms": 25,
+        "change": -56
+      },
+      {
+        "recording": "chb04/chb04_36.edf",
+        "patient": "patient_04",
+        "legacy_false_alarms": 99,
+        "robust_false_alarms": 48,
+        "change": -51
+      },
+      {
+        "recording": "chb04/chb04_31.edf",
+        "patient": "patient_04",
+        "legacy_false_alarms": 45,
+        "robust_false_alarms": 6,
+        "change": -39
+      },
+      {
+        "recording": "chb11/chb11_08.edf",
+        "patient": "patient_11",
+        "legacy_false_alarms": 38,
+        "robust_false_alarms": 2,
+        "change": -36
+      },
+      {
+        "recording": "chb11/chb11_27.edf",
+        "patient": "patient_11",
+        "legacy_false_alarms": 37,
+        "robust_false_alarms": 1,
+        "change": -36
+      },
+      {
+        "recording": "chb11/chb11_07.edf",
+        "patient": "patient_11",
+        "legacy_false_alarms": 35,
+        "robust_false_alarms": 0,
+        "change": -35
+      },
+      {
+        "recording": "chb04/chb04_37.edf",
+        "patient": "patient_04",
+        "legacy_false_alarms": 46,
+        "robust_false_alarms": 23,
+        "change": -23
+      },
+      {
+        "recording": "chb11/chb11_15.edf",
+        "patient": "patient_11",
+        "legacy_false_alarms": 20,
+        "robust_false_alarms": 0,
+        "change": -20
+      },
+      {
+        "recording": "chb24/chb24_02.edf",
+        "patient": "patient_24",
+        "legacy_false_alarms": 23,
+        "robust_false_alarms": 7,
+        "change": -16
+      }
+    ]
+  }
+}

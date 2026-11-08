@@ -1,0 +1,166 @@
+{
+  "experiment": "first_nested_lopo_logistic_regression",
+  "status": "completed",
+  "created_at_utc": "2026-11-03T19:41:25.027522+00:00",
+  "fold_id": 1,
+  "held_out_patient": "patient_01",
+  "primary_cohort": {
+    "recordings": 683,
+    "patients": 23
+  },
+  "inner_fit": {
+    "recordings": 469,
+    "patients": [
+      "patient_02",
+      "patient_03",
+      "patient_05",
+      "patient_06",
+      "patient_08",
+      "patient_09",
+      "patient_10",
+      "patient_12",
+      "patient_13",
+      "patient_14",
+      "patient_15",
+      "patient_16",
+      "patient_18",
+      "patient_19",
+      "patient_20",
+      "patient_22",
+      "patient_23"
+    ]
+  },
+  "inner_validation": {
+    "recordings": 139,
+    "patients": [
+      "patient_04",
+      "patient_07",
+      "patient_11",
+      "patient_17",
+      "patient_24"
+    ]
+  },
+  "outer_train": {
+    "recordings": 608,
+    "patients": [
+      "patient_02",
+      "patient_03",
+      "patient_04",
+      "patient_05",
+      "patient_06",
+      "patient_07",
+      "patient_08",
+      "patient_09",
+      "patient_10",
+      "patient_11",
+      "patient_12",
+      "patient_13",
+      "patient_14",
+      "patient_15",
+      "patient_16",
+      "patient_17",
+      "patient_18",
+      "patient_19",
+      "patient_20",
+      "patient_22",
+      "patient_23",
+      "patient_24"
+    ]
+  },
+  "outer_test": {
+    "recordings": 75,
+    "patients": [
+      "patient_01"
+    ]
+  },
+  "model": {
+    "name": "LogisticRegression",
+    "solver": "liblinear",
+    "class_weight": "balanced",
+    "max_iter": 1000,
+    "random_state": 42
+  },
+  "preprocessing": {
+    "sampling_rate_hz": 256,
+    "window_seconds": 10,
+    "stride_seconds": 5,
+    "channels": [
+      "FP1-F7",
+      "F7-T7",
+      "T7-P7",
+      "P7-O1",
+      "FP1-F3",
+      "F3-C3",
+      "C3-P3",
+      "P3-O1",
+      "FP2-F4",
+      "F4-C4",
+      "C4-P4",
+      "P4-O2",
+      "FP2-F8",
+      "F8-T8",
+      "P8-O2",
+      "FZ-CZ",
+      "CZ-PZ"
+    ],
+    "features_per_channel": [
+      "mean",
+      "std",
+      "variance",
+      "rms",
+      "line_length",
+      "skewness",
+      "kurtosis",
+      "delta_power",
+      "theta_power",
+      "alpha_power",
+      "beta_power",
+      "gamma_power",
+      "spectral_entropy"
+    ],
+    "feature_count": 221,
+    "channel_scaler_fit": "inner_fit_only_for_threshold_selection_then_all_outer_train_for_refit",
+    "feature_scaler": "StandardScaler fitted within each LogisticRegression pipeline"
+  },
+  "threshold_selection": {
+    "method": "maximize validation F1",
+    "validation_threshold": 0.9984662542771952,
+    "outer_test_used_for_selection": false
+  },
+  "validation_metrics": {
+    "threshold": 0.9984662542771952,
+    "sensitivity": 0.45330739299610895,
+    "specificity": 0.9703839139453619,
+    "precision": 0.03522297808012094,
+    "f1": 0.06536681161453219,
+    "auroc": 0.7897971832925862,
+    "auprc": 0.018954963993094393,
+    "tn": 209109,
+    "fp": 6382,
+    "fn": 281,
+    "tp": 233,
+    "window_count": 216005,
+    "positive_windows": 514
+  },
+  "outer_test_metrics": {
+    "threshold": 0.9984662542771952,
+    "sensitivity": 0.02040816326530612,
+    "specificity": 0.9988025545502927,
+    "precision": 0.045454545454545456,
+    "f1": 0.028169014084507043,
+    "auroc": 0.9042841420001438,
+    "auprc": 0.03039280832052569,
+    "tn": 52549,
+    "fp": 63,
+    "fn": 144,
+    "tp": 3,
+    "window_count": 52759,
+    "positive_windows": 147
+  },
+  "runtime_seconds": 13219.774,
+  "limitations": [
+    "This is only the first LOPO fold, not the complete 23-fold evaluation.",
+    "The validation-selected decision threshold is transferred to the refitted model.",
+    "Metrics are window-level; event-level aggregation is not implemented in this milestone."
+  ]
+}

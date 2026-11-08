@@ -1,0 +1,22 @@
+=== VALIDATION PREDICTION PARITY AUDIT ===
+cache\robust_feature_first_fold_v1\inner_validation\X.npy: exists=True
+cache\robust_feature_first_fold_v1\inner_validation\y.npy: exists=True
+results\baselines\robust_feature_first_fold_v1\logistic_regression\model.joblib: exists=True
+results\baselines\robust_feature_first_fold_v1\logistic_regression\validation_scores.npz: exists=True
+
+Model type: Pipeline
+Feature matrix shape: (216005, 170)
+Model expected features: 170
+Archived scores shape: (216005,)
+
+=== PARITY RESULTS ===
+Predictions recalculated: 216005
+Recalculated scores finite: True
+Archived scores finite: True
+Maximum absolute difference: 2.33146835171283e-15
+Mean absolute difference: 4.19101245030567e-19
+Scores outside tolerance: 0
+All scores within tolerance: True
+Labels exactly match: True
+
+FINAL RESULT: PASS

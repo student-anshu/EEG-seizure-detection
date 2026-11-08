@@ -1,0 +1,133 @@
+=== SOURCE FILE INFORMATION ===
+Total lines: 335
+=== MATCHING IMPLEMENTATION ===
+
+  scripts\run_robust_feature_first_fold.py:32:from config import PROCESSED_DIR, PREFERRED_CHANNELS, RANDOM_STATE
+  scripts\run_robust_feature_first_fold.py:33:from data_management.cohort import filter_primary_cohort
+  scripts\run_robust_feature_first_fold.py:34:from data_management.dataset_split import build_lopo_folds
+  scripts\run_robust_feature_first_fold.py:35:from data_management.fold_data import load_recording_windows, processed_path_for_recording, prepare_lopo_fold
+  scripts\run_robust_feature_first_fold.py:36:from data_management.patient_mapping import load_recording_manifest
+  scripts\run_robust_feature_first_fold.py:37:from feature_selection.robust_feature_extraction import (
+> scripts\run_robust_feature_first_fold.py:38:    ROBUST_FEATURE_NAMES, ROBUST_FEATURE_VERSION, extract_robust_features,
+  scripts\run_robust_feature_first_fold.py:39:)
+  scripts\run_robust_feature_first_fold.py:40:from modeling.baseline import calculate_metrics, choose_fbeta_threshold, positive_scores
+  scripts\run_robust_feature_first_fold.py:41:from modeling.baseline import FeatureBatch
+  scripts\run_robust_feature_first_fold.py:42:
+  scripts\run_robust_feature_first_fold.py:43:
+  scripts\run_robust_feature_first_fold.py:44:def _write_json(path: Path, payload: dict) -> None:
+  scripts\run_robust_feature_first_fold.py:45:    path.parent.mkdir(parents=True, exist_ok=True)
+  scripts\run_robust_feature_first_fold.py:46:    temporary = path.with_suffix(path.suffix + ".tmp")
+  scripts\run_robust_feature_first_fold.py:47:    temporary.write_text(json.dumps(payload, indent=2, allow_nan=False) + "\n", encoding="utf-8")
+  scripts\run_robust_feature_first_fold.py:48:    temporary.replace(path)
+  scripts\run_robust_feature_first_fold.py:49:
+  scripts\run_robust_feature_first_fold.py:50:
+  scripts\run_robust_feature_first_fold.py:68:        "recordings": entries,
+  scripts\run_robust_feature_first_fold.py:69:    }
+  scripts\run_robust_feature_first_fold.py:70:    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+  scripts\run_robust_feature_first_fold.py:71:    return hashlib.sha256(encoded).hexdigest()
+  scripts\run_robust_feature_first_fold.py:72:
+  scripts\run_robust_feature_first_fold.py:73:
+> scripts\run_robust_feature_first_fold.py:74:def collect_robust_batch(recordings, split_name: str, scaler, cache_root: Path) -> FeatureBatch:
+  scripts\run_robust_feature_first_fold.py:75:    """Build/resume one split's robust features using recording-level commits."""
+  scripts\run_robust_feature_first_fold.py:76:    if not recordings:
+  scripts\run_robust_feature_first_fold.py:77:        raise ValueError(f"{split_name} split is empty")
+  scripts\run_robust_feature_first_fold.py:78:    signature = _cache_signature(recordings, scaler)
+  scripts\run_robust_feature_first_fold.py:79:    directory = cache_root / split_name
+  scripts\run_robust_feature_first_fold.py:80:    directory.mkdir(parents=True, exist_ok=True)
+  scripts\run_robust_feature_first_fold.py:81:    manifest_path = directory / "manifest.json"
+  scripts\run_robust_feature_first_fold.py:82:    x_path, y_path = directory / "X.npy", directory / "y.npy"
+  scripts\run_robust_feature_first_fold.py:83:
+  scripts\run_robust_feature_first_fold.py:84:    lengths = []
+  scripts\run_robust_feature_first_fold.py:85:    for recording in recordings:
+  scripts\run_robust_feature_first_fold.py:86:        source = processed_path_for_recording(PROCESSED_DIR, recording)
+  scripts\run_robust_feature_first_fold.py:145:        # Bound temporary standardized EEG and Welch PSD memory. A recording is
+  scripts\run_robust_feature_first_fold.py:146:        # committed to the resumable manifest only after every chunk is written.
+  scripts\run_robust_feature_first_fold.py:147:        chunk_size = 256
+  scripts\run_robust_feature_first_fold.py:148:        for chunk_start in range(0, len(item.y), chunk_size):
+  scripts\run_robust_feature_first_fold.py:149:            chunk_end = min(chunk_start + chunk_size, len(item.y))
+  scripts\run_robust_feature_first_fold.py:150:            standardized_chunk = scaler.transform(item.X[chunk_start:chunk_end])
+> scripts\run_robust_feature_first_fold.py:151:            features = extract_robust_features(
+  scripts\run_robust_feature_first_fold.py:152:                standardized_chunk, item.sfreq, chunk_size=chunk_size
+  scripts\run_robust_feature_first_fold.py:153:            )
+  scripts\run_robust_feature_first_fold.py:154:            expected_shape = (chunk_end - chunk_start, feature_count)
+  scripts\run_robust_feature_first_fold.py:155:            if features.shape != expected_shape or not np.isfinite(features).all():
+  scripts\run_robust_feature_first_fold.py:156:                raise RuntimeError(
+  scripts\run_robust_feature_first_fold.py:157:                    f"Invalid robust feature chunk for {recording.relative_path} "
+  scripts\run_robust_feature_first_fold.py:158:                    f"at windows {chunk_start}:{chunk_end}"
+  scripts\run_robust_feature_first_fold.py:159:                )
+  scripts\run_robust_feature_first_fold.py:160:            destination_start = cursor + chunk_start
+  scripts\run_robust_feature_first_fold.py:161:            destination_end = cursor + chunk_end
+  scripts\run_robust_feature_first_fold.py:162:            X[destination_start:destination_end] = features
+  scripts\run_robust_feature_first_fold.py:163:            del standardized_chunk, features
+  scripts\run_robust_feature_first_fold.py:230:    cache_root = PROJECT_ROOT / "cache" / "robust_feature_first_fold_v1"
+  scripts\run_robust_feature_first_fold.py:231:    prepared = prepare_lopo_fold(
+  scripts\run_robust_feature_first_fold.py:232:        fold, PROCESSED_DIR, validation_fraction=0.2, random_state=seed,
+  scripts\run_robust_feature_first_fold.py:233:        scaler_checkpoint_dir=cache_root / "scaler_checkpoint",
+  scripts\run_robust_feature_first_fold.py:234:    )
+  scripts\run_robust_feature_first_fold.py:235:    print("Extracting robust inner-fit features...", flush=True)
+> scripts\run_robust_feature_first_fold.py:236:    fit_batch = collect_robust_batch(prepared.fit_recordings, "inner_fit",
+  scripts\run_robust_feature_first_fold.py:237:                                     prepared.standardizer, cache_root)
+  scripts\run_robust_feature_first_fold.py:238:    print("Extracting robust inner-validation features...", flush=True)
+> scripts\run_robust_feature_first_fold.py:239:    validation_batch = collect_robust_batch(prepared.validation_recordings, "inner_validation",
+  scripts\run_robust_feature_first_fold.py:240:                                            prepared.standardizer, cache_root)
+  scripts\run_robust_feature_first_fold.py:241:    print("Extracting robust held-out test features...", flush=True)
+> scripts\run_robust_feature_first_fold.py:242:    test_batch = collect_robust_batch(prepared.test_recordings, "outer_test",
+  scripts\run_robust_feature_first_fold.py:243:                                      prepared.standardizer, cache_root)
+  scripts\run_robust_feature_first_fold.py:244:
+  scripts\run_robust_feature_first_fold.py:245:    result = {
+  scripts\run_robust_feature_first_fold.py:246:        "experiment": "patient_robust_feature_first_fold",
+  scripts\run_robust_feature_first_fold.py:247:        "experiment_version": "robust_features_same_model_validation_test_v1",
+  scripts\run_robust_feature_first_fold.py:248:        "feature_version": ROBUST_FEATURE_VERSION,
+  scripts\run_robust_feature_first_fold.py:249:        "status": "completed",
+  scripts\run_robust_feature_first_fold.py:250:        "created_at_utc": datetime.now(timezone.utc).isoformat(),
+  scripts\run_robust_feature_first_fold.py:251:        "fold_id": fold.fold_id,
+  scripts\run_robust_feature_first_fold.py:252:        "held_out_patient": fold.test_patient_id,
+  scripts\run_robust_feature_first_fold.py:253:        "cohort": {"recordings": len(recordings), "patients": len({r.patient_id for r in recordings})},
+  scripts\run_robust_feature_first_fold.py:254:        "split": {
+  scripts\run_robust_feature_first_fold.py:279:    score_root = output_path.parent / "robust_feature_first_fold_v1"
+  scripts\run_robust_feature_first_fold.py:280:    score_root.mkdir(parents=True, exist_ok=True)
+  scripts\run_robust_feature_first_fold.py:281:    for name in selected_models:
+  scripts\run_robust_feature_first_fold.py:282:        print(f"Training {name}...", flush=True)
+  scripts\run_robust_feature_first_fold.py:283:        model = _models(seed)[name]
+  scripts\run_robust_feature_first_fold.py:284:        model.fit(fit_batch.X, fit_batch.y)
+> scripts\run_robust_feature_first_fold.py:285:        validation_scores = positive_scores(model, validation_batch.X)
+> scripts\run_robust_feature_first_fold.py:286:        threshold = choose_fbeta_threshold(validation_batch.y, validation_scores, beta=2.0)
+> scripts\run_robust_feature_first_fold.py:287:        validation_metrics = calculate_metrics(validation_batch.y, validation_scores, threshold)
+  scripts\run_robust_feature_first_fold.py:288:        test_scores = positive_scores(model, test_batch.X)
+  scripts\run_robust_feature_first_fold.py:289:        test_metrics = calculate_metrics(test_batch.y, test_scores, threshold)
+  scripts\run_robust_feature_first_fold.py:290:        patient_rows = _patient_validation_metrics(
+> scripts\run_robust_feature_first_fold.py:291:            prepared.validation_recordings, validation_batch, validation_scores, threshold
+  scripts\run_robust_feature_first_fold.py:292:        )
+  scripts\run_robust_feature_first_fold.py:293:        model_dir = score_root / name
+  scripts\run_robust_feature_first_fold.py:294:        model_dir.mkdir(parents=True, exist_ok=True)
+> scripts\run_robust_feature_first_fold.py:295:        np.savez_compressed(model_dir / "validation_scores.npz",
+> scripts\run_robust_feature_first_fold.py:296:                            y_true=np.asarray(validation_batch.y), scores=validation_scores)
+> scripts\run_robust_feature_first_fold.py:297:        np.savez_compressed(model_dir / "outer_test_scores.npz",
+  scripts\run_robust_feature_first_fold.py:298:                            y_true=np.asarray(test_batch.y), scores=test_scores)
+> scripts\run_robust_feature_first_fold.py:299:        joblib.dump(model, model_dir / "model.joblib")
+  scripts\run_robust_feature_first_fold.py:300:        result["models"][name] = {
+  scripts\run_robust_feature_first_fold.py:301:            "threshold": float(threshold),
+  scripts\run_robust_feature_first_fold.py:302:            "threshold_objective": "inner-validation F2 (beta=2)",
+  scripts\run_robust_feature_first_fold.py:303:            "validation_metrics": validation_metrics,
+  scripts\run_robust_feature_first_fold.py:304:            "validation_patient_metrics": patient_rows,
+  scripts\run_robust_feature_first_fold.py:305:            "outer_test_metrics": test_metrics,
+  scripts\run_robust_feature_first_fold.py:306:            "model_artifacts": str(model_dir.relative_to(PROJECT_ROOT)),
+  scripts\run_robust_feature_first_fold.py:307:        }
+  scripts\run_robust_feature_first_fold.py:308:        print(f"{name}: validation F2={validation_metrics['f2']:.5f}; "
+  scripts\run_robust_feature_first_fold.py:309:              f"outer-test F2={test_metrics['f2']:.5f}; "
+  scripts\run_robust_feature_first_fold.py:310:              f"outer-test sensitivity={test_metrics['sensitivity']:.3%}", flush=True)
+> scripts\run_robust_feature_first_fold.py:311:        del model, validation_scores, test_scores
+  scripts\run_robust_feature_first_fold.py:312:
+  scripts\run_robust_feature_first_fold.py:313:    result["runtime_seconds"] = round(perf_counter() - started, 3)
+  scripts\run_robust_feature_first_fold.py:314:    _write_json(output_path, result)
+  scripts\run_robust_feature_first_fold.py:315:    print(f"Saved experiment result: {output_path}", flush=True)
+  scripts\run_robust_feature_first_fold.py:316:    print("No outer-test labels were used for model or threshold selection.", flush=True)
+  scripts\run_robust_feature_first_fold.py:317:    return result
+  scripts\run_robust_feature_first_fold.py:318:
+  scripts\run_robust_feature_first_fold.py:319:
+  scripts\run_robust_feature_first_fold.py:320:def main():
+  scripts\run_robust_feature_first_fold.py:321:    parser = argparse.ArgumentParser(description=__doc__)
+  scripts\run_robust_feature_first_fold.py:322:    parser.add_argument("--audit", type=Path,
+  scripts\run_robust_feature_first_fold.py:323:        default=Path(__file__).resolve().parents[3] / "docs" / "full_annotation_audit.csv")
+
+

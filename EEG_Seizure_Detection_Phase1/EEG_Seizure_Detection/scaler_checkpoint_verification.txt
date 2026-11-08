@@ -1,0 +1,35 @@
+Matching checkpoints: 2
+
+Manifest: cache\first_fold\scalers\fold_1_inner_fit\manifest.json
+{
+  "complete": true,
+  "completed_recordings": 469,
+  "sample_count": 1116344320,
+  "schema_version": 1,
+  "signature": "c07e4189d4c28ed1f97db4531da3dfac46c28fce344e0215d7b05f771224c3aa",
+  "state_file": "state_000469.npz"
+}
+State file exists: True
+count: shape=(), dtype=int64
+n_channels: shape=(), dtype=int64
+mean: shape=(17,), dtype=float64
+  finite=True, min=-5.1090978e-10, max=3.3730111e-10
+m2: shape=(17,), dtype=float64
+  finite=True, min=2.7486913, max=5.7837119
+
+Manifest: cache\robust_feature_first_fold_v1\scaler_checkpoint\manifest.json
+{
+  "complete": true,
+  "completed_recordings": 469,
+  "sample_count": 1116344320,
+  "schema_version": 1,
+  "signature": "c07e4189d4c28ed1f97db4531da3dfac46c28fce344e0215d7b05f771224c3aa",
+  "state_file": "state_000469.npz"
+}
+State file exists: True
+count: shape=(), dtype=int64
+n_channels: shape=(), dtype=int64
+mean: shape=(17,), dtype=float64
+  finite=True, min=-5.1090978e-10, max=3.3730111e-10
+m2: shape=(17,), dtype=float64
+  finite=True, min=2.7486913, max=5.7837119

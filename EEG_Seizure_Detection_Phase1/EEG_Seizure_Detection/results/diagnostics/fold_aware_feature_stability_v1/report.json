@@ -1,0 +1,243 @@
+{
+  "cohort": {
+    "channel_count": 17,
+    "feature_count": 170,
+    "inner_patients": 22,
+    "recordings": 608,
+    "windows_per_fold": 652077
+  },
+  "created_at_utc": "2026-11-05T20:23:03.737694+00:00",
+  "diagnostic_only": true,
+  "feature_selection_performed": false,
+  "files": {
+    "patient_feature_distributions": "results\\diagnostics\\fold_aware_feature_stability_v1\\fold_aware_patient_feature_distributions.csv"
+  },
+  "folds": [
+    {
+      "feature_count": 170,
+      "fold_scaler_excludes_heldout_patient": true,
+      "heldout_patient": "patient_02",
+      "oof_auprc": 0.01589376193055727,
+      "oof_auroc": 0.8883290539206005,
+      "recording_count": 608,
+      "window_count": 652077
+    },
+    {
+      "feature_count": 170,
+      "fold_scaler_excludes_heldout_patient": true,
+      "heldout_patient": "patient_03",
+      "oof_auprc": 0.08089504205823045,
+      "oof_auroc": 0.9638736529523493,
+      "recording_count": 608,
+      "window_count": 652077
+    },
+    {
+      "feature_count": 170,
+      "fold_scaler_excludes_heldout_patient": true,
+      "heldout_patient": "patient_04",
+      "oof_auprc": 0.0090156466707275,
+      "oof_auroc": 0.9251486795869514,
+      "recording_count": 608,
+      "window_count": 652077
+    },
+    {
+      "feature_count": 170,
+      "fold_scaler_excludes_heldout_patient": true,
+      "heldout_patient": "patient_05",
+      "oof_auprc": 0.2202131900708538,
+      "oof_auroc": 0.9114481249715114,
+      "recording_count": 608,
+      "window_count": 652077
+    },
+    {
+      "feature_count": 170,
+      "fold_scaler_excludes_heldout_patient": true,
+      "heldout_patient": "patient_06",
+      "oof_auprc": 0.0023723447354075822,
+      "oof_auroc": 0.7771924175768554,
+      "recording_count": 608,
+      "window_count": 652077
+    },
+    {
+      "feature_count": 170,
+      "fold_scaler_excludes_heldout_patient": true,
+      "heldout_patient": "patient_07",
+      "oof_auprc": 0.17757426190589026,
+      "oof_auroc": 0.9925483964028636,
+      "recording_count": 608,
+      "window_count": 652077
+    },
+    {
+      "feature_count": 170,
+      "fold_scaler_excludes_heldout_patient": true,
+      "heldout_patient": "patient_08",
+      "oof_auprc": 0.03175740612161498,
+      "oof_auroc": 0.7303153810945707,
+      "recording_count": 608,
+      "window_count": 652077
+    },
+    {
+      "feature_count": 170,
+      "fold_scaler_excludes_heldout_patient": true,
+      "heldout_patient": "patient_09",
+      "oof_auprc": 0.4162734358665033,
+      "oof_auroc": 0.9475278273168931,
+      "recording_count": 608,
+      "window_count": 652077
+    },
+    {
+      "feature_count": 170,
+      "fold_scaler_excludes_heldout_patient": true,
+      "heldout_patient": "patient_10",
+      "oof_auprc": 0.6869914175430838,
+      "oof_auroc": 0.9733178117613512,
+      "recording_count": 608,
+      "window_count": 652077
+    },
+    {
+      "feature_count": 170,
+      "fold_scaler_excludes_heldout_patient": true,
+      "heldout_patient": "patient_11",
+      "oof_auprc": 0.40195729987536777,
+      "oof_auroc": 0.9708139259150727,
+      "recording_count": 608,
+      "window_count": 652077
+    },
+    {
+      "feature_count": 170,
+      "fold_scaler_excludes_heldout_patient": true,
+      "heldout_patient": "patient_12",
+      "oof_auprc": 0.02805634998191982,
+      "oof_auroc": 0.6434034015076722,
+      "recording_count": 608,
+      "window_count": 652077
+    },
+    {
+      "feature_count": 170,
+      "fold_scaler_excludes_heldout_patient": true,
+      "heldout_patient": "patient_13",
+      "oof_auprc": 0.005678194856826502,
+      "oof_auroc": 0.536124961016811,
+      "recording_count": 608,
+      "window_count": 652077
+    },
+    {
+      "feature_count": 170,
+      "fold_scaler_excludes_heldout_patient": true,
+      "heldout_patient": "patient_14",
+      "oof_auprc": 0.002622722725385187,
+      "oof_auroc": 0.44014131717258387,
+      "recording_count": 608,
+      "window_count": 652077
+    },
+    {
+      "feature_count": 170,
+      "fold_scaler_excludes_heldout_patient": true,
+      "heldout_patient": "patient_15",
+      "oof_auprc": 0.0155428386026651,
+      "oof_auroc": 0.5264652345998256,
+      "recording_count": 608,
+      "window_count": 652077
+    },
+    {
+      "feature_count": 170,
+      "fold_scaler_excludes_heldout_patient": true,
+      "heldout_patient": "patient_16",
+      "oof_auprc": 0.0063281519322854005,
+      "oof_auroc": 0.7499363288281483,
+      "recording_count": 608,
+      "window_count": 652077
+    },
+    {
+      "feature_count": 170,
+      "fold_scaler_excludes_heldout_patient": true,
+      "heldout_patient": "patient_17",
+      "oof_auprc": 0.03184935465837148,
+      "oof_auroc": 0.8293429162445121,
+      "recording_count": 608,
+      "window_count": 652077
+    },
+    {
+      "feature_count": 170,
+      "fold_scaler_excludes_heldout_patient": true,
+      "heldout_patient": "patient_18",
+      "oof_auprc": 0.11836439913924049,
+      "oof_auroc": 0.8976419855226713,
+      "recording_count": 608,
+      "window_count": 652077
+    },
+    {
+      "feature_count": 170,
+      "fold_scaler_excludes_heldout_patient": true,
+      "heldout_patient": "patient_19",
+      "oof_auprc": 0.3110178143012517,
+      "oof_auroc": 0.8926824933394073,
+      "recording_count": 608,
+      "window_count": 652077
+    },
+    {
+      "feature_count": 170,
+      "fold_scaler_excludes_heldout_patient": true,
+      "heldout_patient": "patient_20",
+      "oof_auprc": 0.017385821977786525,
+      "oof_auroc": 0.6403818541658581,
+      "recording_count": 608,
+      "window_count": 652077
+    },
+    {
+      "feature_count": 170,
+      "fold_scaler_excludes_heldout_patient": true,
+      "heldout_patient": "patient_22",
+      "oof_auprc": 0.2911885406637597,
+      "oof_auroc": 0.953456077086204,
+      "recording_count": 608,
+      "window_count": 652077
+    },
+    {
+      "feature_count": 170,
+      "fold_scaler_excludes_heldout_patient": true,
+      "heldout_patient": "patient_23",
+      "oof_auprc": 0.06574296776819233,
+      "oof_auroc": 0.9034630007012009,
+      "recording_count": 608,
+      "window_count": 652077
+    },
+    {
+      "feature_count": 170,
+      "fold_scaler_excludes_heldout_patient": true,
+      "heldout_patient": "patient_24",
+      "oof_auprc": 0.18428298918733627,
+      "oof_auroc": 0.8327415472627213,
+      "recording_count": 608,
+      "window_count": 652077
+    }
+  ],
+  "limitations": [
+    "Descriptive screening only; no inferential or causal claims.",
+    "Sparse seizure windows and unequal recording counts affect distribution precision.",
+    "OOF metrics are inner development results, not outer-test performance.",
+    "No feature selection, model fitting, threshold tuning, or patient_01 access occurred.",
+    "The fold-specific channel scaler excludes the held-out patient; the peer reference uses the same fold transform."
+  ],
+  "method": {
+    "caveat": "The held-out patient's data are excluded from scaler fitting; peer distributions are transformed under that same fold scaler for a comparable reference.",
+    "features": "All 170 robust features; fold-specific log_std reconstructed from raw window standard deviations, other robust features reused from affine-invariant cache.",
+    "overlap": "10-second windows with 5-second stride overlap and are not independent observations.",
+    "peer_reference": "Per-patient medians from the same fold matrix; each patient contributes one median, not pooled windows.",
+    "shift": "(held-out patient median - peer median of medians) / peer IQR of patient medians.",
+    "transformation": "For each held-out patient, reconstruct its exact OOF fold matrix using the channel scaler fitted on the other 21 patients."
+  },
+  "models_trained": false,
+  "oof_ranking_context": "Existing inner OOF AUROC/AUPRC copied for descriptive context only.",
+  "oof_scores_modified": false,
+  "outer_test_patient_excluded": "patient_01",
+  "outer_test_patient_loaded": false,
+  "status": "completed",
+  "summary": {
+    "finite_absolute_peer_iqr_shifts": 7480,
+    "median_absolute_peer_iqr_shift": 0.5395342337046254,
+    "p90_absolute_peer_iqr_shift": 1.5140988521908587,
+    "patient_feature_class_rows": 7480
+  },
+  "thresholds_tuned": false
+}

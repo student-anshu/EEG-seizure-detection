@@ -1,0 +1,9 @@
+{
+  "artifact": "fold_result.json",
+  "complete": true,
+  "kind": "json",
+  "sha256": "826b59bd8c5cb9974b9fe9dffef5a896f5f13936a2a3f74478272c5e5b8a6747",
+  "signature": "5491bb88a9eb671e11884bebfc3c88288fadd420480a4ce90faa8a30afcd1893",
+  "stage": "fold_result",
+  "version": 1
+}

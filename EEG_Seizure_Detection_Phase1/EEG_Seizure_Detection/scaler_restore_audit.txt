@@ -1,0 +1,232 @@
+=== NORMALIZATION: INITIALIZATION, STATE, FINALIZE ===
+1: """Fold-specific EEG channel normalization with resumable statistics."""
+2: from __future__ import annotations
+3: 
+4: import hashlib
+5: import json
+6: import os
+7: import zipfile
+8: from pathlib import Path
+9: 
+10: import numpy as np
+11: 
+12: 
+13: _SCALER_CHECKPOINT_VERSION = 1
+14: 
+15: 
+16: def scaler_checkpoint_signature(recordings, processed_dir, context, epsilon=1e-6):
+17:     """Fingerprint the exact recording set, processed inputs and scaler context."""
+18:     directory = Path(processed_dir)
+19:     sources = []
+20:     identities = []
+21:     for recording in recordings:
+22:         path = directory / (
+23:             f"{recording.subject}_{Path(recording.edf_file).stem}.npz"
+24:         )
+25:         if not path.is_file():
+26:             raise FileNotFoundError(
+27:                 f"Processed windows missing for {recording.relative_path}: {path}"
+28:             )
+29:         stat = path.stat()
+30:         sources.append({
+31:             "path": str(path.resolve()),
+32:             "size": stat.st_size,
+33:             "mtime_ns": stat.st_mtime_ns,
+34:         })
+35:         identities.append({
+36:             "relative_path": recording.relative_path,
+37:             "patient_id": recording.patient_id,
+38:             "subject": recording.subject,
+39:             "edf_file": recording.edf_file,
+40:             "seizure_count": recording.seizure_count,
+41:         })
+42: 
+43:     payload = {
+44:         "checkpoint_version": _SCALER_CHECKPOINT_VERSION,
+45:         "algorithm": "parallel_welford_population_variance_v1",
+46:         "epsilon": float(epsilon),
+47:         "context": context,
+48:         "recordings": identities,
+49:         "processed_sources": sources,
+50:     }
+51:     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+52:     return hashlib.sha256(encoded).hexdigest()
+53: 
+54: 
+55: class FoldChannelStandardizer:
+56:     """Standardize channels using statistics fitted on training-fold windows.
+57: 
+58:     Input shape: (windows, channels, samples). The caller must enforce that
+59:     only the permitted training recordings are passed to fit methods.
+60:     """
+61: 
+62:     def __init__(self, epsilon=1e-6):
+63:         if not np.isfinite(epsilon) or epsilon <= 0:
+64:             raise ValueError("epsilon must be a finite positive number.")
+65:         self.epsilon = float(epsilon)
+66:         self.mean_ = None
+67:         self.scale_ = None
+68:         self.n_channels_ = None
+69:         self.n_values_per_channel_ = None
+70:         self._count = 0
+71:         self._mean = None
+72:         self._m2 = None
+73:         self._n_channels = None
+74: 
+75:     @staticmethod
+76:     def _validate_windows(windows):
+77:         values = np.asarray(windows, dtype=np.float64)
+78:         if values.ndim != 3:
+79:             raise ValueError("EEG windows must have shape (windows, channels, samples).")
+80:         if any(size == 0 for size in values.shape):
+81:             raise ValueError("EEG windows must be non-empty on every axis.")
+82:         if not np.all(np.isfinite(values)):
+83:             raise ValueError("EEG windows contain NaN or infinite values.")
+84:         return values
+85: 
+86:     def partial_fit(self, training_windows):
+87:         """Merge one recording/batch into the running population statistics."""
+88:         if self.mean_ is not None:
+89:             raise RuntimeError("Cannot partial_fit after the scaler has been finalized.")
+90:         values = self._validate_windows(training_windows)
+91:         if self._n_channels is None:
+92:             self._n_channels = values.shape[1]
+93:         elif values.shape[1] != self._n_channels:
+94:             raise ValueError("Training batches have inconsistent channel counts.")
+95: 
+96:         flattened = values.transpose(1, 0, 2).reshape(values.shape[1], -1)
+97:         batch_count = flattened.shape[1]
+98:         batch_mean = np.mean(flattened, axis=1)
+99:         centered = flattened - batch_mean[:, None]
+100:         batch_m2 = np.sum(centered * centered, axis=1)
+101: 
+102:         if self._count == 0:
+103:             self._count = int(batch_count)
+104:             self._mean = batch_mean
+105:             self._m2 = batch_m2
+106:         else:
+107:             total = self._count + batch_count
+108:             delta = batch_mean - self._mean
+109:             self._mean = self._mean + delta * (batch_count / total)
+110:             self._m2 = (
+111:                 self._m2 + batch_m2
+112:                 + delta * delta * (self._count * batch_count / total)
+113:             )
+114:             self._count = int(total)
+115:         return self
+116: 
+117:     def state_dict(self):
+118:         """Return a detached, serializable snapshot of the running accumulator."""
+119:         return {
+120:             "count": int(self._count),
+121:             "n_channels": int(self._n_channels) if self._n_channels is not None else 0,
+122:             "mean": None if self._mean is None else self._mean.copy(),
+123:             "m2": None if self._m2 is None else self._m2.copy(),
+124:         }
+125: 
+126:     def load_state_dict(self, state):
+127:         """Restore and validate an unfinished accumulator checkpoint."""
+128:         if self.mean_ is not None:
+129:             raise RuntimeError("Cannot restore state after the scaler has been finalized.")
+130:         try:
+131:             count = int(state["count"])
+132:             n_channels = int(state["n_channels"])
+133:             mean = np.asarray(state["mean"], dtype=np.float64)
+134:             m2 = np.asarray(state["m2"], dtype=np.float64)
+135:         except (KeyError, TypeError, ValueError) as exc:
+136:             raise ValueError("Invalid scaler accumulator checkpoint.") from exc
+137:         if count <= 0 or n_channels <= 0:
+138:             raise ValueError("Scaler checkpoint must contain completed samples and channels.")
+139:         if mean.shape != (n_channels,) or m2.shape != (n_channels,):
+140:             raise ValueError("Scaler checkpoint arrays have inconsistent dimensions.")
+141:         if not np.isfinite(mean).all() or not np.isfinite(m2).all() or np.any(m2 < 0):
+142:             raise ValueError("Scaler checkpoint contains invalid statistics.")
+143:         self._count = count
+144:         self._n_channels = n_channels
+145:         self._mean = mean.copy()
+146:         self._m2 = m2.copy()
+147:         return self
+148: 
+149:     def finalize(self):
+150:         """Convert running accumulators into immutable transform statistics."""
+151:         if self._count == 0 or self._mean is None or self._m2 is None:
+152:             raise ValueError("Cannot fit standardizer on no training windows.")
+153:         variance = np.maximum(self._m2 / self._count, 0.0)
+154:         self.n_channels_ = int(self._n_channels)
+155:         self.n_values_per_channel_ = int(self._count)
+156:         self.mean_ = self._mean.copy()
+157:         self.scale_ = np.maximum(np.sqrt(variance), self.epsilon)
+158:         return self
+159: 
+160:     def fit(self, training_windows):
+=== FOLD DATA: SCALER FIT AND CHECKPOINT CONFIGURATION ===
+146:     random_state: int = 42,
+147:     scaler_checkpoint_dir: str | Path | None = None,
+148: ) -> PreparedFold:
+149:     """Split outer-training patients, then fit scaler on inner-fit recordings only."""
+150:     train_patients = {item.patient_id for item in fold.train_recordings}
+151:     test_patients = {item.patient_id for item in fold.test_recordings}
+152:     if test_patients != {fold.test_patient_id}:
+153:         raise ValueError("Outer fold test recordings do not match its test patient.")
+154:     if train_patients & test_patients:
+155:         raise ValueError("Patient leakage detected in supplied outer fold.")
+156: 
+157:     inner = build_patient_validation_split(
+158:         fold.train_recordings, validation_fraction, random_state
+159:     )
+160:     fit_patients = set(inner.train_patient_ids)
+161:     validation_patients = set(inner.validation_patient_ids)
+162:     if fit_patients & validation_patients or fit_patients & test_patients:
+163:         raise RuntimeError("Patient leakage detected before normalization fitting.")
+164:     if validation_patients & test_patients:
+165:         raise RuntimeError("Outer test patient entered inner validation.")
+166: 
+167:     directory = Path(processed_dir)
+168:     scaler = FoldChannelStandardizer()
+169: 
+170:     def training_batches(start_index=0):
+171:         for recording in inner.train_recordings[start_index:]:
+172:             yield load_recording_windows(directory, recording).X
+173: 
+174:     if scaler_checkpoint_dir is None:
+175:         scaler.fit_batches(training_batches())
+176:     else:
+177:         checkpoint_context = {
+178:             "stage": "inner_fit_channel_scaler",
+179:             "fold_id": fold.fold_id,
+180:             "outer_test_patient": fold.test_patient_id,
+181:             "inner_fit_patients": sorted(fit_patients),
+182:             "inner_validation_patients": sorted(validation_patients),
+183:             "random_state": int(random_state),
+184:             "validation_fraction": float(validation_fraction),
+185:         }
+186:         signature = scaler_checkpoint_signature(
+187:             inner.train_recordings, directory, checkpoint_context, scaler.epsilon
+188:         )
+189:         scaler.fit_batches_checkpointed(
+190:             training_batches,
+191:             total_batches=len(inner.train_recordings),
+192:             checkpoint_dir=scaler_checkpoint_dir,
+193:             signature=signature,
+194:             progress_label="inner-fit channel-scaler fit",
+195:         )
+196:     return PreparedFold(
+197:         fold.fold_id, fold.test_patient_id,
+198:         inner.train_recordings, inner.validation_recordings,
+199:         fold.test_recordings, scaler, directory,
+200:     )
+201: 
+202: 
+203: 
+204: 
+205: 
+206: 
+207: 
+208: 
+209: 
+210: 
+211: 
+212: 
+213: 
+214: 
+215: 

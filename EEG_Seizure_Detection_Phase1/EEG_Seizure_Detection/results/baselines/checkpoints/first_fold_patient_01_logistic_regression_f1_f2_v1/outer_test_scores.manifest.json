@@ -1,0 +1,9 @@
+{
+  "artifact": "outer_test_scores.npz",
+  "complete": true,
+  "kind": "scores",
+  "sha256": "82ef24d9594e2b84aba03eba4b2f8531966f1f8bd8eb94833fb83dc8b11473cc",
+  "signature": "5491bb88a9eb671e11884bebfc3c88288fadd420480a4ce90faa8a30afcd1893",
+  "stage": "outer_test_scores",
+  "version": 1
+}

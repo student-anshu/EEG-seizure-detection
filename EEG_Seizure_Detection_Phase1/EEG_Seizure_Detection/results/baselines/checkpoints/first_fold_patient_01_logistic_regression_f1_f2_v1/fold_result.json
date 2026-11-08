@@ -1,0 +1,206 @@
+{
+  "created_at_utc": "2026-11-04T19:43:04.498029+00:00",
+  "experiment": "first_nested_lopo_logistic_regression",
+  "experiment_version": "nested_lopo_lr_f1_f2_v1",
+  "fold_id": 1,
+  "held_out_patient": "patient_01",
+  "inner_fit": {
+    "patients": [
+      "patient_02",
+      "patient_03",
+      "patient_05",
+      "patient_06",
+      "patient_08",
+      "patient_09",
+      "patient_10",
+      "patient_12",
+      "patient_13",
+      "patient_14",
+      "patient_15",
+      "patient_16",
+      "patient_18",
+      "patient_19",
+      "patient_20",
+      "patient_22",
+      "patient_23"
+    ],
+    "recordings": 469
+  },
+  "inner_validation": {
+    "patients": [
+      "patient_04",
+      "patient_07",
+      "patient_11",
+      "patient_17",
+      "patient_24"
+    ],
+    "recordings": 139
+  },
+  "limitations": [
+    "This is only the first LOPO fold, not the complete 23-fold evaluation.",
+    "The validation-selected decision threshold is transferred to the refitted model.",
+    "Metrics are window-level; event-level aggregation is not implemented in this milestone."
+  ],
+  "model": {
+    "class_weight": "balanced",
+    "max_iter": 1000,
+    "name": "LogisticRegression",
+    "random_state": 42,
+    "solver": "liblinear"
+  },
+  "outer_test": {
+    "patients": [
+      "patient_01"
+    ],
+    "recordings": 75
+  },
+  "outer_test_metrics": {
+    "auprc": 0.03039280832052569,
+    "auroc": 0.9042841420001438,
+    "f1": 0.028169014084507043,
+    "f2": 0.022935779816513763,
+    "fn": 144,
+    "fp": 63,
+    "positive_windows": 147,
+    "precision": 0.045454545454545456,
+    "sensitivity": 0.02040816326530612,
+    "specificity": 0.9988025545502927,
+    "threshold": 0.9984662542771952,
+    "tn": 52549,
+    "tp": 3,
+    "window_count": 52759
+  },
+  "outer_test_metrics_f2": {
+    "auprc": 0.03039280832052569,
+    "auroc": 0.9042841420001438,
+    "f1": 0.028169014084507043,
+    "f2": 0.022935779816513763,
+    "fn": 144,
+    "fp": 63,
+    "positive_windows": 147,
+    "precision": 0.045454545454545456,
+    "sensitivity": 0.02040816326530612,
+    "specificity": 0.9988025545502927,
+    "threshold": 0.9984662542771952,
+    "tn": 52549,
+    "tp": 3,
+    "window_count": 52759
+  },
+  "outer_train": {
+    "patients": [
+      "patient_02",
+      "patient_03",
+      "patient_04",
+      "patient_05",
+      "patient_06",
+      "patient_07",
+      "patient_08",
+      "patient_09",
+      "patient_10",
+      "patient_11",
+      "patient_12",
+      "patient_13",
+      "patient_14",
+      "patient_15",
+      "patient_16",
+      "patient_17",
+      "patient_18",
+      "patient_19",
+      "patient_20",
+      "patient_22",
+      "patient_23",
+      "patient_24"
+    ],
+    "recordings": 608
+  },
+  "preprocessing": {
+    "channel_scaler_fit": "inner_fit_only_for_threshold_selection_then_all_outer_train_for_refit",
+    "channels": [
+      "FP1-F7",
+      "F7-T7",
+      "T7-P7",
+      "P7-O1",
+      "FP1-F3",
+      "F3-C3",
+      "C3-P3",
+      "P3-O1",
+      "FP2-F4",
+      "F4-C4",
+      "C4-P4",
+      "P4-O2",
+      "FP2-F8",
+      "F8-T8",
+      "P8-O2",
+      "FZ-CZ",
+      "CZ-PZ"
+    ],
+    "feature_count": 221,
+    "feature_scaler": "StandardScaler fitted within each LogisticRegression pipeline",
+    "features_per_channel": [
+      "mean",
+      "std",
+      "variance",
+      "rms",
+      "line_length",
+      "skewness",
+      "kurtosis",
+      "delta_power",
+      "theta_power",
+      "alpha_power",
+      "beta_power",
+      "gamma_power",
+      "spectral_entropy"
+    ],
+    "sampling_rate_hz": 256,
+    "stride_seconds": 5,
+    "window_seconds": 10
+  },
+  "primary_cohort": {
+    "patients": 23,
+    "recordings": 683
+  },
+  "result_schema_version": 2,
+  "runtime_seconds": 21601.157,
+  "status": "completed",
+  "threshold_selection": {
+    "comparison_strategy": "F2 threshold is selected independently on inner validation only",
+    "f2_beta": 2.0,
+    "f2_validation_threshold": 0.9984662542771952,
+    "method": "maximize validation F1",
+    "outer_test_used_for_selection": false,
+    "validation_threshold": 0.9984662542771952
+  },
+  "threshold_strategy_version": "validation_f1_and_f2_v1",
+  "validation_metrics": {
+    "auprc": 0.018954963993094393,
+    "auroc": 0.7897971832925862,
+    "f1": 0.06536681161453219,
+    "f2": 0.13435589897359013,
+    "fn": 281,
+    "fp": 6382,
+    "positive_windows": 514,
+    "precision": 0.03522297808012094,
+    "sensitivity": 0.45330739299610895,
+    "specificity": 0.9703839139453619,
+    "threshold": 0.9984662542771952,
+    "tn": 209109,
+    "tp": 233,
+    "window_count": 216005
+  },
+  "validation_metrics_f2": {
+    "auprc": 0.018954963993094393,
+    "auroc": 0.7897971832925862,
+    "f1": 0.06536681161453219,
+    "f2": 0.13435589897359013,
+    "fn": 281,
+    "fp": 6382,
+    "positive_windows": 514,
+    "precision": 0.03522297808012094,
+    "sensitivity": 0.45330739299610895,
+    "specificity": 0.9703839139453619,
+    "threshold": 0.9984662542771952,
+    "tn": 209109,
+    "tp": 233,
+    "window_count": 216005
+  }
+}

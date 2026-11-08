@@ -1,0 +1,3700 @@
+
+================================================================================
+FILE: audit_inference_source.py
+================================================================================
+
+...
+1: from pathlib import Path
+2: import re
+3: 
+4: root = Path(".")
+5: output = Path("inference_source_audit.txt")
+6: 
+7: patterns = [
+8:     "bandpass_and_notch",
+9:     "robust_normalize",
+10:     "extract_robust_features",
+11:     "load_recording_windows",
+12:     "FoldChannelStandardizer",
+13:     "PREFERRED_CHANNELS",
+14:     "WINDOW_SECONDS",
+15:     "STRIDE_SECONDS",
+16:     "sfreq",
+17: ]
+18: 
+19: excluded = {
+20:     ".venv", ".venv311", "__pycache__",
+21:     ".git", "cache", "node_modules"
+22: }
+23: 
+24: with output.open("w", encoding="utf-8") as report:
+25:     for path in sorted(root.rglob("*.py")):
+26:         if any(part in excluded for part in path.parts):
+27:             continue
+28: 
+29:         try:
+30:             lines = path.read_text(
+
+================================================================================
+FILE: config.py
+================================================================================
+
+...
+5: _default_dataset_dir = PROJECT_ROOT.parent / "dataset" / "chbmit"
+6: DATASET_DIR = Path(os.environ.get("EEG_DATASET_DIR", str(_default_dataset_dir))).expanduser().resolve()
+7: PROCESSED_DIR = PROJECT_ROOT / "processed"
+8: LOG_DIR = PROJECT_ROOT / "logs"
+9: 
+10: LOW_CUT_HZ = 0.5
+11: HIGH_CUT_HZ = 40.0
+12: NOTCH_HZ = 60.0
+13: WINDOW_SECONDS = 10
+14: STRIDE_SECONDS = 5
+15: 
+16: # Fixed 17-channel longitudinal bipolar montage for the primary cohort.
+17: # T8-P8 is omitted because it is not consistently available under the
+18: # channel-label audit. Every recording must contain all channels below.
+19: PREFERRED_CHANNELS = [
+20:     "FP1-F7", "F7-T7", "T7-P7", "P7-O1",
+21:     "FP1-F3", "F3-C3", "C3-P3", "P3-O1",
+22:     "FP2-F4", "F4-C4", "C4-P4", "P4-O2",
+23:     "FP2-F8", "F8-T8", "P8-O2",
+24:     "FZ-CZ", "CZ-PZ",
+25: ]
+26: RANDOM_STATE = 42
+
+================================================================================
+FILE: data_management\fold_data.py
+================================================================================
+
+...
+2: from __future__ import annotations
+3: 
+4: from dataclasses import dataclass
+5: from pathlib import Path
+6: from typing import Iterator
+7: 
+8: import numpy as np
+9: 
+10: from config import PREFERRED_CHANNELS
+11: from data_management.dataset_split import LopoFold
+12: from data_management.patient_mapping import Recording
+13: from data_management.validation_split import build_patient_validation_split
+14: from feature_selection.feature_extraction import FEATURE_NAMES, extract_features
+15: from preprocessing.normalization import (
+16:     FoldChannelStandardizer, scaler_checkpoint_signature,
+17: )
+18: 
+19: _NORMALIZATION_POLICY = "none_fold_train_only_scaling_required"
+20: _REQUIRED_ARRAYS = {
+21:     "X", "y", "starts", "channels", "sfreq", "subject",
+22:     "source_file", "normalization",
+23: }
+24: 
+25: 
+26: @dataclass(frozen=True, slots=True)
+27: class RecordingWindows:
+28:     recording: Recording
+29:     X: np.ndarray
+30:     y: np.ndarray
+31:     starts: np.ndarray
+32:     sfreq: float
+33: 
+34: 
+35: @dataclass(frozen=True, slots=True)
+36: class RecordingFeatures:
+37:     """Features and aligned labels/metadata for one recording."""
+38: 
+39:     recording: Recording
+40:     features: np.ndarray
+41:     y: np.ndarray
+42:     starts: np.ndarray
+43:     sfreq: float
+44: 
+45: 
+46: @dataclass(frozen=True, slots=True)
+47: class PreparedFold:
+48:     fold_id: int
+49:     test_patient_id: str
+50:     fit_recordings: tuple[Recording, ...]
+51:     validation_recordings: tuple[Recording, ...]
+52:     test_recordings: tuple[Recording, ...]
+53:     standardizer: FoldChannelStandardizer
+54:     processed_dir: Path
+55: 
+56:     def iter_split(self, split: str) -> Iterator[RecordingWindows]:
+57:         """Stream fold-standardized EEG windows, one recording at a time."""
+58:         groups = {
+59:             "fit": self.fit_recordings,
+60:             "validation": self.validation_recordings,
+61:             "test": self.test_recordings,
+62:         }
+63:         if split not in groups:
+64:             raise ValueError("split must be one of: fit, validation, test")
+65:         for recording in groups[split]:
+66:             item = load_recording_windows(self.processed_dir, recording)
+67:             yield RecordingWindows(
+68:                 recording, self.standardizer.transform(item.X),
+69:                 item.y, item.starts, item.sfreq,
+70:             )
+71: 
+72:     def iter_features(self, split: str) -> Iterator[RecordingFeatures]:
+73:         """Stream deterministic feature matrices, one recording at a time.
+74: 
+75:         Channel standardization is applied by iter_split before extraction.
+76:         The extractor itself does not fit on labels or data, so validation
+77:         and outer-test recordings cannot influence fitted preprocessing.
+78:         """
+79:         expected_features = len(PREFERRED_CHANNELS) * len(FEATURE_NAMES)
+80:         for item in self.iter_split(split):
+81:             matrix = extract_features(item.X, item.sfreq)
+82:             if matrix.shape != (len(item.y), expected_features):
+83:                 raise RuntimeError(
+84:                     "Feature extractor returned an unexpected shape: "
+85:                     f"{matrix.shape}; expected ({len(item.y)}, {expected_features})."
+86:                 )
+87:             if matrix.dtype != np.float32 or not np.isfinite(matrix).all():
+88:                 raise RuntimeError("Feature matrix must be finite float32.")
+89:             yield RecordingFeatures(
+90:                 item.recording, matrix, item.y, item.starts, item.sfreq
+91:             )
+92: 
+93: 
+94: def processed_path_for_recording(processed_dir: str | Path, recording: Recording) -> Path:
+95:     return Path(processed_dir) / f"{recording.subject}_{Path(recording.edf_file).stem}.npz"
+96: 
+97: 
+98: def load_recording_windows(processed_dir: str | Path, recording: Recording) -> RecordingWindows:
+99:     path = processed_path_for_recording(processed_dir, recording)
+100:     if not path.is_file():
+101:         raise FileNotFoundError(
+102:             f"Processed windows missing for {recording.relative_path}: {path}"
+103:         )
+104:     with np.load(path, allow_pickle=False) as saved:
+105:         missing = _REQUIRED_ARRAYS - set(saved.files)
+106:         if missing:
+107:             raise ValueError(f"{path.name} is missing arrays: {', '.join(sorted(missing))}")
+108:         X = np.asarray(saved["X"])
+109:         y = np.asarray(saved["y"])
+110:         starts = np.asarray(saved["starts"], dtype=np.float64)
+111:         channels = [str(value) for value in saved["channels"].tolist()]
+112:         sfreq = float(saved["sfreq"])
+113:         subject = str(saved["subject"])
+114:         source_file = str(saved["source_file"])
+115:         normalization = str(saved["normalization"])
+116: 
+117:     if subject != recording.subject or source_file != recording.edf_file:
+118:         raise ValueError(f"Saved recording identity does not match manifest: {path.name}")
+119:     if normalization != _NORMALIZATION_POLICY:
+120:         raise ValueError(
+121:             f"{path.name} uses incompatible normalization policy; regenerate windows."
+122:         )
+123:     if channels != list(PREFERRED_CHANNELS):
+124:         raise ValueError(f"{path.name} does not use the configured fixed channel order.")
+125:     if X.ndim != 3 or X.shape[1] != len(PREFERRED_CHANNELS):
+126:         raise ValueError(f"{path.name} has invalid X shape {X.shape}.")
+127:     if y.ndim != 1 or starts.ndim != 1 or len(X) != len(y) or len(y) != len(starts):
+128:         raise ValueError(f"{path.name} has inconsistent X/y/starts lengths.")
+129:     if len(y) == 0 or not np.isin(y, [0, 1]).all():
+130:         raise ValueError(f"{path.name} has empty or non-binary labels.")
+131:     if not np.isfinite(X).all() or not np.isfinite(starts).all() or not np.isfinite(sfreq):
+132:         raise ValueError(f"{path.name} contains non-finite values.")
+133:     if sfreq <= 0:
+134:         raise ValueError(f"{path.name} has invalid sampling frequency.")
+135:     if bool(np.any(y == 1)) != (recording.seizure_count > 0):
+136:         raise ValueError(
+137:             f"{path.name} labels disagree with audited seizure annotation presence."
+138:         )
+139:     return RecordingWindows(recording, X, y.astype(np.int64), starts, sfreq)
+140: 
+141: 
+142: def prepare_lopo_fold(
+143:     fold: LopoFold,
+144:     processed_dir: str | Path,
+145:     validation_fraction: float = 0.2,
+146:     random_state: int = 42,
+147:     scaler_checkpoint_dir: str | Path | None = None,
+148: ) -> PreparedFold:
+149:     """Split outer-training patients, then fit scaler on inner-fit recordings only."""
+150:     train_patients = {item.patient_id for item in fold.train_recordings}
+151:     test_patients = {item.patient_id for item in fold.test_recordings}
+152:     if test_patients != {fold.test_patient_id}:
+153:         raise ValueError("Outer fold test recordings do not match its test patient.")
+
+...
+160:     fit_patients = set(inner.train_patient_ids)
+161:     validation_patients = set(inner.validation_patient_ids)
+162:     if fit_patients & validation_patients or fit_patients & test_patients:
+163:         raise RuntimeError("Patient leakage detected before normalization fitting.")
+164:     if validation_patients & test_patients:
+165:         raise RuntimeError("Outer test patient entered inner validation.")
+166: 
+167:     directory = Path(processed_dir)
+168:     scaler = FoldChannelStandardizer()
+169: 
+170:     def training_batches(start_index=0):
+171:         for recording in inner.train_recordings[start_index:]:
+172:             yield load_recording_windows(directory, recording).X
+173: 
+174:     if scaler_checkpoint_dir is None:
+175:         scaler.fit_batches(training_batches())
+176:     else:
+177:         checkpoint_context = {
+178:             "stage": "inner_fit_channel_scaler",
+179:             "fold_id": fold.fold_id,
+180:             "outer_test_patient": fold.test_patient_id,
+181:             "inner_fit_patients": sorted(fit_patients),
+182:             "inner_validation_patients": sorted(validation_patients),
+183:             "random_state": int(random_state),
+184:             "validation_fraction": float(validation_fraction),
+185:         }
+186:         signature = scaler_checkpoint_signature(
+
+================================================================================
+FILE: evaluation\oof_scaler_cache.py
+================================================================================
+
+...
+79: def recompute_log_std_features(
+80:     windows: np.ndarray,
+81:     mean: np.ndarray,
+82:     scale: np.ndarray,
+83:     chunk_size: int = 256,
+84: ) -> np.ndarray:
+85:     """Recompute channel log_std exactly under a supplied fold scaler.
+86: 
+87:     Mirrors FoldChannelStandardizer.transform followed by the log_std portion
+88:     of extract_robust_features, including float32 transform precision and the
+89:     1e-12 log floor. Output shape is (n_windows, n_channels), float32.
+90:     """
+91:     values = np.asarray(windows)
+92:     mean = np.asarray(mean, dtype=np.float64)
+93:     scale = np.asarray(scale, dtype=np.float64)
+94:     if values.ndim != 3 or any(size == 0 for size in values.shape):
+95:         raise ValueError("windows must have non-empty (windows, channels, samples) shape")
+96:     if mean.shape != (values.shape[1],) or scale.shape != mean.shape:
+97:         raise ValueError("mean/scale must match the window channel count")
+98:     if not np.isfinite(values).all() or not np.isfinite(mean).all():
+99:         raise ValueError("windows and mean must be finite")
+100:     if not np.isfinite(scale).all() or np.any(scale <= 0):
+101:         raise ValueError("scale must be finite and positive")
+102:     if not isinstance(chunk_size, (int, np.integer)) or isinstance(chunk_size, bool) or chunk_size <= 0:
+
+...
+168:     raw_std: np.ndarray,
+169:     scale: np.ndarray,
+170:     normalized_std_threshold: float = 1e-4,
+171: ) -> np.ndarray:
+172:     """Flag windows whose tiny normalized variation may be altered by float32 rounding.
+173: 
+174:     This is a conservative routing rule, not a change to the feature definition.
+175:     Flagged windows must be recomputed from the original EEG samples using the
+176:     exact FoldChannelStandardizer float32 transform and extractor calculation.
+177:     """
+178:     values = np.asarray(raw_std, dtype=np.float64)
+179:     channel_scale = np.asarray(scale, dtype=np.float64)
+180:     if values.ndim != 2 or values.shape[1] != len(channel_scale):
+181:         raise ValueError("raw_std must be (windows, channels) and match scale")
+182:     if not np.isfinite(values).all() or np.any(values < 0):
+183:         raise ValueError("raw_std must be finite and non-negative")
+184:     if not np.isfinite(channel_scale).all() or np.any(channel_scale <= 0):
+185:         raise ValueError("scale must be finite and positive")
+186:     if (not np.isfinite(normalized_std_threshold)
+187:             or normalized_std_threshold <= 0):
+188:         raise ValueError("normalized_std_threshold must be finite and positive")
+189:     normalized_std = values / channel_scale[None, :]
+190:     return np.any(normalized_std <= normalized_std_threshold, axis=1)
+
+================================================================================
+FILE: feature_selection\feature_extraction.py
+================================================================================
+
+...
+39:     "alpha": (8.0, 13.0),
+40:     "beta": (13.0, 30.0),
+41:     "gamma": (30.0, 40.0),
+42: }
+43: 
+44: WELCH_SEGMENT_SECONDS = 2.0
+45: 
+46: 
+47: def _validate_windows(windows: np.ndarray, sfreq: float) -> np.ndarray:
+48:     """Validate EEG window shape, values and sampling frequency."""
+49: 
+50:     values = np.asarray(windows, dtype=np.float64)
+51: 
+52:     if values.ndim != 3 or any(size == 0 for size in values.shape):
+53:         raise ValueError(
+54:             "Expected non-empty EEG windows shaped "
+55:             "(n_windows, n_channels, n_samples)."
+56:         )
+57: 
+58:     if not np.all(np.isfinite(values)):
+59:         raise ValueError("EEG windows contain NaN or infinite values.")
+60: 
+61:     if not np.isscalar(sfreq) or not np.isfinite(sfreq) or sfreq <= 0:
+62:         raise ValueError("Sampling frequency must be finite and positive.")
+63: 
+64:     if float(sfreq) / 2.0 < 40.0:
+65:         raise ValueError(
+66:             "Sampling frequency must be at least 80 Hz "
+67:             "to calculate all configured frequency bands."
+68:         )
+69: 
+70:     return values
+71: 
+72: 
+73: def _integrate_band_power(
+74:     frequencies: np.ndarray,
+75:     psd: np.ndarray,
+76:     low: float,
+77:     high: float,
+78: ) -> float:
+
+...
+92:     )
+93:     band_psd = np.interp(band_frequencies, frequencies, psd)
+94: 
+95:     return max(float(trapezoid(band_psd, band_frequencies)), 0.0)
+96: 
+97: 
+98: def _calculate_spectral_features(
+99:     signal: np.ndarray,
+100:     sfreq: float,
+101: ) -> tuple[list[float], float]:
+102:     """Calculate five band powers and normalized spectral entropy.
+103: 
+104:     Welch uses up to two-second segments. For shorter input signals, the
+105:     segment is limited to the available number of samples.
+106:     """
+107: 
+108:     nperseg = min(len(signal), max(1, int(round(WELCH_SEGMENT_SECONDS * sfreq))))
+109: 
+110:     frequencies, psd = welch(
+111:         signal,
+112:         fs=sfreq,
+113:         nperseg=nperseg,
+114:         detrend="constant",
+115:         scaling="density",
+116:     )
+117: 
+118:     band_powers = [
+119:         _integrate_band_power(frequencies, psd, low, high)
+120:         for low, high in FREQUENCY_BANDS.values()
+121:     ]
+122: 
+123:     # Spectral entropy is calculated over the retained 0.5-40 Hz range.
+124:     retained = (frequencies >= 0.5) & (frequencies <= 40.0)
+125:     retained_psd = np.maximum(psd[retained], 0.0)
+126:     total_power = float(np.sum(retained_psd))
+
+...
+139:             else 0.0
+140:         )
+141: 
+142:     return band_powers, entropy
+143: 
+144: 
+145: def extract_features(
+146:     windows: np.ndarray,
+147:     sfreq: float,
+148: ) -> np.ndarray:
+149:     """Convert EEG windows into deterministic channel-wise feature vectors.
+150: 
+151:     Parameters
+152:     ----------
+153:     windows:
+154:         Array shaped (n_windows, n_channels, n_samples).
+155:     sfreq:
+156:         Sampling frequency in Hz.
+157: 
+158:     Returns
+159:     -------
+160:     np.ndarray
+161:         Float32 array shaped
+162:         (n_windows, n_channels * len(FEATURE_NAMES)).
+163: 
+164:     Feature ordering:
+165:         For each channel, all FEATURE_NAMES are stored consecutively.
+166:     """
+167: 
+168:     values = _validate_windows(windows, sfreq)
+169:     n_windows, n_channels, _ = values.shape
+170: 
+171:     output = np.empty(
+172:         (n_windows, n_channels, len(FEATURE_NAMES)),
+173:         dtype=np.float64,
+174:     )
+175: 
+176:     for window_idx in range(n_windows):
+177:         for channel_idx in range(n_channels):
+178:             signal = values[window_idx, channel_idx]
+179: 
+180:             mean = float(np.mean(signal))
+181:             std = float(np.std(signal))
+182:             variance = float(np.var(signal))
+
+...
+194:                 centered = signal - mean
+195:                 skewness = float(np.mean(centered ** 3) / (std ** 3))
+196:                 excess_kurtosis = float(
+197:                     np.mean(centered ** 4) / (std ** 4) - 3.0
+198:                 )
+199: 
+200:             band_powers, spectral_entropy = _calculate_spectral_features(
+201:                 signal,
+202:                 float(sfreq),
+203:             )
+204: 
+205:             output[window_idx, channel_idx] = [
+206:                 mean,
+207:                 std,
+208:                 variance,
+209:                 rms,
+210:                 line_length,
+211:                 skewness,
+212:                 excess_kurtosis,
+213:                 *band_powers,
+214:                 spectral_entropy,
+215:             ]
+216: 
+
+================================================================================
+FILE: feature_selection\robust_feature_extraction.py
+================================================================================
+
+...
+10: )
+11: ROBUST_FEATURE_NAMES = (
+12:     "log_std", "normalized_line_length", "skewness", "excess_kurtosis",
+13:     "relative_delta_power", "relative_theta_power", "relative_alpha_power",
+14:     "relative_beta_power", "relative_gamma_power", "spectral_entropy",
+15: )
+16: 
+17: 
+18: def extract_robust_features(
+19:     windows: np.ndarray, sfreq: float, chunk_size: int = 256
+20: ) -> np.ndarray:
+21:     """Extract 10 features/channel in bounded-memory chunks.
+22: 
+23:     Input is (n_windows, n_channels, n_samples); output is finite float32.
+24:     Chunking limits temporary float64 and Welch PSD allocations without
+25:     changing feature definitions or the order of output rows/features.
+26:     """
+27:     values = np.asarray(windows)
+28:     if values.ndim != 3 or any(size == 0 for size in values.shape):
+29:         raise ValueError("Expected windows shaped (n_windows, n_channels, n_samples).")
+30:     if not isinstance(chunk_size, (int, np.integer)) or isinstance(chunk_size, bool) or chunk_size <= 0:
+31:         raise ValueError("chunk_size must be a positive integer.")
+32:     if not np.isscalar(sfreq) or not np.isfinite(sfreq) or sfreq < 80:
+33:         raise ValueError("Sampling frequency must be finite and at least 80 Hz.")
+34:     minimum_samples = int(np.ceil(2.0 * float(sfreq)))
+35:     if values.shape[-1] < minimum_samples:
+36:         raise ValueError(
+37:             f"Each window must contain at least 2 seconds of EEG "
+38:             f"({minimum_samples} samples at {sfreq} Hz)."
+39:         )
+40: 
+41:     n_windows, n_channels, _ = values.shape
+42:     output = np.empty(
+43:         (n_windows, n_channels, len(ROBUST_FEATURE_NAMES)), dtype=np.float32
+44:     )
+45:     eps = np.finfo(np.float64).eps
+46:     nperseg = min(values.shape[-1], max(1, int(round(2.0 * float(sfreq)))))
+47: 
+48:     for start in range(0, n_windows, int(chunk_size)):
+49:         stop = min(start + int(chunk_size), n_windows)
+50:         chunk = np.asarray(values[start:stop], dtype=np.float64)
+51:         if not np.isfinite(chunk).all():
+52:             raise ValueError("EEG windows contain NaN or infinite values.")
+53: 
+54:         centered = chunk - np.mean(chunk, axis=-1, keepdims=True)
+55:         std = np.std(centered, axis=-1)
+56:         safe_std = np.maximum(std, eps)
+57:         log_std = np.log(np.maximum(std, 1e-12))
+58:         normalized_line_length = (
+59:             np.mean(np.abs(np.diff(chunk, axis=-1)), axis=-1) / safe_std
+60:         )
+
+...
+62:         kurtosis = np.mean(centered ** 4, axis=-1) / (safe_std ** 4) - 3.0
+63:         near_constant = std <= eps * np.maximum(
+64:             1.0, np.max(np.abs(chunk), axis=-1)
+65:         )
+66:         skewness = np.where(near_constant, 0.0, skewness)
+67:         kurtosis = np.where(near_constant, 0.0, kurtosis)
+68: 
+69:         frequencies, psd = welch(
+70:             chunk, fs=float(sfreq), nperseg=nperseg, axis=-1,
+71:             detrend="constant", scaling="density",
+72:         )
+73:         df = float(frequencies[1] - frequencies[0])
+74:         band_powers = []
+75:         for low, high in ROBUST_FREQUENCY_BANDS:
+76:             mask = (frequencies >= low) & (frequencies < high)
+77:             band_powers.append(np.sum(psd[..., mask], axis=-1) * df)
+78:         powers = np.stack(band_powers, axis=-1)
+79:         total_power = np.sum(powers, axis=-1, keepdims=True)
+80:         relative = np.divide(
+81:             powers, total_power, out=np.zeros_like(powers), where=total_power > eps
+82:         )
+83: 
+84:         retained = (frequencies >= 0.5) & (frequencies <= 40.0)
+
+================================================================================
+FILE: main.py
+================================================================================
+
+...
+2: import csv
+3: from pathlib import Path
+4: 
+5: import numpy as np
+6: import pandas as pd
+7: 
+8: from config import (
+9:     DATASET_DIR, PROCESSED_DIR, LOG_DIR, LOW_CUT_HZ, HIGH_CUT_HZ,
+10:     NOTCH_HZ, WINDOW_SECONDS, STRIDE_SECONDS, PREFERRED_CHANNELS,
+11: )
+12: from data_management.cohort import filter_primary_cohort
+13: from data_management.fold_data import load_recording_windows
+14: from data_management.patient_mapping import load_recording_manifest
+15: from preprocessing.load_data import load_edf
+16: from preprocessing.annotations import read_seizure_intervals
+17: from preprocessing.signal_processing import bandpass_and_notch
+18: from preprocessing.segmentation import make_windows
+19: 
+20: NORMALIZATION_POLICY = "none_fold_train_only_scaling_required"
+21: _LOG_FIELDS = ("relative_path", "status", "window_count", "normal_windows",
+22:                "seizure_windows", "message")
+23: 
+24: 
+25: def _normalize_channel_name(name: str) -> str:
+26:     return "".join(str(name).upper().split())
+27: 
+28: 
+29: def choose_channels(raw):
+30:     """Select all canonical channels in fixed order or reject the recording."""
+31:     lookup = {_normalize_channel_name(name): name for name in raw.ch_names}
+32:     missing = [name for name in PREFERRED_CHANNELS if _normalize_channel_name(name) not in lookup]
+33:     if missing:
+34:         raise ValueError(
+35:             "Recording is incompatible with the fixed 17-channel primary montage. "
+36:             "Missing channels: " + ", ".join(missing)
+37:         )
+38:     return [lookup[_normalize_channel_name(name)] for name in PREFERRED_CHANNELS]
+39: 
+40: 
+41: def process_edf(edf_path: str | Path):
+42:     edf_path = Path(edf_path)
+43:     print(f"\nLoading: {edf_path}")
+44:     raw = load_edf(edf_path)
+45:     channels = choose_channels(raw)
+46:     raw.pick(channels)
+47:     sfreq = float(raw.info["sfreq"])
+48:     data = raw.get_data()
+49:     recording_duration_seconds = float(data.shape[-1] / sfreq)
+50:     intervals = read_seizure_intervals(edf_path)
+51:     print(f"Channels selected: {len(channels)}")
+52:     print(f"Sampling frequency: {sfreq:g} Hz")
+53:     print(f"Seizure intervals: {intervals if intervals else 'None'}")
+54:     filtered = bandpass_and_notch(data, sfreq, LOW_CUT_HZ, HIGH_CUT_HZ, NOTCH_HZ)
+55:     # Keep filtered windows unnormalized here. A scaler must be fitted only
+56:     # on the outer-fold training patients and then reused for validation/test.
+57:     X, y, starts = make_windows(filtered, sfreq, intervals, WINDOW_SECONDS, STRIDE_SECONDS)
+58:     if len(y) == 0:
+59:         print("Recording is shorter than one configured window; skipped.")
+60:         return None
+61:     subject = edf_path.parent.name
+62:     PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
+63:     output_name = f"{subject}_{edf_path.stem}"
+64:     npz_path = PROCESSED_DIR / f"{output_name}.npz"
+65:     np.savez_compressed(
+66:         npz_path, X=X, y=y, starts=starts, channels=np.asarray(channels),
+67:         sfreq=sfreq, subject=subject, source_file=edf_path.name,
+68:         recording_duration_seconds=recording_duration_seconds,
+69:         normalization=NORMALIZATION_POLICY,
+70:     )
+71:     metadata = pd.DataFrame({
+72:         "subject": subject, "source_file": edf_path.name,
+73:         "window_start_seconds": starts, "window_end_seconds": starts + WINDOW_SECONDS,
+74:         "sampling_frequency_hz": sfreq,
+75:         "recording_duration_seconds": recording_duration_seconds,
+76:         "channels": "|".join(channels),
+77:         "normalization": NORMALIZATION_POLICY, "label": y,
+78:     })
+79:     metadata.to_csv(PROCESSED_DIR / f"{output_name}_metadata.csv", index=False)
+80:     print(f"Saved {len(y)} windows: {np.bincount(y, minlength=2).tolist()} [normal, seizure]")
+81:     print(f"Saved: {npz_path}")
+82:     return npz_path
+83: 
+84: 
+85: def _metadata_is_consistent(recording, metadata_path: Path, windows) -> bool:
+86:     if not metadata_path.is_file():
+87:         return False
+88:     try:
+
+...
+104:                 return False
+105:         return bool((metadata["normalization"] == NORMALIZATION_POLICY).all())
+106:     except Exception:
+107:         return False
+108: 
+109: 
+110: def _processed_recording_is_valid(recording, processed_dir: Path) -> bool:
+111:     try:
+112:         windows = load_recording_windows(processed_dir, recording)
+113:         metadata_path = processed_dir / (
+114:             f"{recording.subject}_{Path(recording.edf_file).stem}_metadata.csv"
+115:         )
+116:         return _metadata_is_consistent(recording, metadata_path, windows)
+117:     except Exception:
+118:         # Any unreadable, corrupt, or incompatible artifact must be regenerated.
+119:         return False
+120: 
+121: 
+122: def _append_log(log_path: Path, row: dict) -> None:
+123:     log_path.parent.mkdir(parents=True, exist_ok=True)
+124:     write_header = not log_path.exists()
+125:     with log_path.open("a", encoding="utf-8", newline="") as handle:
+126:         writer = csv.DictWriter(handle, fieldnames=_LOG_FIELDS)
+
+...
+166:                     "seizure_windows": "",
+167:                     "message": "Existing NPZ and metadata passed validation",
+168:                 }
+169:                 counts["skipped_valid"] += 1
+170:             else:
+171:                 saved_path = process_edf(edf_path)
+172:                 if saved_path is None:
+173:                     raise ValueError("Recording produced no complete windows")
+174:                 windows = load_recording_windows(processed_dir, recording)
+175:                 metadata_path = processed_dir / (
+176:                     f"{recording.subject}_{Path(recording.edf_file).stem}_metadata.csv"
+177:                 )
+178:                 if not _metadata_is_consistent(recording, metadata_path, windows):
+179:                     raise ValueError("Saved metadata does not match NPZ windows")
+180:                 row = {
+181:                     "relative_path": recording.relative_path,
+182:                     "status": "PROCESSED",
+183:                     "window_count": len(windows.y),
+184:                     "normal_windows": int(np.sum(windows.y == 0)),
+185:                     "seizure_windows": int(np.sum(windows.y == 1)),
+186:                     "message": "",
+187:                 }
+188:                 counts["processed"] += 1
+
+================================================================================
+FILE: modeling\baseline.py
+================================================================================
+
+...
+18: from sklearn.linear_model import LogisticRegression
+19: from sklearn.metrics import (
+20:     average_precision_score, confusion_matrix, f1_score, fbeta_score, precision_score,
+21:     precision_recall_curve, recall_score, roc_auc_score,
+22: )
+23: from sklearn.pipeline import Pipeline
+24: from sklearn.preprocessing import StandardScaler
+25: 
+26: from data_management.fold_data import load_recording_windows
+27: from config import PREFERRED_CHANNELS
+28: from data_management.patient_mapping import Recording
+29: from feature_selection.feature_extraction import FEATURE_NAMES, extract_features
+30: from preprocessing.normalization import (
+31:     FoldChannelStandardizer, scaler_checkpoint_signature,
+32: )
+33: 
+34: 
+35: @dataclass(frozen=True, slots=True)
+36: class FeatureBatch:
+37:     X: np.ndarray
+38:     y: np.ndarray
+39:     recording_paths: tuple[str, ...]
+40: 
+41: 
+42: def fit_channel_standardizer(
+43:     recordings: Sequence[Recording], processed_dir,
+44:     checkpoint_dir: Path | None = None,
+45:     checkpoint_context: dict | None = None,
+46: ) -> FoldChannelStandardizer:
+47:     """Fit channel statistics on exactly the supplied recordings, streamed.
+48: 
+49:     When checkpoint_dir is provided, the running Welford accumulator is saved
+50:     atomically after every complete recording and resumed only for an exact
+51:     recording/source/context signature.
+52:     """
+53:     scaler = FoldChannelStandardizer()
+54: 
+55:     def batches(start_index=0):
+56:         for index, recording in enumerate(recordings[start_index:], start=start_index + 1):
+57:             item = load_recording_windows(processed_dir, recording)
+58:             yield item.X
+59:             del item
+60:             if checkpoint_dir is None and (index % 25 == 0 or index == len(recordings)):
+61:                 print(
+62:                     f"    channel-scaler fit: {index}/{len(recordings)} recordings",
+63:                     flush=True,
+64:                 )
+65: 
+66:     if checkpoint_dir is None:
+67:         return scaler.fit_batches(batches())
+68: 
+69:     if checkpoint_context is None:
+70:         raise ValueError("checkpoint_context is required when checkpointing a scaler")
+71:     signature = scaler_checkpoint_signature(
+
+...
+90:     digest.update(np.asarray(channel_scaler.scale_, dtype=np.float64).tobytes())
+91:     digest.update(json.dumps({
+92:         "cache_version": 1,
+93:         "processed_sources": [
+94:             {"path": str(path), "size": path.stat().st_size, "mtime_ns": path.stat().st_mtime_ns}
+95:             for path in processed_paths
+96:         ],
+97:         "epsilon": channel_scaler.epsilon,
+98:         "channels": list(PREFERRED_CHANNELS),
+99:         "features": list(FEATURE_NAMES),
+100:         "recordings": [
+101:             {"relative_path": item.relative_path, "patient_id": item.patient_id,
+102:              "seizure_count": item.seizure_count}
+103:             for item in recordings
+104:         ],
+105:     }, sort_keys=True).encode("utf-8"))
+106:     return digest.hexdigest()
+107: 
+108: 
+109: def _write_cache_manifest(path: Path, payload: dict) -> None:
+110:     temporary = path.with_suffix(".json.tmp")
+111:     temporary.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+112:     temporary.replace(path)
+113: 
+114: 
+115: def collect_features(
+116:     recordings: Sequence[Recording], processed_dir,
+117:     channel_scaler: FoldChannelStandardizer,
+118:     cache_dir: Path | None = None,
+119:     cache_key: str = "features",
+120: ) -> FeatureBatch:
+121:     """Extract features with optional per-recording disk checkpoints.
+122: 
+123:     Cached X/y arrays are .npy memory maps. The manifest advances atomically
+124:     only after both arrays are flushed, so an interrupted recording is safely
+125:     recomputed on resume. Cache identity includes scaler and cohort metadata.
+126:     """
+127:     from data_management.fold_data import processed_path_for_recording
+128: 
+129:     if not recordings:
+130:         raise ValueError("Cannot collect features from an empty recording list")
+131: 
+
+...
+146:             raise ValueError(f"{path.name} has empty or non-binary labels")
+147:         labels = raw_labels.astype(np.int8, copy=False)
+148:         if bool(np.any(labels == 1)) != (recording.seizure_count > 0):
+149:             raise ValueError(f"{path.name} labels disagree with the audit manifest")
+150:         labels_by_recording.append(labels)
+151:         processed_paths.append(path)
+152:         total_windows += len(labels)
+153: 
+154:     feature_count = len(PREFERRED_CHANNELS) * len(FEATURE_NAMES)
+155:     cache_path = None
+156:     manifest_path = None
+157:     X = y = None
+158:     cursor = 0
+159:     completed_recordings = 0
+160: 
+161:     if cache_dir is not None:
+162:         cache_root = Path(cache_dir)
+163:         safe_key = re.sub(r"[^A-Za-z0-9_.-]+", "_", str(cache_key)).strip("._") or "features"
+164:         signature = _feature_cache_signature(recordings, channel_scaler, processed_paths)
+165:         cache_path = cache_root / f"{safe_key}-{signature[:20]}"
+166:         cache_path.mkdir(parents=True, exist_ok=True)
+167:         manifest_path = cache_path / "manifest.json"
+168:         x_path, y_path = cache_path / "X.npy", cache_path / "y.npy"
+
+...
+210:         X = np.empty((total_windows, feature_count), dtype=np.float32)
+211:         y = np.empty(total_windows, dtype=np.int8)
+212: 
+213:     for index, (recording, expected_y, path) in enumerate(
+214:         zip(recordings, labels_by_recording, processed_paths), start=1
+215:     ):
+216:         if index <= completed_recordings:
+217:             continue
+218:         item = load_recording_windows(processed_dir, recording)
+219:         if not np.array_equal(item.y, expected_y):
+220:             raise RuntimeError(
+221:                 f"Labels changed between metadata and feature pass: {recording.relative_path}"
+222:             )
+223:         standardized = channel_scaler.transform(item.X)
+224:         features = extract_features(standardized, item.sfreq)
+225:         expected_shape = (len(item.y), feature_count)
+226:         if features.shape != expected_shape or features.dtype != np.float32:
+227:             raise RuntimeError(
+228:                 f"Invalid feature matrix for {recording.relative_path}: {features.shape}, {features.dtype}"
+229:             )
+230:         if not np.isfinite(features).all():
+231:             raise RuntimeError(f"Non-finite features for {recording.relative_path}")
+232:         next_cursor = cursor + len(item.y)
+233:         X[cursor:next_cursor] = features
+234:         y[cursor:next_cursor] = item.y
+235:         cursor = next_cursor
+236:         del item, standardized, features
+237: 
+238:         if cache_path is not None:
+
+================================================================================
+FILE: preprocessing\normalization.py
+================================================================================
+
+...
+47:         "context": context,
+48:         "recordings": identities,
+49:         "processed_sources": sources,
+50:     }
+51:     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+52:     return hashlib.sha256(encoded).hexdigest()
+53: 
+54: 
+55: class FoldChannelStandardizer:
+56:     """Standardize channels using statistics fitted on training-fold windows.
+57: 
+58:     Input shape: (windows, channels, samples). The caller must enforce that
+59:     only the permitted training recordings are passed to fit methods.
+60:     """
+61: 
+62:     def __init__(self, epsilon=1e-6):
+63:         if not np.isfinite(epsilon) or epsilon <= 0:
+64:             raise ValueError("epsilon must be a finite positive number.")
+65:         self.epsilon = float(epsilon)
+66:         self.mean_ = None
+67:         self.scale_ = None
+68:         self.n_channels_ = None
+69:         self.n_values_per_channel_ = None
+
+================================================================================
+FILE: preprocessing\segmentation.py
+================================================================================
+
+...
+1: import numpy as np
+2: 
+3: 
+4: def make_windows(
+5:     data: np.ndarray,
+6:     sfreq: float,
+7:     seizure_intervals: list[tuple[float, float]],
+8:     window_seconds: float = 10,
+9:     stride_seconds: float = 5,
+10: ):
+11:     """
+12:     Convert (channels, samples) into windows shaped (windows, channels, samples).
+13: 
+14:     A window is seizure-positive when its time interval overlaps any seizure
+15:     annotation. Windows are half-open intervals [start, end), so a window
+16:     ending exactly at seizure onset is not positive.
+17:     """
+18:     data = np.asarray(data)
+19: 
+20:     if data.ndim != 2 or data.shape[0] == 0 or data.shape[1] == 0:
+21:         raise ValueError("EEG data must be a non-empty 2D array (channels, samples).")
+22:     if not np.all(np.isfinite(data)):
+23:         raise ValueError("EEG data contains NaN or infinite values.")
+24:     if not np.isfinite(sfreq) or sfreq <= 0:
+25:         raise ValueError("Sampling frequency must be a finite positive number.")
+26:     if not np.isfinite(window_seconds) or window_seconds <= 0:
+27:         raise ValueError("Window duration must be a finite positive number.")
+28:     if not np.isfinite(stride_seconds) or stride_seconds <= 0:
+29:         raise ValueError("Window stride must be a finite positive number.")
+30: 
+31:     window_size = int(round(window_seconds * sfreq))
+32:     stride = int(round(stride_seconds * sfreq))
+33:     if window_size <= 0 or stride <= 0:
+34:         raise ValueError("Window and stride must each correspond to at least one sample.")
+35: 
+36:     validated_intervals = []
+37:     for index, interval in enumerate(seizure_intervals):
+38:         if len(interval) != 2:
+39:             raise ValueError(f"Seizure interval #{index + 1} must contain start and end.")
+40:         start, end = interval
+41:         if not np.isfinite(start) or not np.isfinite(end) or start < 0 or end <= start:
+42:             raise ValueError(
+43:                 f"Invalid seizure interval #{index + 1}: {interval}. "
+44:                 "Expected finite values with 0 <= start < end."
+45:             )
+46:         validated_intervals.append((float(start), float(end)))
+47: 
+48:     windows, labels, starts = [], [], []
+49:     total_samples = data.shape[1]
+50: 
+51:     for start_sample in range(0, total_samples - window_size + 1, stride):
+52:         end_sample = start_sample + window_size
+53:         start_sec = start_sample / sfreq
+54:         end_sec = end_sample / sfreq
+55: 
+56:         label = int(any(
+57:             start_sec < seizure_end and end_sec > seizure_start
+58:             for seizure_start, seizure_end in validated_intervals
+59:         ))
+60:         windows.append(data[:, start_sample:end_sample])
+61:         labels.append(label)
+62:         starts.append(start_sec)
+63: 
+64:     if not windows:
+65:         return (
+66:             np.empty((0, data.shape[0], window_size), dtype=np.float32),
+67:             np.empty((0,), dtype=np.int64),
+68:             np.empty((0,), dtype=np.float32),
+
+================================================================================
+FILE: preprocessing\signal_processing.py
+================================================================================
+
+...
+1: import numpy as np
+2: from scipy.signal import butter, iirnotch, sosfiltfilt, tf2sos
+3: 
+4: 
+5: def bandpass_and_notch(
+6:     data: np.ndarray,
+7:     sfreq: float,
+8:     low_hz: float = 0.5,
+9:     high_hz: float = 40.0,
+10:     notch_hz: float = 60.0,
+11: ) -> np.ndarray:
+12:     """
+13:     Apply zero-phase bandpass and optional mains-frequency notch filtering.
+14: 
+15:     Parameters
+16:     ----------
+17:     data:
+18:         EEG array with shape (channels, samples).
+19:     sfreq:
+20:         Sampling frequency in Hz.
+21:     low_hz, high_hz:
+22:         Requested bandpass cutoffs in Hz. The high cutoff is capped below
+23:         Nyquist when necessary.
+24:     notch_hz:
+25:         Notch frequency in Hz. Set to 0 to disable the notch filter. A notch
+26:         at or above Nyquist is skipped.
+27: 
+28:     Returns
+29:     -------
+30:     np.ndarray
+31:         Filtered EEG data with shape (channels, samples), dtype float32.
+32: 
+33:     Notes
+
+...
+36:     and is not suitable as-is for causal real-time streaming.
+37:     """
+38:     data = np.asarray(data, dtype=np.float64)
+39: 
+40:     if data.ndim != 2 or data.shape[0] == 0 or data.shape[1] == 0:
+41:         raise ValueError("EEG data must be a non-empty 2D array (channels, samples).")
+42:     if not np.all(np.isfinite(data)):
+43:         raise ValueError("EEG data contains NaN or infinite values.")
+44:     if not np.isfinite(sfreq) or sfreq <= 0:
+45:         raise ValueError("Sampling frequency must be a finite positive number.")
+46:     if not np.isfinite(low_hz) or not np.isfinite(high_hz):
+47:         raise ValueError("Bandpass cutoff frequencies must be finite.")
+48:     if not np.isfinite(notch_hz) or notch_hz < 0:
+49:         raise ValueError("Notch frequency must be finite and non-negative.")
+50: 
+51:     nyquist = sfreq / 2.0
+52:     high = min(high_hz, nyquist * 0.95)
+53:     if low_hz <= 0 or high_hz <= 0 or low_hz >= high:
+54:         raise ValueError(
+55:             "Invalid bandpass frequencies for this sampling rate: "
+56:             f"low={low_hz:g} Hz, effective high={high:g} Hz, "
+57:             f"Nyquist={nyquist:g} Hz."
+58:         )
+59: 
+60:     bandpass_sos = butter(
+61:         4, [low_hz, high], btype="bandpass", fs=sfreq, output="sos"
+62:     )
+63:     try:
+64:         filtered = sosfiltfilt(bandpass_sos, data, axis=-1)
+65:     except ValueError as exc:
+66:         raise ValueError(
+67:             "EEG recording is too short for zero-phase bandpass filtering. "
+68:             "Provide more samples or handle the short recording explicitly."
+69:         ) from exc
+70: 
+71:     if 0 < notch_hz < nyquist:
+72:         b, a = iirnotch(notch_hz, Q=30, fs=sfreq)
+73:         notch_sos = tf2sos(b, a)
+74:         try:
+75:             filtered = sosfiltfilt(notch_sos, filtered, axis=-1)
+76:         except ValueError as exc:
+77:             raise ValueError(
+78:                 "EEG recording is too short for zero-phase notch filtering."
+79:             ) from exc
+80: 
+81:     return filtered.astype(np.float32)
+82: 
+83: 
+84: def robust_normalize(data: np.ndarray) -> np.ndarray:
+85:     """
+86:     Normalize each channel using its median and interquartile range.
+87: 
+88:     Input must have shape (channels, samples). Statistics are calculated over
+89:     the complete supplied recording, so this is an offline, per-recording
+90:     transform rather than a causal streaming transform.
+91:     """
+92:     data = np.asarray(data, dtype=np.float64)
+93: 
+94:     if data.ndim != 2 or data.shape[0] == 0 or data.shape[1] == 0:
+95:         raise ValueError("EEG data must be a non-empty 2D array (channels, samples).")
+96:     if not np.all(np.isfinite(data)):
+97:         raise ValueError("EEG data contains NaN or infinite values.")
+98: 
+
+================================================================================
+FILE: recover_metadata.py
+================================================================================
+
+...
+1: import argparse
+2: import csv
+3: from pathlib import Path
+4: 
+5: import pandas as pd
+6: 
+7: from config import (
+8:     PROCESSED_DIR, LOG_DIR, PREFERRED_CHANNELS, WINDOW_SECONDS
+9: )
+10: from data_management.cohort import filter_primary_cohort
+11: from data_management.fold_data import load_recording_windows
+12: from data_management.patient_mapping import load_recording_manifest
+13: from main import NORMALIZATION_POLICY, _metadata_is_consistent
+14: 
+15: 
+16: def main():
+17:     parser = argparse.ArgumentParser()
+18:     parser.add_argument(
+19:         "--audit",
+20:         default=r"..\..\docs\full_annotation_audit.csv"
+21:     )
+22:     parser.add_argument(
+23:         "--apply",
+24:         action="store_true",
+25:         help="Write metadata only after validation"
+
+...
+87:         temp_path = processed_dir / f"{output_name}_metadata.recovery.tmp"
+88: 
+89:         try:
+90:             if metadata_path.exists():
+91:                 already_present += 1
+92:                 print(f"[{index}/{len(failed)}] EXISTS: {relative_path}")
+93:                 continue
+94: 
+95:             windows = load_recording_windows(processed_dir, recording)
+96:             validated += 1
+97: 
+98:             metadata = pd.DataFrame({
+99:                 "subject": recording.subject,
+100:                 "source_file": recording.edf_file,
+101:                 "window_start_seconds": windows.starts,
+102:                 "window_end_seconds": windows.starts + WINDOW_SECONDS,
+103:                 "sampling_frequency_hz": windows.sfreq,
+104:                 "channels": "|".join(PREFERRED_CHANNELS),
+105:                 "normalization": NORMALIZATION_POLICY,
+106:                 "label": windows.y,
+107:             })
+108: 
+109:             if args.apply:
+110:                 metadata.to_csv(temp_path, index=False)
+111: 
+112:                 if not _metadata_is_consistent(
+113:                     recording, temp_path, windows
+114:                 ):
+115:                     temp_path.unlink(missing_ok=True)
+116:                     raise ValueError(
+117:                         "Reconstructed metadata failed validation"
+118:                     )
+
+================================================================================
+FILE: restore_scaler_test.py
+================================================================================
+
+...
+1: from pathlib import Path
+2: import numpy as np
+3: 
+4: from preprocessing.normalization import FoldChannelStandardizer
+5: 
+6: checkpoint = Path(
+7:     "cache/robust_feature_first_fold_v1/scaler_checkpoint"
+8: )
+9: 
+10: import json
+11: 
+12: manifest = json.loads(
+13:     (checkpoint / "manifest.json").read_text(encoding="utf-8")
+14: )
+15: 
+16: assert manifest["complete"] is True
+17: assert manifest["completed_recordings"] == 469
+18: 
+
+...
+21: with np.load(state_path, allow_pickle=False) as saved:
+22:     state = {
+23:         "count": int(saved["count"]),
+24:         "n_channels": int(saved["n_channels"]),
+25:         "mean": saved["mean"].copy(),
+26:         "m2": saved["m2"].copy(),
+27:     }
+28: 
+29: scaler = FoldChannelStandardizer()
+30: scaler.load_state_dict(state)
+31: scaler.finalize()
+32: 
+33: assert scaler.n_channels_ == 17
+34: assert scaler.mean_.shape == (17,)
+35: assert scaler.scale_.shape == (17,)
+36: assert np.isfinite(scaler.mean_).all()
+37: assert np.isfinite(scaler.scale_).all()
+38: assert np.all(scaler.scale_ > 0)
+39: 
+40: print("SCALER RESTORATION: SUCCESS")
+41: print("Channels:", scaler.n_channels_)
+42: print("Sample count:", scaler.n_values_per_channel_)
+43: print("Mean range:", scaler.mean_.min(), scaler.mean_.max())
+
+================================================================================
+FILE: scripts\analyze_channel_coverage.py
+================================================================================
+
+...
+8: """
+9: 
+10: from __future__ import annotations
+11: 
+12: import csv
+13: from collections import Counter
+14: from pathlib import Path
+15: 
+16: from config import PREFERRED_CHANNELS, PROJECT_ROOT
+17: 
+18: 
+19: INVENTORY_PATH = PROJECT_ROOT.parent.parent / "docs" / "signal_inventory.csv"
+20: OUTPUT_PATH = PROJECT_ROOT.parent.parent / "docs" / "channel_coverage.csv"
+21: 
+22: 
+23: def normalize_channel_name(name: str) -> str:
+24:     """Match the project's existing case/whitespace-insensitive channel policy."""
+25:     return "".join(str(name).upper().split())
+26: 
+27: 
+28: def main() -> None:
+29:     if not INVENTORY_PATH.is_file():
+30:         raise FileNotFoundError(
+31:             f"Signal inventory not found: {INVENTORY_PATH}. "
+32:             "Run: python -m scripts.audit_recording_signals"
+33:         )
+34: 
+35:     rows: list[dict[str, str]] = []
+36:     exact_counts: Counter[str] = Counter()
+37:     normalized_counts: Counter[str] = Counter()
+38:     preferred_lookup = {
+39:         normalize_channel_name(name): name for name in PREFERRED_CHANNELS
+40:     }
+41:     preferred_counts: Counter[str] = Counter()
+42:     failed_rows: list[str] = []
+43: 
+44:     with INVENTORY_PATH.open("r", encoding="utf-8-sig", newline="") as handle:
+45:         reader = csv.DictReader(handle)
+46:         required = {"relative_path", "channel_names", "status"}
+47:         missing = required - set(reader.fieldnames or [])
+48:         if missing:
+49:             raise ValueError(
+50:                 "Signal inventory is missing columns: " + ", ".join(sorted(missing))
+51:             )
+52: 
+53:         for row in reader:
+
+...
+70: 
+71:             rows.append({
+72:                 "relative_path": row["relative_path"],
+73:                 "channel_count": str(len(labels)),
+74:                 "preferred_channels_present": str(
+75:                     sum(1 for key in normalized if key in preferred_lookup)
+76:                 ),
+77:                 "preferred_channels_missing": "|".join(
+78:                     name for name in PREFERRED_CHANNELS
+79:                     if normalize_channel_name(name) not in normalized
+80:                 ),
+81:                 "normalized_channels": "|".join(sorted(normalized)),
+82:             })
+83: 
+84:     total = len(rows)
+85:     if total == 0:
+86:         raise ValueError("No successful EDF rows were found in the signal inventory.")
+87: 
+88:     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+89:     with OUTPUT_PATH.open("w", encoding="utf-8", newline="") as handle:
+90:         fields = [
+91:             "relative_path",
+92:             "channel_count",
+
+...
+100: 
+101:     print("\n========== CHANNEL COVERAGE ANALYSIS ==========")
+102:     print(f"Successful EDF recordings: {total}")
+103:     print(f"Failed inventory rows: {len(failed_rows)}")
+104:     print(f"Distinct exact channel labels: {len(exact_counts)}")
+105:     print(f"Distinct normalized channel labels: {len(normalized_counts)}")
+106: 
+107:     print("\nPreferred channel coverage:")
+108:     for name in PREFERRED_CHANNELS:
+109:         count = preferred_counts[name]
+110:         percentage = 100.0 * count / total
+111:         print(f"  {name:8s} {count:3d}/{total} recordings ({percentage:6.2f}%)")
+112: 
+113:     common = sorted(
+114:         (name, count)
+115:         for name, count in normalized_counts.items()
+116:         if count == total
+117:     )
+118:     print(f"\nChannels present in every successful recording: {len(common)}")
+119:     for name, count in common:
+120:         print(f"  {name}: {count}/{total}")
+121: 
+122:     print("\nMost frequent normalized channel labels:")
+
+================================================================================
+FILE: scripts\audit_cross_patient_feature_stability.py
+================================================================================
+
+...
+17: from pathlib import Path
+18: 
+19: import numpy as np
+20: 
+21: ROOT = Path(__file__).resolve().parents[1]
+22: if str(ROOT) not in sys.path:
+23:     sys.path.insert(0, str(ROOT))
+24: 
+25: from config import PREFERRED_CHANNELS, RANDOM_STATE
+26: from data_management.cohort import filter_primary_cohort
+27: from data_management.dataset_split import build_lopo_folds
+28: from data_management.fold_data import processed_path_for_recording
+29: from data_management.patient_mapping import load_recording_manifest
+30: from data_management.validation_split import build_patient_validation_split
+31: from feature_selection.robust_feature_extraction import ROBUST_FEATURE_NAMES
+32: 
+33: FEATURES_PER_CHANNEL = len(ROBUST_FEATURE_NAMES)
+34: FEATURE_COUNT = len(PREFERRED_CHANNELS) * FEATURES_PER_CHANNEL
+35: EXPECTED_INNER_PATIENTS = 22
+36: ROBUST_ROOT = ROOT / "cache" / "robust_feature_first_fold_v1"
+37: OOF_ROOT = ROOT / "cache" / "oof_patient_scores_v1"
+38: DEFAULT_OUTPUT = ROOT / "results" / "diagnostics" / "cross_patient_feature_stability_v1"
+39: 
+40: 
+41: def summarize_vector(values: np.ndarray) -> dict:
+42:     """Return descriptive quantiles for a finite, non-empty 1-D vector."""
+43:     data = np.asarray(values, dtype=np.float64)
+44:     if data.ndim != 1 or data.size == 0 or not np.isfinite(data).all():
+45:         raise ValueError("values must be a non-empty finite 1-D array")
+46:     q25, median, q75 = np.percentile(data, [25, 50, 75])
+47:     return {
+48:         "window_count": int(data.size),
+
+...
+216:             "oof_auroc_at_probability_0_5": metrics.get("auroc"),
+217:             "oof_auprc_at_probability_0_5": metrics.get("auprc"),
+218:         })
+219: 
+220:     # Compute patient-level medians first. Cross-patient reference statistics
+221:     # give every patient equal weight instead of letting long recordings dominate.
+222:     feature_rows = []
+223:     distributions: dict[tuple[str, int], dict[str, dict]] = {}
+224:     for channel_index, channel in enumerate(PREFERRED_CHANNELS):
+225:         for feature_offset, feature_name in enumerate(ROBUST_FEATURE_NAMES):
+226:             feature_index = channel_index * FEATURES_PER_CHANNEL + feature_offset
+227:             for label in (0, 1):
+228:                 class_key = (f"{channel}|{feature_name}", label)
+229:                 patient_stats = {}
+230:                 for patient in patients:
+231:                     values, recording_count, positive_recording_count = (
+232:                         _collect_patient_label_values(segments[patient], feature_index, label)
+233:                     )
+234:                     stats = summarize_vector(values) if len(values) else None
+235:                     patient_stats[patient] = {
+236:                         "stats": stats,
+237:                         "recording_count": recording_count,
+238:                         "positive_recording_count": positive_recording_count,
+
+...
+303:         "thresholds_tuned": False,
+304:         "feature_selection_performed": False,
+305:         "cohort": {
+306:             "inner_patients": len(patients),
+307:             "recordings": len(outer.train_recordings),
+308:             "windows": int(sum(row["window_count"] for row in patient_summary)),
+309:             "positive_windows": int(sum(row["positive_windows"] for row in patient_summary)),
+310:             "feature_count": FEATURE_COUNT,
+311:             "channel_count": len(PREFERRED_CHANNELS),
+312:         },
+313:         "cache_signatures": {
+314:             "inner_fit": fit_manifest.get("signature"),
+315:             "inner_validation": val_manifest.get("signature"),
+316:         },
+317:         "method": {
+318:             "feature_source": "existing robust_feature_first_fold_v1 inner_fit and inner_validation caches",
+319:             "row_alignment": "Every recording label vector checked against its processed NPZ before inclusion",
+320:             "patient_weighting": "Cross-patient reference uses one median per patient, not pooled windows",
+321:             "shift_metric": "Patient median minus peer-patient median, divided by peer-patient IQR",
+322:             "zero_peer_iqr": "Effect left null; no division by zero",
+323:             "window_dependence": "10-second windows with 5-second stride overlap and are correlated",
+324:         },
+325:         "oof_ranking_context": {
+
+================================================================================
+FILE: scripts\audit_fold_aware_feature_stability.py
+================================================================================
+
+...
+14: from pathlib import Path
+15: 
+16: import numpy as np
+17: 
+18: ROOT = Path(__file__).resolve().parents[1]
+19: if str(ROOT) not in sys.path:
+20:     sys.path.insert(0, str(ROOT))
+21: 
+22: from config import PREFERRED_CHANNELS
+23: from data_management.cohort import filter_primary_cohort
+24: from data_management.dataset_split import build_lopo_folds
+25: from data_management.patient_mapping import load_recording_manifest
+26: from feature_selection.robust_feature_extraction import ROBUST_FEATURE_NAMES
+27: from scripts.run_inner_patient_oof import (
+28:     aggregate_patient_statistics,
+29:     build_fold_matrix,
+30:     complete_manifest,
+31:     fold_channel_scale,
+32:     prepare_base_rows,
+33: )
+34: 
+35: CACHE = ROOT / "cache"
+36: OOF_ROOT = CACHE / "oof_patient_scores_v1"
+37: ROBUST_ROOT = CACHE / "robust_feature_first_fold_v1"
+38: STATS_ROOT = CACHE / "oof_recording_stats_v1"
+39: STD_ROOT = CACHE / "oof_window_std_v1"
+40: FEATURES_PER_CHANNEL = len(ROBUST_FEATURE_NAMES)
+41: FEATURE_COUNT = len(PREFERRED_CHANNELS) * FEATURES_PER_CHANNEL
+42: PATIENTS_EXPECTED = 22
+43: DEFAULT_OUTPUT = ROOT / "results" / "diagnostics" / "fold_aware_feature_stability_v1"
+44: 
+45: 
+46: def _quantiles(values: np.ndarray) -> dict:
+47:     values = np.asarray(values, dtype=np.float32)
+48:     if values.ndim != 1 or values.size == 0 or not np.isfinite(values).all():
+49:         raise ValueError("Expected a non-empty finite one-dimensional feature vector")
+50:     q25, median, q75 = np.percentile(values, [25, 50, 75])
+51:     return {"window_count": int(values.size), "q25": float(q25),
+52:             "median": float(median), "q75": float(q75), "iqr": float(q75-q25)}
+53: 
+54: 
+55: def _collect(X, y, patient_records, feature_index, label):
+
+...
+132:             if not np.isfinite(X).all() or not np.isin(y, (0, 1)).all():
+133:                 raise RuntimeError(f"Non-finite features or invalid labels in {heldout} matrix")
+134:             if any(r["patient_id"] == "patient_01" for r in offsets):
+135:                 raise RuntimeError("patient_01 appeared in fold feature offsets")
+136: 
+137:             patient_offsets = {patient: [r for r in offsets if r["patient_id"] == patient]
+138:                                for patient in patients}
+139:             fold_rows = []
+140:             for channel_index, channel in enumerate(PREFERRED_CHANNELS):
+141:                 for feature_offset, feature_name in enumerate(ROBUST_FEATURE_NAMES):
+142:                     feature_index = channel_index * FEATURES_PER_CHANNEL + feature_offset
+143:                     for label in (0, 1):
+144:                         patient_stats = {}
+145:                         for patient in patients:
+146:                             values, rec_count = _collect(
+147:                                 X, y, patient_offsets[patient], feature_index, label
+148:                             )
+149:                             patient_stats[patient] = (
+150:                                 _quantiles(values) if values.size else None, rec_count
+151:                             )
+152:                         own, own_recs = patient_stats[heldout]
+153:                         peer_medians = np.asarray([
+154:                             stat[0]["median"] for patient, stat in patient_stats.items()
+
+...
+209:         "outer_test_patient_excluded": "patient_01",
+210:         "outer_test_patient_loaded": False,
+211:         "models_trained": False,
+212:         "thresholds_tuned": False,
+213:         "feature_selection_performed": False,
+214:         "oof_scores_modified": False,
+215:         "cohort": {"inner_patients": len(patients), "recordings": len(outer.train_recordings),
+216:                    "windows_per_fold": 652077, "feature_count": FEATURE_COUNT,
+217:                    "channel_count": len(PREFERRED_CHANNELS)},
+218:         "folds": fold_summaries,
+219:         "summary": {"patient_feature_class_rows": len(rows),
+220:                     "finite_absolute_peer_iqr_shifts": len(shifts),
+221:                     "median_absolute_peer_iqr_shift": float(np.median(shifts)) if shifts else None,
+222:                     "p90_absolute_peer_iqr_shift": float(np.percentile(shifts, 90)) if shifts else None},
+223:         "method": {
+224:             "transformation": "For each held-out patient, reconstruct its exact OOF fold matrix using the channel scaler fitted on the other 21 patients.",
+225:             "features": "All 170 robust features; fold-specific log_std reconstructed from raw window standard deviations, other robust features reused from affine-invariant cache.",
+226:             "peer_reference": "Per-patient medians from the same fold matrix; each patient contributes one median, not pooled windows.",
+227:             "shift": "(held-out patient median - peer median of medians) / peer IQR of patient medians.",
+228:             "caveat": "The held-out patient's data are excluded from scaler fitting; peer distributions are transformed under that same fold scaler for a comparable reference.",
+229:             "overlap": "10-second windows with 5-second stride overlap and are not independent observations.",
+230:         },
+231:         "oof_ranking_context": "Existing inner OOF AUROC/AUPRC copied for descriptive context only.",
+
+================================================================================
+FILE: scripts\audit_patient14_model_contributions.py
+================================================================================
+
+...
+165:         "largest_absolute_coefficients": feature_level[:40],
+166:         "logit_reconstruction_max_abs_error": float(
+167:             np.max(np.abs(logits - (X @ coef + float(intercept))))
+168:         ),
+169:     }
+170: 
+171: 
+172: def run(audit_path: Path, patient: str = PATIENT) -> dict:
+173:     from config import PREFERRED_CHANNELS
+174: 
+175:     recordings = filter_primary_cohort(load_recording_manifest(audit_path))
+176:     outer = build_lopo_folds(recordings)[0]
+177:     if outer.test_patient_id != "patient_01" or len(outer.train_recordings) != 608:
+178:         raise RuntimeError("Unexpected outer cohort; refusing diagnostic")
+179:     if any(rec.patient_id == "patient_01" for rec in outer.train_recordings):
+180:         raise RuntimeError("Outer-test patient_01 must remain excluded")
+181: 
+182:     heldout_records = sorted(
+183:         (rec for rec in outer.train_recordings if rec.patient_id == patient),
+184:         key=lambda rec: rec.relative_path,
+185:     )
+186:     if not heldout_records or patient == "patient_01":
+187:         raise RuntimeError(f"Invalid or empty held-out patient: {patient}")
+
+...
+290:     if max_score_error > 2e-6:
+291:         raise RuntimeError(
+292:             f"Fold reconstruction did not reproduce saved scores "
+293:             f"(max_abs_error={max_score_error:.8g}); refusing interpretation"
+294:         )
+295: 
+296:     contribution = contribution_summary(
+297:         transformed_test, model.coef_[0], float(model.intercept_[0]),
+298:         reconstructed_y, saved_offsets, PREFERRED_CHANNELS,
+299:     )
+300:     result = {
+301:         "status": "completed",
+302:         "diagnostic_only": True,
+303:         "model_retrained_for_diagnostic": True,
+304:         "meaning_of_retrained": "Deterministic reconstruction of the already evaluated patient_14 OOF fold; not a new model experiment.",
+305:         "saved_oof_artifact_modified": False,
+306:         "threshold_tuned": False,
+307:         "outer_test_patient_loaded": False,
+308:         "heldout_patient": patient,
+309:         "training_patient_count": 21,
+310:         "training_recording_count": len(train_records),
+311:         "heldout_recording_count": len(test_records),
+312:         "heldout_window_count": int(len(reconstructed_y)),
+
+================================================================================
+FILE: scripts\audit_recording_signals.py
+================================================================================
+
+...
+57:         writer.writeheader()
+58: 
+59:         for index, edf_path in enumerate(edf_paths, start=1):
+60:             raw = None
+61:             try:
+62:                 raw = mne.io.read_raw_edf(
+63:                     edf_path, preload=False, verbose="ERROR"
+64:                 )
+65:                 sfreq = float(raw.info["sfreq"])
+66:                 n_samples = int(raw.n_times)
+67:                 channels = list(raw.ch_names)
+68:                 duration = n_samples / sfreq
+69: 
+70:                 writer.writerow({
+71:                     "subject": edf_path.parent.name,
+72:                     "edf_file": edf_path.name,
+73:                     "relative_path": edf_path.relative_to(DATASET_DIR).as_posix(),
+74:                     "sampling_frequency_hz": sfreq,
+75:                     "n_samples": n_samples,
+76:                     "duration_seconds": round(duration, 6),
+77:                     "n_channels": len(channels),
+78:                     "channel_names": "|".join(channels),
+79:                     "status": "SUCCESS",
+80:                     "error": "",
+81:                 })
+82: 
+83:                 sampling_rates[sfreq] += 1
+84:                 channel_counts[len(channels)] += 1
+85:                 all_channels.update(channels)
+86:                 successful += 1
+87:             except Exception as exc:
+88:                 writer.writerow({
+89:                     "subject": edf_path.parent.name,
+90:                     "edf_file": edf_path.name,
+91:                     "relative_path": edf_path.relative_to(DATASET_DIR).as_posix(),
+92:                     "sampling_frequency_hz": "",
+93:                     "n_samples": "",
+94:                     "duration_seconds": "",
+95:                     "n_channels": "",
+96:                     "channel_names": "",
+97:                     "status": "FAILED",
+
+================================================================================
+FILE: scripts\backfill_recording_durations.py
+================================================================================
+
+...
+23: from data_management.patient_mapping import Recording, load_recording_manifest
+24: from evaluation.event_metrics import parse_seizure_intervals
+25: 
+26: 
+27: def _read_edf_header(path: Path) -> tuple[float, float, int]:
+28:     """Return duration seconds, sampling frequency and sample count, no preload."""
+29:     raw = mne.io.read_raw_edf(path, preload=False, verbose="ERROR")
+30:     try:
+31:         sfreq = float(raw.info["sfreq"])
+32:         n_times = int(raw.n_times)
+33:         duration = n_times / sfreq
+34:     finally:
+35:         raw.close()
+36:     if not np.isfinite(sfreq) or sfreq <= 0 or n_times <= 0:
+37:         raise ValueError(f"Invalid EDF header timing values: {path}")
+38:     return float(duration), sfreq, n_times
+39: 
+40: 
+41: def _atomic_write_json(path: Path, payload: dict) -> None:
+42:     path.parent.mkdir(parents=True, exist_ok=True)
+43:     temporary = None
+44:     try:
+45:         with tempfile.NamedTemporaryFile(
+46:             mode="w", encoding="utf-8", dir=path.parent,
+47:             prefix=f".{path.name}.", suffix=".tmp", delete=False,
+48:         ) as handle:
+49:             temporary = Path(handle.name)
+50:             json.dump(payload, handle, indent=2, sort_keys=True)
+51:             handle.write("\n")
+52:             handle.flush()
+
+...
+156:             stat = edf_path.stat()
+157:             prior = entries.get(recording.relative_path, {})
+158:             signature_matches = (
+159:                 prior.get("edf_size_bytes") == stat.st_size
+160:                 and prior.get("edf_mtime_ns") == stat.st_mtime_ns
+161:             )
+162:             if signature_matches:
+163:                 duration = float(prior["recording_duration_seconds"])
+164:                 sfreq = float(prior["sampling_frequency_hz"])
+165:                 n_times = int(prior["sample_count"])
+166:             else:
+167:                 duration, sfreq, n_times = header_reader(edf_path)
+168: 
+169:             if not np.isfinite(duration) or duration <= 0:
+170:                 raise ValueError(f"Invalid duration for {recording.relative_path}")
+171:             if len(starts) and np.any(starts < 0):
+172:                 raise ValueError(f"Negative window start in {npz_path.name}")
+173:             if len(starts) and np.any(starts + (metadata["window_end_seconds"].iloc[0] - metadata["window_start_seconds"].iloc[0] if "window_end_seconds" in metadata.columns else 10.0) > duration + 1e-6):
+174:                 raise ValueError(f"Saved windows exceed EDF duration: {npz_path.name}")
+175:             for interval in parse_seizure_intervals(recording.seizure_intervals_seconds):
+176:                 if interval.end > duration + 1e-6:
+177:                     raise ValueError(
+178:                         f"Annotated seizure interval ends beyond EDF duration: {recording.relative_path}"
+179:                     )
+180: 
+181:             if "recording_duration_seconds" in metadata.columns:
+
+...
+184:                     np.isfinite(existing).all()
+185:                     and np.allclose(existing, duration, rtol=0.0, atol=1e-9)
+186:                 )
+187:             else:
+188:                 metadata_is_current = False
+189:             if (
+190:                 signature_matches and metadata_is_current
+191:                 and prior.get("sample_count") == n_times
+192:                 and prior.get("sampling_frequency_hz") == sfreq
+193:             ):
+194:                 counts["skipped_valid"] += 1
+195:                 continue
+196: 
+197:             entry = {
+198:                 "subject": recording.subject,
+199:                 "patient_id": recording.patient_id,
+200:                 "relative_path": recording.relative_path,
+201:                 "recording_duration_seconds": float(duration),
+202:                 "sampling_frequency_hz": float(sfreq),
+203:                 "sample_count": int(n_times),
+204:                 "edf_size_bytes": int(stat.st_size),
+205:                 "edf_mtime_ns": int(stat.st_mtime_ns),
+206:             }
+207:             if not dry_run:
+208:                 metadata["recording_duration_seconds"] = float(duration)
+209:                 _atomic_write_csv(metadata_path, metadata)
+210:                 entries[recording.relative_path] = entry
+211:                 manifest["recordings"] = entries
+212:                 _atomic_write_json(destination, manifest)
+213:             counts["updated"] += 1
+214:         except Exception as exc:
+215:             counts["failed"] += 1
+216:             error = {
+
+================================================================================
+FILE: scripts\build_oof_recording_stats_cache.py
+================================================================================
+
+...
+18: import zipfile
+19: 
+20: import numpy as np
+21: 
+22: PROJECT_ROOT = Path(__file__).resolve().parents[1]
+23: if str(PROJECT_ROOT) not in sys.path:
+24:     sys.path.insert(0, str(PROJECT_ROOT))
+25: 
+26: from config import PROCESSED_DIR, PREFERRED_CHANNELS
+27: from data_management.cohort import filter_primary_cohort
+28: from data_management.dataset_split import build_lopo_folds
+29: from data_management.fold_data import load_recording_windows, processed_path_for_recording
+30: from data_management.patient_mapping import load_recording_manifest
+31: from evaluation.oof_scaler_cache import channel_sufficient_statistics
+32: 
+33: CACHE_VERSION = "oof_recording_channel_stats_v1"
+34: 
+35: 
+36: def _atomic_json(path: Path, payload: dict) -> None:
+37:     path.parent.mkdir(parents=True, exist_ok=True)
+38:     temporary = path.with_suffix(path.suffix + ".tmp")
+39:     temporary.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+40:     os.replace(temporary, path)
+41: 
+42: 
+43: def _artifact_name(relative_path: str) -> str:
+
+...
+74:         artifact = records_dir / _artifact_name(recording.relative_path)
+75:         valid = False
+76:         if artifact.is_file():
+77:             try:
+78:                 with np.load(artifact, allow_pickle=False) as saved:
+79:                     valid = (
+80:                         str(saved["signature"].item()) == signature
+81:                         and int(saved["count"]) > 0
+82:                         and saved["mean"].shape == (len(PREFERRED_CHANNELS),)
+83:                         and saved["m2"].shape == (len(PREFERRED_CHANNELS),)
+84:                         and np.isfinite(saved["mean"]).all()
+85:                         and np.isfinite(saved["m2"]).all()
+86:                         and np.all(saved["m2"] >= 0)
+87:                     )
+88:             except (OSError, EOFError, ValueError, KeyError, zipfile.BadZipFile):
+89:                 valid = False
+90:         if not valid:
+91:             item = load_recording_windows(PROCESSED_DIR, recording)
+92:             state = channel_sufficient_statistics(item.X)
+93:             if len(item.y) == 0:
+94:                 raise RuntimeError(f"Empty recording windows: {recording.relative_path}")
+95:             temporary = artifact.with_suffix(".npz.tmp")
+96:             with temporary.open("wb") as handle:
+97:                 np.savez_compressed(
+98:                     handle,
+99:                     signature=np.asarray(signature),
+100:                     count=np.asarray(state["count"], dtype=np.int64),
+101:                     mean=state["mean"], m2=state["m2"],
+102:                 )
+103:                 handle.flush()
+104:                 os.fsync(handle.fileno())
+105:             os.replace(temporary, artifact)
+
+...
+127: 
+128:     manifest = {
+129:         "cache_version": CACHE_VERSION,
+130:         "created_at_utc": datetime.now(timezone.utc).isoformat(),
+131:         "outer_fold_id": fold.fold_id,
+132:         "excluded_outer_test_patient": fold.test_patient_id,
+133:         "training_patient_ids": sorted(train_patients),
+134:         "recording_count": len(entries),
+135:         "channel_count": len(PREFERRED_CHANNELS),
+136:         "statistics": "raw_processed_window_population_count_mean_m2",
+137:         "entries": entries,
+138:         "complete": len(entries) == len(fold.train_recordings),
+139:     }
+140:     _atomic_json(cache_root / "manifest.json", manifest)
+141:     _atomic_json(cache_root / "progress.json", {
+142:         "cache_version": CACHE_VERSION,
+143:         "outer_fold_id": fold.fold_id,
+144:         "excluded_outer_test_patient": fold.test_patient_id,
+145:         "completed_recordings": len(entries),
+146:         "total_recordings": len(fold.train_recordings),
+147:         "last_recording": entries[-1]["relative_path"] if entries else None,
+148:         "complete": True,
+149:     })
+
+================================================================================
+FILE: scripts\build_oof_window_std_cache.py
+================================================================================
+
+...
+3: import argparse, hashlib, json, os, sys, zipfile
+4: from datetime import datetime, timezone
+5: from pathlib import Path
+6: import numpy as np
+7: 
+8: ROOT = Path(__file__).resolve().parents[1]
+9: if str(ROOT) not in sys.path:
+10:     sys.path.insert(0, str(ROOT))
+11: from config import PROCESSED_DIR, PREFERRED_CHANNELS
+12: from data_management.cohort import filter_primary_cohort
+13: from data_management.dataset_split import build_lopo_folds
+14: from data_management.fold_data import load_recording_windows, processed_path_for_recording
+15: from data_management.patient_mapping import load_recording_manifest
+16: from evaluation.oof_scaler_cache import window_channel_standard_deviations
+17: 
+18: VERSION = "oof_window_channel_std_v1"
+19: 
+20: def atomic_json(path, value):
+21:     path.parent.mkdir(parents=True, exist_ok=True)
+22:     temp = path.with_suffix(path.suffix + ".tmp")
+23:     temp.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+24:     os.replace(temp, path)
+25: 
+26: def build(audit, cache):
+27:     recordings = filter_primary_cohort(load_recording_manifest(audit))
+28:     fold = build_lopo_folds(recordings)[0]
+
+...
+43:         artifact = folder / name
+44:         valid = False
+45:         if artifact.is_file():
+46:             try:
+47:                 with np.load(artifact, allow_pickle=False) as z:
+48:                     a = z["std"]
+49:                     valid = (str(z["signature"].item()) == signature and a.ndim == 2
+50:                              and int(z["window_count"]) == a.shape[0]
+51:                              and a.shape[1] == len(PREFERRED_CHANNELS) and a.shape[0] > 0
+52:                              and a.dtype == np.float32 and np.isfinite(a).all() and np.all(a >= 0))
+53:             except (OSError, EOFError, ValueError, KeyError, zipfile.BadZipFile):
+54:                 valid = False
+55:         if not valid:
+56:             item = load_recording_windows(PROCESSED_DIR, rec)
+57:             std = window_channel_standard_deviations(item.X, chunk_size=256)
+58:             if len(std) != len(item.y):
+59:                 raise RuntimeError("Window/std alignment mismatch: " + rec.relative_path)
+60:             tmp = artifact.with_suffix(".npz.tmp")
+61:             with tmp.open("wb") as h:
+62:                 np.savez_compressed(h, signature=np.asarray(signature), std=std,
+63:                                     window_count=np.asarray(len(std), dtype=np.int64))
+64:                 h.flush()
+65:                 os.fsync(h.fileno())
+66:             os.replace(tmp, artifact)
+67:             del item, std
+68:         with np.load(artifact, allow_pickle=False) as z:
+69:             count = int(z["window_count"])
+70:             if z["std"].shape != (count, len(PREFERRED_CHANNELS)):
+71:                 raise RuntimeError("Invalid std artifact: " + rec.relative_path)
+72:         entries.append({**identity, "signature": signature, "artifact": name, "window_count": count})
+73:         atomic_json(cache / "progress.json", {"completed": i, "total": len(fold.train_recordings),
+74:                                                "last_recording": rec.relative_path, "complete": False})
+75:         if i % 10 == 0 or i == len(fold.train_recordings):
+76:             print(f"Window std cache: {i}/{len(fold.train_recordings)}", flush=True)
+77:     manifest = {"version": VERSION, "created_at_utc": datetime.now(timezone.utc).isoformat(),
+78:                 "outer_fold_id": 1, "excluded_outer_test_patient": "patient_01",
+79:                 "training_patient_ids": sorted({r.patient_id for r in fold.train_recordings}),
+80:                 "recording_count": len(entries), "channel_count": len(PREFERRED_CHANNELS),
+81:                 "entries": entries, "complete": len(entries) == 608}
+82:     atomic_json(cache / "manifest.json", manifest)
+83:     atomic_json(cache / "progress.json", {"completed": len(entries), "total": len(entries), "complete": True})
+84:     print("Saved window std manifest:", cache / "manifest.json", flush=True)
+85:     print("Outer-test recordings were not opened.", flush=True)
+86:     return manifest
+87: 
+88: def main():
+89:     parser = argparse.ArgumentParser(description=__doc__)
+90:     parser.add_argument("--audit", type=Path, default=ROOT.parent.parent / "docs" / "full_annotation_audit.csv")
+91:     parser.add_argument("--cache", type=Path, default=ROOT / "cache" / "oof_window_std_v1")
+92:     args = parser.parse_args()
+93:     build(args.audit, args.cache)
+94: 
+
+================================================================================
+FILE: scripts\diagnose_patient14_features.py
+================================================================================
+
+...
+20: 
+21: import numpy as np
+22: from sklearn.metrics import roc_auc_score
+23: 
+24: ROOT = Path(__file__).resolve().parents[1]
+25: if str(ROOT) not in sys.path:
+26:     sys.path.insert(0, str(ROOT))
+27: 
+28: from config import PROCESSED_DIR, PREFERRED_CHANNELS
+29: from data_management.cohort import filter_primary_cohort
+30: from data_management.dataset_split import build_lopo_folds
+31: from data_management.fold_data import load_recording_windows
+32: from data_management.patient_mapping import load_recording_manifest
+33: from feature_selection.robust_feature_extraction import (
+34:     ROBUST_FEATURE_NAMES, extract_robust_features,
+35: )
+36: from scripts.run_inner_patient_oof import (
+37:     aggregate_patient_statistics, prepare_base_rows, fold_channel_scale,
+38: )
+39: 
+40: PATIENT = "patient_14"
+41: OOF_ROOT = ROOT / "cache" / "oof_patient_scores_v1"
+42: ROBUST_ROOT = ROOT / "cache" / "robust_feature_first_fold_v1"
+43: STATS_ROOT = ROOT / "cache" / "oof_recording_stats_v1"
+44: OUTPUT_ROOT = ROOT / "results" / "diagnostics"
+45: 
+46: 
+47: def _json_value(value):
+48:     if isinstance(value, (np.integer,)):
+
+...
+109:     labels_all, scores_all, offsets = _validate_fold_artifact(
+110:         OOF_ROOT / "folds" / f"{PATIENT}.npz", patient_recordings
+111:     )
+112: 
+113:     feature_rows = []
+114:     invariance_rows = []
+115:     recording_summary = []
+116:     for rec in patient_recordings:
+117:         windows = load_recording_windows(PROCESSED_DIR, rec)
+118:         start, end = offsets[rec.relative_path]
+119:         if end - start != len(windows.y):
+120:             raise RuntimeError(f"OOF window count mismatch: {rec.relative_path}")
+121:         if not np.array_equal(labels_all[start:end], windows.y.astype(np.int8)):
+122:             raise RuntimeError(f"OOF labels do not align with processed labels: {rec.relative_path}")
+123: 
+124:         source_x, source_y, base_start, base_end = row_lookup[rec.relative_path]
+125:         if base_end - base_start != len(windows.y):
+126:             raise RuntimeError(f"Base feature row count mismatch: {rec.relative_path}")
+127:         if not np.array_equal(source_y[base_start:base_end], windows.y.astype(np.int8)):
+128:             raise RuntimeError(f"Base feature labels do not align: {rec.relative_path}")
+129: 
+130:         standardized = (
+131:             (windows.X.astype(np.float64) - fold_mean[None, :, None])
+132:             / fold_scale[None, :, None]
+133:         ).astype(np.float32)
+134:         recomputed = extract_robust_features(standardized, windows.sfreq, chunk_size=128)
+135:         if recomputed.shape != (len(windows.y), len(PREFERRED_CHANNELS) * len(ROBUST_FEATURE_NAMES)):
+136:             raise RuntimeError(f"Unexpected recomputed feature shape: {rec.relative_path}")
+137:         if not np.isfinite(recomputed).all():
+138:             raise RuntimeError(f"Non-finite recomputed features: {rec.relative_path}")
+139: 
+140:         cached = np.asarray(source_x[base_start:base_end], dtype=np.float32)
+141:         # Compare features 1..9 per channel. log_std is intentionally fold-specific.
+142:         for channel_index, channel in enumerate(PREFERRED_CHANNELS):
+143:             for feature_index, feature_name in enumerate(ROBUST_FEATURE_NAMES[1:], start=1):
+144:                 column = channel_index * len(ROBUST_FEATURE_NAMES) + feature_index
+145:                 delta = np.abs(recomputed[:, column].astype(np.float64)
+146:                                - cached[:, column].astype(np.float64))
+147:                 invariance_rows.append({
+148:                     "recording": rec.relative_path,
+149:                     "channel": channel,
+150:                     "feature": feature_name,
+151:                     "window_count": len(delta),
+152:                     "max_abs_difference": float(np.max(delta)),
+153:                     "p99_abs_difference": float(np.quantile(delta, 0.99)),
+154:                     "mean_abs_difference": float(np.mean(delta)),
+155:                     "over_1e-4_count": int(np.count_nonzero(delta > 1e-4)),
+156:                     "over_1e-3_count": int(np.count_nonzero(delta > 1e-3)),
+157:                 })
+158: 
+159:         positives = int(np.count_nonzero(windows.y == 1))
+160:         negatives = int(np.count_nonzero(windows.y == 0))
+161:         record_aucs = []
+162:         if positives and negatives:
+163:             y = windows.y.astype(np.int8)
+164:             for channel_index, channel in enumerate(PREFERRED_CHANNELS):
+165:                 for feature_index, feature_name in enumerate(ROBUST_FEATURE_NAMES):
+166:                     column = channel_index * len(ROBUST_FEATURE_NAMES) + feature_index
+167:                     values = recomputed[:, column]
+168:                     auc = float(roc_auc_score(y, values))
+169:                     row = {
+170:                         "recording": rec.relative_path,
+171:                         "channel": channel,
+172:                         "feature": feature_name,
+173:                         "positive_windows": positives,
+174:                         "negative_windows": negatives,
+175:                         "auc": auc,
+176:                         "direction": "higher_in_seizure" if auc > 0.5 else (
+177:                             "lower_in_seizure" if auc < 0.5 else "no_separation"
+178:                         ),
+
+================================================================================
+FILE: scripts\evaluate_first_fold_events.py
+================================================================================
+
+...
+10: 
+11: import argparse
+12: import json
+13: from pathlib import Path
+14: from typing import Sequence
+15: 
+16: import numpy as np
+17: 
+18: from config import PROCESSED_DIR, RANDOM_STATE, WINDOW_SECONDS
+19: from data_management.cohort import filter_primary_cohort
+20: from data_management.dataset_split import build_lopo_folds
+21: from data_management.fold_data import processed_path_for_recording
+22: from data_management.patient_mapping import Recording, load_recording_manifest
+23: from data_management.validation_split import build_patient_validation_split
+24: from evaluation.event_metrics import (
+25:     TimeInterval,
+26:     aggregate_event_metrics,
+27:     evaluate_recording_events,
+28:     parse_seizure_intervals,
+29: )
+30: from evaluation.recording_inventory import load_recording_durations
+31: from modeling.experiment_checkpoints import ModelStageCheckpointStore
+32: from scripts.run_first_baseline_fold import (
+
+...
+131:                 for item in seizures
+132:                 if min(duration, item.end) > max(0.0, item.start)
+133:             )
+134:         metrics = evaluate_recording_events(
+135:             starts,
+136:             predictions,
+137:             seizures,
+138:             recording_duration_seconds=duration,
+139:             window_seconds=WINDOW_SECONDS,
+140:         )
+141:         _add_event_score_diagnostics(
+142:             metrics["events"], starts, scores, threshold, WINDOW_SECONDS
+143:         )
+144:         output.append({
+145:             "relative_path": recording.relative_path,
+146:             "subject": recording.subject,
+147:             "patient_id": recording.patient_id,
+148:             "threshold": float(threshold),
+149:             "window_count": int(len(labels)),
+150:             "positive_windows": int(np.sum(labels == 1)),
+151:             "predicted_positive_windows": int(np.sum(predictions == 1)),
+152:             **metrics,
+153:         })
+154:         cursor = next_cursor
+155: 
+156:     if cursor != expected_total:
+
+...
+281:         "recording_duration_availability": "exact_inventory_duration_for_all_primary_recordings",
+282:         "duration_source_audit": duration_audit,
+283:         "duration_policy": (
+284:             "Exact duration is joined by normalized relative_path and cross-checked "
+285:             "against subject and EDF filename. Non-seizure exposure subtracts the "
+286:             "union of seizure annotations clipped to recording bounds."
+287:         ),
+288:         "alarm_policy": {
+289:             "window_seconds": WINDOW_SECONDS,
+290:             "merge_gap_seconds": 0.0,
+291:             "positive_window_rule": "score >= inner-validation-selected threshold",
+292:             "event_match": "any half-open interval overlap",
+293:         },
+294:         "thresholds": thresholds,
+295:         "validation": {
+296:             "f1_threshold": _evaluate_threshold(
+297:                 inner_split.validation_recordings, validation_y, validation_values,
+298:                 processed_dir, thresholds["validation_f1"], "inner_validation", duration_by_path,
+299:             ),
+300:             "f2_threshold": _evaluate_threshold(
+301:                 inner_split.validation_recordings, validation_y, validation_values,
+302:                 processed_dir, thresholds["validation_f2"], "inner_validation", duration_by_path,
+303:             ),
+
+================================================================================
+FILE: scripts\evaluate_inner_oof_events.py
+================================================================================
+
+...
+8: from __future__ import annotations
+9: 
+10: import argparse
+11: import json
+12: from pathlib import Path
+13: 
+14: import numpy as np
+15: 
+16: from config import PROCESSED_DIR, WINDOW_SECONDS
+17: from data_management.cohort import filter_primary_cohort
+18: from data_management.dataset_split import build_lopo_folds
+19: from data_management.fold_data import processed_path_for_recording
+20: from data_management.patient_mapping import Recording, load_recording_manifest
+21: from evaluation.event_metrics import (
+22:     aggregate_event_metrics,
+23:     evaluate_recording_events,
+24:     parse_seizure_intervals,
+25:     TimeInterval,
+26: )
+27: from evaluation.recording_inventory import load_recording_durations
+28: 
+29: 
+30: def validate_recording_offsets(
+
+...
+129:             TimeInterval(max(0.0, event.start), min(duration, event.end))
+130:             for event in seizures
+131:             if min(duration, event.end) > max(0.0, event.start)
+132:         )
+133:         predictions = (scores >= threshold).astype(np.int8)
+134:         metrics = evaluate_recording_events(
+135:             starts, predictions, seizures,
+136:             recording_duration_seconds=duration,
+137:             window_seconds=WINDOW_SECONDS,
+138:             merge_gap_seconds=merge_gap_seconds,
+139:         )
+140:         rows.append({
+141:             "relative_path": recording.relative_path,
+142:             "subject": recording.subject,
+143:             "patient_id": recording.patient_id,
+144:             "threshold": float(threshold),
+145:             "window_count": int(len(y)),
+146:             "positive_windows": int(np.sum(y == 1)),
+147:             "predicted_positive_windows": int(np.sum(predictions == 1)),
+148:             **metrics,
+149:         })
+150: 
+151:     aggregate = aggregate_event_metrics(rows)
+
+...
+286:         "positive_windows": int(report["positive_windows"]),
+287:         "score_source": str(score_root),
+288:         "threshold_provenance": {
+289:             "0.5": "fixed reference threshold",
+290:             "pooled_oof_f2": "provisional pooled window-F2 threshold selected on these same OOF labels; descriptive only and not an unbiased event-performance estimate",
+291:         },
+292:         "thresholds_evaluated": normalized_thresholds,
+293:         "alarm_policy": {
+294:             "window_seconds": WINDOW_SECONDS,
+295:             "merge_gap_seconds": float(merge_gap_seconds),
+296:             "positive_window_rule": "score >= threshold",
+297:             "event_match": "any half-open interval overlap",
+298:             "false_alarm_rule": "alarm episode overlaps no annotated seizure",
+299:             "false_alarm_rate_denominator": "exact recording duration minus union of clipped annotated seizure intervals",
+300:         },
+301:         "duration_source_audit": duration_audit,
+302:         "fold_diagnostics": fold_diagnostics,
+303:         "evaluations": evaluations,
+304:         "limitations": [
+305:             "These are inner OOF development results, not outer-test performance.",
+306:             "The pooled OOF F2 threshold was selected using these same OOF labels; its event metrics are descriptive and optimistic for threshold selection.",
+307:             "Probabilities come from 22 different fold models; cross-fold calibration comparability has not yet been established.",
+308:             "No threshold or alarm policy was selected by this evaluator.",
+
+================================================================================
+FILE: scripts\evaluate_robust_first_fold_events.py
+================================================================================
+
+...
+9: from __future__ import annotations
+10: 
+11: import argparse
+12: import json
+13: from pathlib import Path
+14: 
+15: import numpy as np
+16: 
+17: from config import PROCESSED_DIR, RANDOM_STATE, WINDOW_SECONDS
+18: from data_management.cohort import filter_primary_cohort
+19: from data_management.dataset_split import build_lopo_folds
+20: from data_management.patient_mapping import load_recording_manifest
+21: from data_management.validation_split import build_patient_validation_split
+22: from evaluation.recording_inventory import load_recording_durations
+23: from scripts.evaluate_first_fold_events import _evaluate_threshold
+24: 
+25: 
+26: def _load_scores(path: Path) -> tuple[np.ndarray, np.ndarray]:
+27:     if not path.is_file():
+28:         raise FileNotFoundError(f"Score artifact not found: {path}")
+29:     with np.load(path, allow_pickle=False) as saved:
+30:         required = {"y_true", "scores"}
+31:         missing = required - set(saved.files)
+
+...
+102:         "threshold_source": "robust experiment inner-validation F2 selection",
+103:         "score_artifacts": {
+104:             "validation": str(score_dir / "validation_scores.npz"),
+105:             "outer_test": str(score_dir / "outer_test_scores.npz"),
+106:         },
+107:         "recording_duration_availability": "exact_inventory_duration_for_all_primary_recordings",
+108:         "duration_source_audit": duration_audit,
+109:         "alarm_policy": {
+110:             "window_seconds": WINDOW_SECONDS,
+111:             "merge_gap_seconds": 0.0,
+112:             "positive_window_rule": "score >= robust inner-validation-selected threshold",
+113:             "event_match": "any half-open interval overlap",
+114:         },
+115:         "validation": validation,
+116:         "outer_test": outer_test,
+117:         "limitations": [
+118:             "Only the first LOPO fold is evaluated; this is not a 23-patient result.",
+119:             "The threshold was selected on inner validation and was not tuned using outer-test labels.",
+120:             "This evaluates the saved inner-fit model; it is not a refit on all outer-training patients.",
+121:             "Event alarms use the same unsmoothed positive-window policy as the legacy comparison.",
+122:         ],
+123:     }
+124:     output_path.parent.mkdir(parents=True, exist_ok=True)
+
+================================================================================
+FILE: scripts\run_first_baseline_fold.py
+================================================================================
+
+...
+22: PROJECT_ROOT = Path(__file__).resolve().parents[1]
+23: if str(PROJECT_ROOT) not in sys.path:
+24:     sys.path.insert(0, str(PROJECT_ROOT))
+25: 
+26: RESULT_SCHEMA_VERSION = 2
+27: THRESHOLD_STRATEGY_VERSION = "validation_f1_and_f2_v1"
+28: EXPERIMENT_VERSION = "nested_lopo_lr_f1_f2_v1"
+29: 
+30: from config import PROCESSED_DIR, PREFERRED_CHANNELS, RANDOM_STATE
+31: from data_management.cohort import filter_primary_cohort
+32: from data_management.dataset_split import build_lopo_folds
+33: from data_management.fold_data import prepare_lopo_fold
+34: from data_management.validation_split import build_patient_validation_split
+35: from data_management.patient_mapping import load_recording_manifest
+36: from feature_selection.feature_extraction import FEATURE_NAMES
+37: from modeling.experiment_checkpoints import ModelStageCheckpointStore
+38: from data_management.fold_data import processed_path_for_recording
+39: from modeling.baseline import (
+40:     build_baseline_estimators,
+41:     calculate_metrics,
+42:     collect_features,
+43:     fit_channel_standardizer,
+44:     positive_scores,
+
+...
+187:             "name": "LogisticRegression", "solver": "liblinear",
+188:             "class_weight": "balanced", "max_iter": 1000,
+189:         },
+190:         "inner_fit": _recording_fingerprint(inner_split.train_recordings),
+191:         "inner_validation": _recording_fingerprint(inner_split.validation_recordings),
+192:         "outer_train": _recording_fingerprint(fold.train_recordings),
+193:         "outer_test": _recording_fingerprint(fold.test_recordings),
+194:         "features": {
+195:             "channels": list(PREFERRED_CHANNELS),
+196:             "feature_names": list(FEATURE_NAMES),
+197:         },
+198:     }
+199: 
+200: 
+201: def run_first_fold(audit_path: Path, output_path: Path, seed: int = RANDOM_STATE):
+202:     started = perf_counter()
+203:     recordings = filter_primary_cohort(load_recording_manifest(audit_path))
+204:     folds = build_lopo_folds(recordings)
+205:     fold = folds[0]
+206:     if fold.fold_id != 1:
+207:         raise RuntimeError("Expected the first deterministic LOPO fold")
+208: 
+209:     print(f"Primary cohort: {len(recordings)} recordings", flush=True)
+
+...
+402:             "class_weight": "balanced",
+403:             "max_iter": 1000,
+404:             "random_state": seed,
+405:         },
+406:         "preprocessing": {
+407:             "sampling_rate_hz": 256,
+408:             "window_seconds": 10,
+409:             "stride_seconds": 5,
+410:             "channels": list(PREFERRED_CHANNELS),
+411:             "features_per_channel": list(FEATURE_NAMES),
+412:             "feature_count": len(PREFERRED_CHANNELS) * len(FEATURE_NAMES),
+413:             "channel_scaler_fit": "inner_fit_only_for_threshold_selection_then_all_outer_train_for_refit",
+414:             "feature_scaler": "StandardScaler fitted within each LogisticRegression pipeline",
+415:         },
+416:         "threshold_selection": {
+417:             "method": "maximize validation F1",
+418:             "validation_threshold": float(threshold),
+419:             "outer_test_used_for_selection": False,
+420:             "comparison_strategy": "F2 threshold is selected independently on inner validation only",
+421:             "f2_beta": 2.0,
+422:             "f2_validation_threshold": float(f2_threshold),
+423:         },
+424:         "validation_metrics": validation_metrics,
+425:         "outer_test_metrics": test_metrics,
+426:         "validation_metrics_f2": validation_metrics_f2,
+
+================================================================================
+FILE: scripts\run_inner_patient_oof.py
+================================================================================
+
+...
+11: 
+12: import numpy as np
+13: from sklearn.linear_model import LogisticRegression
+14: from sklearn.preprocessing import StandardScaler
+15: 
+16: ROOT = Path(__file__).resolve().parents[1]
+17: if str(ROOT) not in sys.path:
+18:     sys.path.insert(0, str(ROOT))
+19: from config import PROCESSED_DIR, PREFERRED_CHANNELS, RANDOM_STATE
+20: from data_management.cohort import filter_primary_cohort
+21: from data_management.dataset_split import build_lopo_folds
+22: from data_management.fold_data import load_recording_windows, processed_path_for_recording
+23: from data_management.patient_mapping import load_recording_manifest
+24: from data_management.validation_split import build_patient_validation_split
+25: from evaluation.oof_scaler_cache import (
+26:     exact_log_std_fallback_mask, finalize_channel_statistics,
+27:     log_std_from_raw_standard_deviations, merge_channel_statistics,
+28:     patient_grouped_channel_scale, recompute_log_std_features,
+29: )
+30: from modeling.baseline import calculate_metrics
+31: 
+32: FEATURES_PER_CHANNEL = 10
+33: FEATURE_COUNT = len(PREFERRED_CHANNELS) * FEATURES_PER_CHANNEL
+34: VERSION = "patient_grouped_oof_robust_v3"
+35: 
+36: 
+37: def atomic_json(path, value):
+38:     """Write a JSON checkpoint safely, tolerating transient Windows file locks."""
+39:     path.parent.mkdir(parents=True, exist_ok=True)
+40:     payload = json.dumps(value, indent=2, sort_keys=True, allow_nan=False) + "\n"
+41:     temp_name = None
+42:     try:
+43:         # A unique same-directory temporary file avoids collisions with stale
+44:         # .tmp files and keeps os.replace on the same filesystem.
+45:         with tempfile.NamedTemporaryFile(
+46:             mode="w", encoding="utf-8", newline="\n",
+47:             dir=path.parent, prefix=f".{path.name}.", suffix=".tmp",
+
+...
+146:     state_name = checkpoint_manifest.get("state_file")
+147:     if not isinstance(state_name, str) or Path(state_name).name != state_name:
+148:         raise RuntimeError("Invalid original scaler checkpoint state filename")
+149:     with np.load(checkpoint / state_name, allow_pickle=False) as saved:
+150:         state = {"count": int(saved["count"]), "mean": saved["mean"], "m2": saved["m2"]}
+151:     original_mean, original_scale = finalize_channel_statistics(state)
+152:     fallback_window_count = 0
+153:     entries = {e["relative_path"]: e for e in std_manifest["entries"]}
+154:     columns = np.arange(len(PREFERRED_CHANNELS)) * FEATURES_PER_CHANNEL
+155:     max_error, mismatch_count, floor_mismatches, checked = 0.0, 0, 0, 0
+156:     floor = float(np.log(1e-12))
+157:     for rec in validation_recordings:
+158:         source_x, _, start, end = row_lookup[rec.relative_path]
+159:         entry = entries[rec.relative_path]
+160:         with np.load(std_root / "recordings" / entry["artifact"], allow_pickle=False) as saved:
+161:             raw_std = saved["std"]
+162:             if str(saved["signature"].item()) != entry["signature"]:
+163:                 raise RuntimeError(f"Raw-std signature mismatch during numerical audit: {rec.relative_path}")
+164:             reconstructed = log_std_from_raw_standard_deviations(raw_std, original_scale)
+165:             fallback_mask = exact_log_std_fallback_mask(raw_std, original_scale)
+166:             if np.any(fallback_mask):
+167:                 original_windows = load_recording_windows(PROCESSED_DIR, rec)
+168:                 if len(original_windows.X) != len(raw_std):
+169:                     raise RuntimeError(f"Fallback window alignment mismatch: {rec.relative_path}")
+170:                 exact_values = recompute_log_std_features(
+171:                     original_windows.X[fallback_mask], original_mean, original_scale
+172:                 )
+173:                 reconstructed[fallback_mask] = exact_values
+174:                 fallback_window_count += int(np.count_nonzero(fallback_mask))
+175:                 del original_windows, exact_values
+176:         actual = np.asarray(source_x[start:end, :][:, columns], dtype=np.float32)
+177:         if reconstructed.shape != actual.shape:
+178:             raise RuntimeError(f"Raw-std numerical audit shape mismatch: {rec.relative_path}")
+179:         delta = np.abs(reconstructed - actual)
+180:         max_error = max(max_error, float(np.max(delta)))
+181:         mismatch_count += int(np.count_nonzero(delta > 5e-4))
+
+...
+205:         artifact = stats_root / "recordings" / entry["artifact"]
+206:         try:
+207:             with np.load(artifact, allow_pickle=False) as saved:
+208:                 if str(saved["signature"].item()) != entry["signature"]:
+209:                     raise RuntimeError(f"Stale statistics artifact: {rec.relative_path}")
+210:                 state = {"count": int(saved["count"]), "mean": saved["mean"], "m2": saved["m2"]}
+211:         except (OSError, EOFError, ValueError, KeyError, zipfile.BadZipFile) as exc:
+212:             raise RuntimeError(f"Invalid statistics artifact: {rec.relative_path}") from exc
+213:         if (state["count"] <= 0 or state["mean"].shape != (len(PREFERRED_CHANNELS),)
+214:                 or state["m2"].shape != (len(PREFERRED_CHANNELS),)):
+215:             raise RuntimeError(f"Invalid channel statistics: {rec.relative_path}")
+216:         if rec.patient_id in patient_states:
+217:             patient_states[rec.patient_id] = merge_channel_statistics(patient_states[rec.patient_id], state)
+218:         else:
+219:             patient_states[rec.patient_id] = state
+220:     if len(patient_states) != 22:
+221:         raise RuntimeError("Expected 22 patient-level statistics groups")
+222:     return patient_states, entries
+223: 
+224: 
+225: def fold_channel_scale(heldout_patient, patient_states):
+226:     # This fold's held-out patient's entire recordings are excluded from scaler fit.
+227:     if len(patient_states) != 22:
+228:         raise RuntimeError("OOF channel scaler requires exactly 22 patients")
+
+...
+294:         if entry.get("patient_id") != rec.patient_id:
+295:             raise RuntimeError(f"Patient identity mismatch in raw-std manifest: {rec.relative_path}")
+296:         if int(entry["window_count"]) != count:
+297:             raise RuntimeError(f"Raw std/feature row count mismatch: {rec.relative_path}")
+298:         artifact = std_root / "recordings" / entry["artifact"]
+299:         try:
+300:             with np.load(artifact, allow_pickle=False) as saved:
+301:                 raw_std = saved["std"]
+302:                 if str(saved["signature"].item()) != entry["signature"] or raw_std.shape != (count, len(PREFERRED_CHANNELS)):
+303:                     raise RuntimeError(f"Invalid raw std artifact: {rec.relative_path}")
+304:         except (OSError, EOFError, ValueError, KeyError, zipfile.BadZipFile) as exc:
+305:             raise RuntimeError(f"Could not load raw std for {rec.relative_path}") from exc
+306: 
+307:         fallback_mask = exact_log_std_fallback_mask(raw_std, fold_scale)
+308:         original_windows = None
+309:         if np.any(fallback_mask):
+310:             original_windows = load_recording_windows(PROCESSED_DIR, rec)
+311:             if len(original_windows.X) != count:
+312:                 raise RuntimeError(f"Fallback window alignment mismatch: {rec.relative_path}")
+313: 
+314:         for chunk_start in range(0, count, 4096):
+315:             chunk_end = min(chunk_start + 4096, count)
+316:             block = np.asarray(source_x[source_start + chunk_start:source_start + chunk_end],
+317:                                dtype=np.float32).copy()
+318:             chunk_raw_std = raw_std[chunk_start:chunk_end]
+319:             chunk_log_std = log_std_from_raw_standard_deviations(chunk_raw_std, fold_scale)
+320:             local_fallback = fallback_mask[chunk_start:chunk_end]
+321:             if np.any(local_fallback):
+322:                 exact_values = recompute_log_std_features(
+323:                     original_windows.X[chunk_start:chunk_end][local_fallback],
+324:                     fold_mean, fold_scale,
+325:                 )
+326:                 chunk_log_std[local_fallback] = exact_values
+327:             block[:, np.arange(len(PREFERRED_CHANNELS)) * FEATURES_PER_CHANNEL] = chunk_log_std
+328:             dest = cursor + chunk_start
+329:             X[dest:dest + len(block)] = block
+330:         if original_windows is not None:
+331:             del original_windows
+332:         y[cursor:cursor + count] = source_y[source_start:source_end]
+333:         cursor += count
+334:         X.flush()
+335:         y.flush()
+336:         atomic_json(progress_path, {"signature": signature, "completed_recordings": index + 1,
+337:                                     "cursor": cursor, "complete": index + 1 == len(outer_train)})
+338:         if (index + 1) % 25 == 0 or index + 1 == len(outer_train):
+339:             print(f"  {heldout} fold features: {index + 1}/{len(outer_train)} recordings", flush=True)
+340:         del raw_std
+341: 
+
+================================================================================
+FILE: scripts\run_robust_feature_first_fold.py
+================================================================================
+
+...
+24: from sklearn.linear_model import LogisticRegression
+25: from sklearn.pipeline import Pipeline
+26: from sklearn.preprocessing import StandardScaler
+27: 
+28: PROJECT_ROOT = Path(__file__).resolve().parents[1]
+29: if str(PROJECT_ROOT) not in sys.path:
+30:     sys.path.insert(0, str(PROJECT_ROOT))
+31: 
+32: from config import PROCESSED_DIR, PREFERRED_CHANNELS, RANDOM_STATE
+33: from data_management.cohort import filter_primary_cohort
+34: from data_management.dataset_split import build_lopo_folds
+35: from data_management.fold_data import load_recording_windows, processed_path_for_recording, prepare_lopo_fold
+36: from data_management.patient_mapping import load_recording_manifest
+37: from feature_selection.robust_feature_extraction import (
+38:     ROBUST_FEATURE_NAMES, ROBUST_FEATURE_VERSION, extract_robust_features,
+39: )
+40: from modeling.baseline import calculate_metrics, choose_fbeta_threshold, positive_scores
+41: from modeling.baseline import FeatureBatch
+42: 
+43: 
+44: def _write_json(path: Path, payload: dict) -> None:
+45:     path.parent.mkdir(parents=True, exist_ok=True)
+46:     temporary = path.with_suffix(path.suffix + ".tmp")
+47:     temporary.write_text(json.dumps(payload, indent=2, allow_nan=False) + "\n", encoding="utf-8")
+48:     temporary.replace(path)
+49: 
+50: 
+51: def _cache_signature(recordings, scaler) -> str:
+52:     entries = []
+
+...
+57:             "relative_path": recording.relative_path,
+58:             "patient_id": recording.patient_id,
+59:             "size": stat.st_size,
+60:             "mtime_ns": stat.st_mtime_ns,
+61:         })
+62:     payload = {
+63:         "feature_version": ROBUST_FEATURE_VERSION,
+64:         "features": list(ROBUST_FEATURE_NAMES),
+65:         "channels": list(PREFERRED_CHANNELS),
+66:         "scaler_mean": np.asarray(scaler.mean_, dtype=np.float64).tolist(),
+67:         "scaler_scale": np.asarray(scaler.scale_, dtype=np.float64).tolist(),
+68:         "recordings": entries,
+69:     }
+70:     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+71:     return hashlib.sha256(encoded).hexdigest()
+72: 
+73: 
+74: def collect_robust_batch(recordings, split_name: str, scaler, cache_root: Path) -> FeatureBatch:
+75:     """Build/resume one split's robust features using recording-level commits."""
+76:     if not recordings:
+77:         raise ValueError(f"{split_name} split is empty")
+78:     signature = _cache_signature(recordings, scaler)
+79:     directory = cache_root / split_name
+
+...
+88:             labels = np.asarray(saved["y"])
+89:         if labels.ndim != 1 or not len(labels) or not np.isin(labels, (0, 1)).all():
+90:             raise ValueError(f"Invalid labels in {source.name}")
+91:         if bool(np.any(labels == 1)) != (recording.seizure_count > 0):
+92:             raise ValueError(f"Audit/label mismatch in {source.name}")
+93:         lengths.append(len(labels))
+94: 
+95:     total_windows = int(sum(lengths))
+96:     feature_count = len(PREFERRED_CHANNELS) * len(ROBUST_FEATURE_NAMES)
+97:     completed, cursor = 0, 0
+98:     X = y = None
+99:     if manifest_path.is_file() and x_path.is_file() and y_path.is_file():
+100:         try:
+101:             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+102:             if manifest.get("signature") == signature and manifest.get("shape") == [total_windows, feature_count]:
+103:                 candidate_x = np.load(x_path, mmap_mode="r+", allow_pickle=False)
+104:                 candidate_y = np.load(y_path, mmap_mode="r+", allow_pickle=False)
+105:                 completed = int(manifest["completed_recordings"])
+106:                 cursor = int(manifest["cursor"])
+107:                 expected_cursor = sum(lengths[:completed])
+108:                 if (candidate_x.shape == (total_windows, feature_count)
+109:                     and candidate_x.dtype == np.float32
+110:                     and candidate_y.shape == (total_windows,)
+
+...
+132:             "completed_recordings": 0, "cursor": 0, "complete": False,
+133:         }
+134:         _write_json(manifest_path, manifest)
+135:     else:
+136:         print(f"  Resuming {split_name} feature cache at {completed}/{len(recordings)} recordings", flush=True)
+137: 
+138:     for index in range(completed, len(recordings)):
+139:         recording = recordings[index]
+140:         item = load_recording_windows(PROCESSED_DIR, recording)
+141:         next_cursor = cursor + len(item.y)
+142:         if len(item.y) != lengths[index]:
+143:             raise RuntimeError(f"Window count changed for {recording.relative_path}")
+144: 
+145:         # Bound temporary standardized EEG and Welch PSD memory. A recording is
+146:         # committed to the resumable manifest only after every chunk is written.
+147:         chunk_size = 256
+148:         for chunk_start in range(0, len(item.y), chunk_size):
+149:             chunk_end = min(chunk_start + chunk_size, len(item.y))
+150:             standardized_chunk = scaler.transform(item.X[chunk_start:chunk_end])
+151:             features = extract_robust_features(
+152:                 standardized_chunk, item.sfreq, chunk_size=chunk_size
+153:             )
+154:             expected_shape = (chunk_end - chunk_start, feature_count)
+155:             if features.shape != expected_shape or not np.isfinite(features).all():
+156:                 raise RuntimeError(
+157:                     f"Invalid robust feature chunk for {recording.relative_path} "
+158:                     f"at windows {chunk_start}:{chunk_end}"
+159:                 )
+160:             destination_start = cursor + chunk_start
+161:             destination_end = cursor + chunk_end
+162:             X[destination_start:destination_end] = features
+163:             del standardized_chunk, features
+164: 
+165:         y[cursor:next_cursor] = item.y.astype(np.int8, copy=False)
+166:         cursor = next_cursor
+
+...
+254:         "split": {
+255:             "inner_fit_recordings": len(prepared.fit_recordings),
+256:             "inner_validation_recordings": len(prepared.validation_recordings),
+257:             "outer_test_recordings": len(prepared.test_recordings),
+258:             "inner_fit_patients": sorted({r.patient_id for r in prepared.fit_recordings}),
+259:             "inner_validation_patients": sorted({r.patient_id for r in prepared.validation_recordings}),
+260:         },
+261:         "features": {
+262:             "channels": list(PREFERRED_CHANNELS),
+263:             "per_channel": list(ROBUST_FEATURE_NAMES),
+264:             "feature_count": len(PREFERRED_CHANNELS) * len(ROBUST_FEATURE_NAMES),
+265:             "scaler_fit": "inner_fit_recordings_only",
+266:         },
+267:         "threshold_protocol": (
+268:             "F2 threshold selected on inner validation; the exact same fitted model "
+269:             "scores validation and outer test. No refit occurs between these splits."
+270:         ),
+271:         "models": {},
+272:         "limitations": [
+273:             "First LOPO fold only; not a complete 23-fold estimate.",
+274:             "Model is trained on inner-fit patients only, not all outer-training patients.",
+275:             "Window-level metrics only; event-level metrics are not yet included.",
+276:         ],
+277:     }
+278: 
+
+================================================================================
+FILE: scripts\sweep_event_thresholds.py
+================================================================================
+
+...
+8: 
+9: import argparse
+10: import json
+11: from pathlib import Path
+12: from typing import Sequence
+13: 
+14: import numpy as np
+15: 
+16: from config import PROCESSED_DIR, RANDOM_STATE, WINDOW_SECONDS
+17: from data_management.cohort import filter_primary_cohort
+18: from data_management.dataset_split import build_lopo_folds
+19: from data_management.fold_data import processed_path_for_recording
+20: from data_management.patient_mapping import Recording, load_recording_manifest
+21: from data_management.validation_split import build_patient_validation_split
+22: from evaluation.event_metrics import aggregate_event_metrics, evaluate_recording_events, parse_seizure_intervals
+23: from modeling.experiment_checkpoints import ModelStageCheckpointStore
+24: from scripts.run_first_baseline_fold import _build_checkpoint_context, _write_result
+25: from scripts.evaluate_first_fold_events import _patient_summaries
+26: 
+27: SWEEP_VERSION = "validation_event_f2_macro_patient_v1"
+28: QUANTILE_GRID = (0.95, 1.0, 121)
+29: 
+30: 
+
+...
+103: def _evaluate_loaded(
+104:     data: Sequence[dict], threshold: float, *, include_recordings: bool = False
+105: ) -> dict:
+106:     rows = []
+107:     for item in data:
+108:         predictions = (item["scores"] >= threshold).astype(np.int8)
+109:         metrics = evaluate_recording_events(
+110:             item["starts"], predictions, item["seizures"],
+111:             recording_duration_seconds=None, window_seconds=WINDOW_SECONDS,
+112:         )
+113:         recording = item["recording"]
+114:         metrics.pop("alarms", None)
+115:         rows.append({
+116:             "relative_path": recording.relative_path,
+117:             "subject": recording.subject,
+118:             "patient_id": recording.patient_id,
+119:             **metrics,
+120:         })
+121: 
+122:     patients = _patient_summaries(rows)
+123:     seizure_patients = [p for p in patients if p["event_count"] > 0]
+124:     for patient in seizure_patients:
+125:         patient["event_f2_proxy"] = event_f2_proxy(
+
+================================================================================
+FILE: scripts\validate_frequency_features.py
+================================================================================
+
+...
+44:     print("=" * 65)
+45: 
+46:     for expected_band, frequency in TEST_FREQUENCIES.items():
+47:         signal = AMPLITUDE * np.sin(2 * np.pi * frequency * time)
+48: 
+49:         # Shape: (windows, channels, samples)
+50:         windows = signal[np.newaxis, np.newaxis, :]
+51: 
+52:         features = extract_features(windows, sfreq=SFREQ)
+53: 
+54:         powers = {
+55:             band: float(features[0, index])
+56:             for band, index in band_feature_indices.items()
+57:         }
+58: 
+59:         dominant_band = max(powers, key=powers.get)
+60:         passed = dominant_band == expected_band
+61: 
+62:         all_passed = all_passed and passed
+63: 
+64:         print(f"\nInput frequency: {frequency:.1f} Hz")
+65:         print(f"Expected band:   {expected_band}")
+66:         print(f"Dominant band:   {dominant_band}")
+
+================================================================================
+FILE: scripts\validate_frequency_robustness.py
+================================================================================
+
+...
+36:     """Generate a pure sine wave at the configured sampling frequency."""
+37:     time = np.arange(SAMPLES) / SFREQ
+38:     return amplitude * np.sin(2 * np.pi * frequency * time)
+39: 
+40: 
+41: def extract_band_powers(signal: np.ndarray) -> dict[str, float]:
+42:     """Run the production feature extractor on one synthetic signal."""
+43:     windows = signal[np.newaxis, np.newaxis, :]
+44:     features = extract_features(windows, sfreq=SFREQ)
+45:     return {
+46:         band: float(features[0, index])
+47:         for band, index in BAND_INDEX.items()
+48:     }
+49: 
+50: 
+51: def print_band_powers(powers: dict[str, float]) -> None:
+52:     for band, power in powers.items():
+53:         print(f"  {band:6s}: {power:.8e}")
+54: 
+55: 
+56: def test_boundary_frequencies() -> None:
+57:     print("\nTEST 1: FREQUENCIES NEAR BAND BOUNDARIES")
+58:     print("=" * 65)
+
+================================================================================
+FILE: tests\test_baseline.py
+================================================================================
+
+...
+117:                           1, ("10-20",), "test", "SUCCESS"),
+118:             ]
+119:             labels = [np.array([0, 0], dtype=np.int8), np.array([0, 1], dtype=np.int8)]
+120:             for recording, target in zip(recordings, labels):
+121:                 filename = f"{recording.subject}_{Path(recording.edf_file).stem}.npz"
+122:                 np.savez_compressed(directory / filename, y=target)
+123: 
+124:             loaded = [
+125:                 SimpleNamespace(X=np.zeros((2, 17, 4), dtype=np.float32), y=target, sfreq=256.0)
+126:                 for target in labels
+127:             ]
+128:             scaler = SimpleNamespace(transform=lambda values: values)
+129:             feature_matrices = [
+130:                 np.full((2, 221), 1.0, dtype=np.float32),
+131:                 np.full((2, 221), 2.0, dtype=np.float32),
+132:             ]
+133:             with (
+134:                 patch("modeling.baseline.load_recording_windows", side_effect=loaded),
+135:                 patch("modeling.baseline.extract_features", side_effect=feature_matrices),
+136:             ):
+137:                 batch = collect_features(recordings, directory, scaler)
+138: 
+139:             self.assertEqual(batch.X.shape, (4, 221))
+140:             self.assertEqual(batch.X.dtype, np.float32)
+141:             self.assertTrue(np.array_equal(batch.y, np.array([0, 0, 0, 1], dtype=np.int8)))
+142:             self.assertTrue(np.all(batch.X[:2] == 1.0))
+143:             self.assertTrue(np.all(batch.X[2:] == 2.0))
+144:             self.assertEqual(batch.recording_paths, ())
+145: 
+146:     def test_collect_features_resumes_from_last_completed_recording(self):
+147:         from data_management.patient_mapping import Recording
+148: 
+
+...
+162:                 filename = f"{recording.subject}_{Path(recording.edf_file).stem}.npz"
+163:                 np.savez_compressed(processed / filename, y=target)
+164: 
+165:             scaler = SimpleNamespace(
+166:                 mean_=np.zeros(17), scale_=np.ones(17), epsilon=1e-6,
+167:                 transform=lambda values: values,
+168:             )
+169:             loaded = [
+170:                 SimpleNamespace(X=np.zeros((2, 17, 4), dtype=np.float32), y=target, sfreq=256.0)
+171:                 for target in labels
+172:             ]
+173:             calls = {"count": 0}
+174: 
+175:             def interrupt_after_first_recording(values, sfreq):
+176:                 calls["count"] += 1
+177:                 if calls["count"] == 1:
+178:                     return np.full((2, 221), 1.0, dtype=np.float32)
+179:                 raise RuntimeError("simulated interruption")
+180: 
+181:             with (
+182:                 patch("modeling.baseline.load_recording_windows", side_effect=loaded),
+183:                 patch("modeling.baseline.extract_features", side_effect=interrupt_after_first_recording),
+184:             ):
+185:                 with self.assertRaisesRegex(RuntimeError, "simulated interruption"):
+186:                     collect_features(recordings, processed, scaler, cache_dir=cache, cache_key="resume_test")
+187: 
+188:             self.assertEqual(calls["count"], 2)
+189:             resumed_loaded = [
+190:                 SimpleNamespace(X=np.zeros((2, 17, 4), dtype=np.float32), y=labels[1], sfreq=256.0)
+191:             ]
+192:             with (
+193:                 patch("modeling.baseline.load_recording_windows", side_effect=resumed_loaded),
+194:                 patch("modeling.baseline.extract_features", return_value=np.full((2, 221), 2.0, dtype=np.float32)) as extractor,
+195:             ):
+196:                 batch = collect_features(recordings, processed, scaler, cache_dir=cache, cache_key="resume_test")
+197: 
+198:             self.assertEqual(extractor.call_count, 1)
+199:             self.assertTrue(np.array_equal(batch.X[:2], np.full((2, 221), 1.0, dtype=np.float32)))
+200:             self.assertTrue(np.array_equal(batch.X[2:], np.full((2, 221), 2.0, dtype=np.float32)))
+201:             self.assertTrue(np.array_equal(batch.y, np.array([0, 0, 0, 1], dtype=np.int8)))
+202: 
+203:             with (
+204:                 patch("modeling.baseline.load_recording_windows", side_effect=AssertionError("cache should be reused")),
+205:                 patch("modeling.baseline.extract_features", side_effect=AssertionError("cache should be reused")),
+206:             ):
+207:                 cached = collect_features(recordings, processed, scaler, cache_dir=cache, cache_key="resume_test")
+208:             self.assertTrue(np.array_equal(cached.X, batch.X))
+209:             # Close .npy memory maps before TemporaryDirectory cleanup (required on Windows).
+210:             for array in (batch.X, batch.y, cached.X, cached.y):
+211:                 mmap = getattr(array, "_mmap", None)
+212:                 if mmap is not None:
+213:                     mmap.close()
+214:     def test_collect_features_rejects_manifest_label_disagreement(self):
+215:         from data_management.patient_mapping import Recording
+216: 
+217:         with tempfile.TemporaryDirectory() as temporary:
+218:             directory = Path(temporary)
+
+================================================================================
+FILE: tests\test_channel_matching.py
+================================================================================
+
+...
+1: import unittest
+2: from config import PREFERRED_CHANNELS
+3: from main import choose_channels
+4: 
+5: class FakeRaw:
+6:     def __init__(self, ch_names):
+7:         self.ch_names = ch_names
+8: 
+9: class ChooseChannelsTests(unittest.TestCase):
+10:     def test_complete_montage_is_selected_in_configured_order(self):
+11:         raw = FakeRaw([name.lower() for name in reversed(PREFERRED_CHANNELS)])
+12:         self.assertEqual(choose_channels(raw), [name.lower() for name in PREFERRED_CHANNELS])
+13: 
+14:     def test_matching_is_case_and_whitespace_insensitive(self):
+15:         raw = FakeRaw([name.lower().replace("-", " - ") for name in PREFERRED_CHANNELS])
+16:         selected = choose_channels(raw)
+17:         self.assertEqual(len(selected), 17)
+18:         self.assertEqual([name.replace(" ", "").upper() for name in selected], PREFERRED_CHANNELS)
+19: 
+20:     def test_missing_canonical_channel_is_rejected(self):
+21:         with self.assertRaisesRegex(ValueError, "fixed 17-channel primary montage"):
+22:             choose_channels(FakeRaw(PREFERRED_CHANNELS[:-1]))
+23: 
+24:     def test_auxiliary_channels_cannot_replace_missing_canonical_channel(self):
+25:         channels = PREFERRED_CHANNELS[:-1] + ["ECG", "EOG", "EKG1-CHIN"]
+26:         with self.assertRaisesRegex(ValueError, "CZ-PZ"):
+27:             choose_channels(FakeRaw(channels))
+28: 
+29: if __name__ == "__main__":
+30:     unittest.main()
+
+================================================================================
+FILE: tests\test_feature_extraction.py
+================================================================================
+
+...
+9: 
+10: 
+11: class FeatureExtractionTests(unittest.TestCase):
+12: 
+13:     def test_output_shape(self):
+14:         rng = np.random.default_rng(42)
+15:         windows = rng.normal(size=(8, 3, 2560))
+16: 
+17:         features = extract_features(windows, sfreq=256)
+18: 
+19:         self.assertEqual(
+20:             features.shape,
+21:             (8, 3 * len(FEATURE_NAMES)),
+22:         )
+23: 
+24:     def test_output_dtype_is_float32(self):
+25:         windows = np.random.default_rng(42).normal(
+26:             size=(2, 3, 2560)
+27:         )
+28: 
+29:         features = extract_features(windows, 256)
+30: 
+31:         self.assertEqual(features.dtype, np.float32)
+
+...
+50:     def test_rms_of_constant_signal(self):
+51:         windows = np.ones((1, 1, 2560)) * 5.0
+52: 
+53:         features = extract_features(windows, 256)
+54: 
+55:         self.assertAlmostEqual(float(features[0, 3]), 5.0, places=5)
+56: 
+57:     def test_two_hz_sine_power_is_approximately_half_in_delta(self):
+58:         sfreq = 256
+59:         time = np.arange(2560) / sfreq
+60:         signal = np.sin(2 * np.pi * 2.0 * time)
+61:         windows = signal[np.newaxis, np.newaxis, :]
+62: 
+63:         features = extract_features(windows, sfreq)
+64: 
+65:         delta_power = float(features[0, FEATURE_NAMES.index("delta_power")])
+66:         self.assertAlmostEqual(delta_power, 0.5, delta=0.015)
+67: 
+68:     def test_ten_hz_half_amplitude_sine_power_is_alpha(self):
+69:         sfreq = 256
+70:         time = np.arange(2560) / sfreq
+71:         signal = 0.5 * np.sin(2 * np.pi * 10.0 * time)
+72:         windows = signal[np.newaxis, np.newaxis, :]
+73: 
+74:         features = extract_features(windows, sfreq)
+75: 
+76:         alpha_power = float(features[0, FEATURE_NAMES.index("alpha_power")])
+77:         self.assertAlmostEqual(alpha_power, 0.125, delta=0.01)
+78: 
+79:     def test_wrong_shape_raises(self):
+80:         with self.assertRaisesRegex(ValueError, "non-empty EEG windows"):
+81:             extract_features(np.ones((2, 100)), 256)
+82: 
+83:     def test_empty_input_raises(self):
+84:         with self.assertRaisesRegex(ValueError, "non-empty EEG windows"):
+85:             extract_features(np.empty((0, 2, 100)), 256)
+86: 
+87:     def test_non_finite_input_raises(self):
+88:         windows = np.ones((1, 2, 100))
+
+================================================================================
+FILE: tests\test_fold_data.py
+================================================================================
+
+...
+1: import json
+2: import tempfile
+3: import unittest
+4: from unittest.mock import patch
+5: 
+6: import numpy as np
+7: 
+8: from config import PREFERRED_CHANNELS
+9: from data_management.dataset_split import LopoFold
+10: from data_management.fold_data import (
+11:     load_recording_windows, prepare_lopo_fold, processed_path_for_recording,
+12: )
+13: from data_management.patient_mapping import Recording
+14: 
+15: 
+16: def make_recording(number, seizures=0):
+17:     subject = f"chb{number:02d}"
+18:     filename = f"{subject}_01.edf"
+19:     patient = "patient_01" if number in (1, 21) else f"patient_{number:02d}"
+20:     return Recording(
+21:         subject, patient, filename, f"{subject}/{filename}", seizures,
+22:         tuple("10-20" for _ in range(seizures)), "subject_summary", "SUCCESS",
+23:     )
+24: 
+25: 
+26: def save_recording(directory, recording, value):
+27:     X = np.full((2, len(PREFERRED_CHANNELS), 2560), value, dtype=np.float32)
+28:     y = np.array([0, 1] if recording.seizure_count else [0, 0], dtype=np.int64)
+29:     path = processed_path_for_recording(directory, recording)
+30:     np.savez_compressed(
+31:         path, X=X, y=y, starts=np.array([0.0, 5.0]),
+32:         channels=np.asarray(PREFERRED_CHANNELS), sfreq=256.0,
+33:         subject=recording.subject, source_file=recording.edf_file,
+34:         normalization="none_fold_train_only_scaling_required",
+35:     )
+36: 
+37: 
+38: class FoldDataTests(unittest.TestCase):
+39:     def test_loader_reads_and_validates_one_recording(self):
+40:         with tempfile.TemporaryDirectory() as directory:
+41:             item = make_recording(2, seizures=1)
+42:             save_recording(directory, item, 2.0)
+43:             loaded = load_recording_windows(directory, item)
+44:             self.assertEqual(loaded.X.shape, (2, len(PREFERRED_CHANNELS), 2560))
+45:             np.testing.assert_array_equal(loaded.y, [0, 1])
+46: 
+47:     def test_loader_rejects_missing_recording(self):
+48:         with tempfile.TemporaryDirectory() as directory:
+49:             with self.assertRaises(FileNotFoundError):
+50:                 load_recording_windows(directory, make_recording(2))
+51: 
+52:     def test_fold_scaler_excludes_validation_and_outer_test_patients(self):
+53:         with tempfile.TemporaryDirectory() as directory:
+54:             train = [make_recording(n, seizures=(1 if n == 1 else 0))
+55:                      for n in range(1, 7)]
+56:             for item in train:
+57:                 save_recording(directory, item, float(int(item.subject[-2:]) * 10))
+58:             outer_test = make_recording(7, seizures=1)
+59:             save_recording(directory, outer_test, 10000.0)
+60: 
+61:             fold = LopoFold(7, outer_test.patient_id, tuple(train), (outer_test,))
+62:             prepared = prepare_lopo_fold(
+63:                 fold, directory, validation_fraction=0.33, random_state=3
+64:             )
+
+...
+100:                 fold, directory, validation_fraction=0.33, random_state=3,
+101:                 scaler_checkpoint_dir=checkpoint,
+102:             )
+103:             manifest_before = json.loads((checkpoint / "manifest.json").read_text())
+104:             self.assertTrue(manifest_before["complete"])
+105:             self.assertEqual(manifest_before["completed_recordings"], len(first.fit_recordings))
+106: 
+107:             with patch(
+108:                 "data_management.fold_data.load_recording_windows",
+109:                 side_effect=AssertionError("completed scaler checkpoint should be reused"),
+110:             ):
+111:                 second = prepare_lopo_fold(
+112:                     fold, directory, validation_fraction=0.33, random_state=3,
+113:                     scaler_checkpoint_dir=checkpoint,
+114:                 )
+115: 
+116:             np.testing.assert_array_equal(
+117:                 second.standardizer.mean_, first.standardizer.mean_
+118:             )
+119:             np.testing.assert_array_equal(
+120:                 second.standardizer.scale_, first.standardizer.scale_
+121:             )
+122: 
+
+...
+147:                     self.assertEqual(item.y.shape, (2,))
+148:                     self.assertEqual(item.starts.shape, (2,))
+149: 
+150:     def test_invalid_split_name_is_rejected(self):
+151:         with tempfile.TemporaryDirectory() as directory:
+152:             item = make_recording(7)
+153:             save_recording(directory, item, 7.0)
+154:             from data_management.fold_data import PreparedFold
+155:             from preprocessing.normalization import FoldChannelStandardizer
+156:             prepared = PreparedFold(
+157:                 1, item.patient_id, (), (), (item,),
+158:                 FoldChannelStandardizer(), __import__("pathlib").Path(directory)
+159:             )
+160:             with self.assertRaisesRegex(ValueError, "split must be"):
+161:                 list(prepared.iter_split("unknown"))
+162: 
+163: 
+164: if __name__ == "__main__":
+165:     unittest.main()
+
+================================================================================
+FILE: tests\test_normalization.py
+================================================================================
+
+...
+1: import unittest
+2: 
+3: import numpy as np
+4: 
+5: from preprocessing.normalization import FoldChannelStandardizer
+6: 
+7: 
+8: class FoldChannelStandardizerTests(unittest.TestCase):
+9:     def test_fit_uses_training_windows_channel_statistics(self):
+10:         training = np.array(
+11:             [
+12:                 [[1.0, 3.0], [10.0, 14.0]],
+13:                 [[5.0, 7.0], [18.0, 22.0]],
+14:             ],
+15:             dtype=np.float32,
+16:         )
+17:         scaler = FoldChannelStandardizer().fit(training)
+18: 
+19:         np.testing.assert_allclose(scaler.mean_, [4.0, 16.0])
+20:         np.testing.assert_allclose(scaler.scale_, [np.sqrt(5.0), np.sqrt(20.0)])
+21: 
+22:     def test_transform_reuses_training_statistics_for_validation(self):
+23:         training = np.array([[[0.0, 2.0], [10.0, 14.0]]])
+24:         validation = np.array([[[100.0, 102.0], [1000.0, 1004.0]]])
+25:         scaler = FoldChannelStandardizer().fit(training)
+26:         fitted_mean = scaler.mean_.copy()
+27:         fitted_scale = scaler.scale_.copy()
+28: 
+29:         transformed = scaler.transform(validation)
+30: 
+31:         np.testing.assert_array_equal(scaler.mean_, fitted_mean)
+32:         np.testing.assert_array_equal(scaler.scale_, fitted_scale)
+33:         np.testing.assert_allclose(transformed[0, 0], [99.0, 101.0])
+34:         np.testing.assert_allclose(transformed[0, 1], [494.0, 496.0])
+35:         self.assertEqual(transformed.dtype, np.float32)
+36: 
+37:     def test_fit_transform_standardizes_training_windows(self):
+38:         training = np.array(
+39:             [
+40:                 [[1.0, 3.0, 5.0]],
+41:                 [[7.0, 9.0, 11.0]],
+42:             ],
+43:             dtype=np.float32,
+44:         )
+45:         transformed = FoldChannelStandardizer().fit_transform(training)
+46: 
+47:         self.assertEqual(transformed.shape, training.shape)
+48:         np.testing.assert_allclose(np.mean(transformed, axis=(0, 2)), [0.0])
+49:         np.testing.assert_allclose(np.std(transformed, axis=(0, 2)), [1.0])
+50: 
+51:     def test_constant_channel_remains_finite(self):
+52:         training = np.ones((2, 2, 5), dtype=np.float32)
+53:         scaler = FoldChannelStandardizer().fit(training)
+54:         transformed = scaler.transform(training)
+55: 
+56:         self.assertTrue(np.all(np.isfinite(transformed)))
+57:         np.testing.assert_array_equal(transformed, np.zeros_like(transformed))
+58: 
+59:     def test_transform_before_fit_raises(self):
+60:         with self.assertRaisesRegex(RuntimeError, "fitted"):
+61:             FoldChannelStandardizer().transform(np.ones((1, 2, 5)))
+62: 
+63:     def test_rejects_wrong_channel_count(self):
+64:         scaler = FoldChannelStandardizer().fit(np.ones((1, 2, 5)))
+65:         with self.assertRaisesRegex(ValueError, "Expected 2 channels"):
+66:             scaler.transform(np.ones((1, 3, 5)))
+67: 
+68:     def test_rejects_invalid_shape_and_non_finite_values(self):
+69:         scaler = FoldChannelStandardizer()
+70:         with self.assertRaisesRegex(ValueError, "shape"):
+71:             scaler.fit(np.ones((2, 5)))
+72:         invalid = np.ones((1, 2, 5))
+73:         invalid[0, 0, 0] = np.nan
+74:         with self.assertRaisesRegex(ValueError, "NaN or infinite"):
+75:             scaler.fit(invalid)
+76: 
+77: 
+78:     def test_streaming_batches_match_single_array_statistics(self):
+79:         first = np.array([[[1.0, 3.0], [10.0, 14.0]]])
+80:         second = np.array([[[5.0, 7.0], [18.0, 22.0]]])
+81:         combined = np.concatenate([first, second], axis=0)
+82:         one_shot = FoldChannelStandardizer().fit(combined)
+83:         streamed = FoldChannelStandardizer().fit_batches([first, second])
+84:         np.testing.assert_allclose(streamed.mean_, one_shot.mean_)
+85:         np.testing.assert_allclose(streamed.scale_, one_shot.scale_)
+86:         self.assertEqual(streamed.n_values_per_channel_, 4)
+87: 
+88:     def test_streaming_fit_rejects_empty_batches(self):
+89:         with self.assertRaisesRegex(ValueError, "no training windows"):
+90:             FoldChannelStandardizer().fit_batches([])
+91: 
+92: 
+93: if __name__ == "__main__":
+94:     unittest.main()
+
+================================================================================
+FILE: tests\test_oof_scaler_cache.py
+================================================================================
+
+...
+37:     states = [channel_sufficient_statistics(batch) for batch in batches]
+38:     left = merge_channel_statistics(merge_channel_statistics(states[0], states[1]), states[2])
+39:     right = merge_channel_statistics(states[0], merge_channel_statistics(states[1], states[2]))
+40:     np.testing.assert_allclose(left["mean"], right["mean"], rtol=1e-12, atol=1e-12)
+41:     np.testing.assert_allclose(left["m2"], right["m2"], rtol=1e-12, atol=1e-10)
+42: 
+43: 
+44: def test_recomputed_log_std_matches_robust_extractor_and_preserves_clipped_windows():
+45:     from feature_selection.robust_feature_extraction import extract_robust_features
+46:     rng = np.random.default_rng(4)
+47:     windows = rng.normal(size=(4, 2, 512)).astype(np.float32)
+48:     windows[0] = 0.0
+49:     mean = np.array([0.1, -0.2])
+50:     scale = np.array([2.0, 0.5])
+51:     standardized = ((windows.astype(np.float64) - mean[None, :, None])
+52:                     / scale[None, :, None]).astype(np.float32)
+53:     expected = extract_robust_features(standardized, 256)[:, 0::10]
+54:     actual = recompute_log_std_features(windows, mean, scale, chunk_size=2)
+55:     np.testing.assert_allclose(actual, expected, rtol=1e-6, atol=1e-6)
+56:     assert np.isfinite(actual).all()
+57:     assert np.all(actual[0] <= np.log(1e-12))
+58: 
+59: 
+60: @pytest.mark.parametrize("bad", [np.zeros((2, 3)), np.ones((0, 2, 8))])
+61: def test_statistics_reject_invalid_shapes(bad):
+62:     with pytest.raises(ValueError):
+63:         channel_sufficient_statistics(bad)
+64: 
+65: 
+66: def test_statistics_reject_non_finite_values():
+67:     values = np.ones((2, 1, 8))
+
+...
+75:         recompute_log_std_features(np.ones((1, 2, 8)), np.zeros(2), np.zeros(2))
+76: 
+77: 
+78: def test_cached_raw_std_reconstructs_fold_log_std_with_small_float32_error():
+79:     from evaluation.oof_scaler_cache import (
+80:         log_std_from_raw_standard_deviations,
+81:         window_channel_standard_deviations,
+82:     )
+83:     from feature_selection.robust_feature_extraction import extract_robust_features
+84:     rng = np.random.default_rng(912)
+85:     windows = rng.normal(size=(7, 3, 512)).astype(np.float32)
+86:     windows[0, 0] = 0.0
+87:     mean = np.array([0.2, -0.1, 0.4])
+88:     scale = np.array([0.5, 2.0, 1.5])
+89:     raw_std = window_channel_standard_deviations(windows, chunk_size=2)
+90:     actual = log_std_from_raw_standard_deviations(raw_std, scale)
+91:     standardized = ((windows.astype(np.float64) - mean[None, :, None])
+92:                     / scale[None, :, None]).astype(np.float32)
+93:     expected = extract_robust_features(standardized, 128)[:, 0::10]
+94:     np.testing.assert_allclose(actual, expected, rtol=2e-5, atol=2e-5)
+95:     assert np.isfinite(actual).all()
+96: 
+97: 
+98: def test_raw_std_cache_rejects_non_finite_and_invalid_scale():
+99:     from evaluation.oof_scaler_cache import (
+100:         log_std_from_raw_standard_deviations,
+101:         window_channel_standard_deviations,
+102:     )
+103:     windows = np.ones((2, 2, 128), dtype=np.float32)
+104:     windows[0, 0, 0] = np.inf
+105:     with pytest.raises(ValueError, match="non-finite"):
+106:         window_channel_standard_deviations(windows)
+107:     with pytest.raises(ValueError, match="positive"):
+
+...
+131: 
+132: 
+133: def test_exact_fallback_reproduces_original_float32_extractor_for_near_constant_windows():
+134:     from evaluation.oof_scaler_cache import (
+135:         exact_log_std_fallback_mask,
+136:         recompute_log_std_features,
+137:         window_channel_standard_deviations,
+138:     )
+139:     from feature_selection.robust_feature_extraction import extract_robust_features
+140: 
+141:     # Tiny raw variation around zero becomes a small nonzero normalized level
+142:     # after applying a fold mean. Float32 rounding changes the resulting std.
+143:     ramp = np.linspace(-2e-15, 2e-15, 256, dtype=np.float64)
+144:     windows = np.stack([ramp, ramp * 0.75])[None, :, :]
+145:     mean = np.array([-5.109097766828098e-10, -2.9123343466072157e-10])
+146:     scale = np.array([5.8258332560013724e-5, 5.46497477406169e-5])
+147: 
+148:     raw_std = window_channel_standard_deviations(windows)
+149:     mask = exact_log_std_fallback_mask(raw_std, scale)
+150:     assert mask.tolist() == [True]
+151: 
+152:     exact = recompute_log_std_features(windows[mask], mean, scale)
+153:     standardized = ((windows[mask] - mean[None, :, None])
+154:                     / scale[None, :, None]).astype(np.float32)
+155:     expected = extract_robust_features(standardized, 128)[:, 0::10]
+156:     np.testing.assert_array_equal(exact, expected)
+157: 
+158: 
+159: @pytest.mark.parametrize(
+160:     "raw_std,scale",
+161:     [
+162:         (np.array([[np.nan]]), np.array([1.0])),
+163:         (np.array([[-1.0]]), np.array([1.0])),
+164:         (np.array([[1.0]]), np.array([0.0])),
+165:     ],
+166: )
+167: def test_exact_fallback_mask_rejects_invalid_inputs(raw_std, scale):
+168:     from evaluation.oof_scaler_cache import exact_log_std_fallback_mask
+169:     with pytest.raises(ValueError):
+
+================================================================================
+FILE: tests\test_patient14_model_contributions.py
+================================================================================
+
+...
+1: import numpy as np
+2: import pytest
+3: 
+4: from config import PREFERRED_CHANNELS
+5: from scripts.audit_patient14_model_contributions import (
+6:     FEATURE_NAMES,
+7:     contribution_summary,
+8: )
+9: 
+10: 
+11: def test_contribution_summary_groups_all_channels_and_preserves_recording_offsets():
+12:     rng = np.random.default_rng(7)
+13:     X = rng.normal(size=(4, len(PREFERRED_CHANNELS) * len(FEATURE_NAMES)))
+14:     coef = rng.normal(size=X.shape[1])
+15:     labels = np.array([1, 0, 1, 0], dtype=np.int8)
+16:     offsets = [
+17:         {"relative_path": "chb14/chb14_03.edf", "start": 0, "end": 2},
+18:         {"relative_path": "chb14/chb14_04.edf", "start": 2, "end": 4},
+19:     ]
+20: 
+21:     result = contribution_summary(X, coef, 0.25, labels, offsets, PREFERRED_CHANNELS)
+22: 
+23:     assert len(result["feature_group_contributions"]) == len(FEATURE_NAMES)
+24:     assert len(result["per_recording_contributions"]) == 2
+25:     assert len(result["largest_absolute_coefficients"]) == 40
+26:     assert result["per_recording_contributions"][0]["positive_windows"] == 1
+27:     assert result["per_recording_contributions"][1]["positive_windows"] == 1
+28:     assert result["logit_reconstruction_max_abs_error"] < 1e-10
+29: 
+30: 
+31: def test_contribution_summary_rejects_noncontiguous_recording_offsets():
+32:     X = np.zeros((2, len(PREFERRED_CHANNELS) * len(FEATURE_NAMES)))
+33:     coef = np.zeros(X.shape[1])
+34:     labels = np.array([0, 1], dtype=np.int8)
+35:     offsets = [{"relative_path": "bad.edf", "start": 1, "end": 2}]
+36: 
+37:     with pytest.raises(RuntimeError, match="contiguous"):
+38:         contribution_summary(X, coef, 0.0, labels, offsets, PREFERRED_CHANNELS)
+39: 
+40: 
+41: 
+42: def test_channel_feature_contributions_identify_channel_specific_directions():
+43:     from scripts.audit_patient14_model_contributions import contribution_summary
+44: 
+45:     channels = PREFERRED_CHANNELS
+46:     X = np.zeros((2, len(channels) * len(FEATURE_NAMES)), dtype=float)
+47:     labels = np.array([1, 0], dtype=np.int8)
+48:     coef = np.ones(X.shape[1], dtype=float)
+49:     # Make the first channel's log_std contribution lower for the positive row.
+50:     X[0, 0] = -2.0
+51:     X[1, 0] = 1.0
+52:     offsets = [{"relative_path": "chb14/example.edf", "start": 0, "end": 2}]
+53: 
+54:     result = contribution_summary(X, coef, 0.0, labels, offsets, channels)
+55:     rows = result["channel_feature_contributions"]
+56:     first = next(row for row in rows if row["channel"] == channels[0]
+57:                  and row["feature"] == "log_std")
+58:     assert first["positive_minus_negative"] == -3.0
+59:     assert len(rows) == len(channels) * len(FEATURE_NAMES)
+
+================================================================================
+FILE: tests\test_robust_feature_extraction.py
+================================================================================
+
+...
+1: import numpy as np
+2: import pytest
+3: 
+4: from feature_selection.robust_feature_extraction import (
+5:     ROBUST_FEATURE_NAMES,
+6:     extract_robust_features,
+7: )
+8: 
+9: 
+10: def test_robust_feature_shape_dtype_and_finiteness():
+11:     rng = np.random.default_rng(7)
+12:     windows = rng.normal(size=(3, 2, 2560))
+13:     result = extract_robust_features(windows, 256)
+14:     assert result.shape == (3, 2 * len(ROBUST_FEATURE_NAMES))
+15:     assert result.dtype == np.float32
+16:     assert np.isfinite(result).all()
+17: 
+18: 
+19: def test_relative_band_powers_are_amplitude_invariant():
+20:     time = np.arange(2560) / 256
+21:     signal = np.sin(2 * np.pi * 3 * time) + 0.4 * np.sin(2 * np.pi * 12 * time)
+22:     original = extract_robust_features(signal[None, None, :], 256)
+23:     scaled = extract_robust_features((7.5 * signal)[None, None, :], 256)
+24:     # Feature positions 4:9 are relative delta/theta/alpha/beta/gamma powers.
+25:     np.testing.assert_allclose(original[:, 4:9], scaled[:, 4:9], rtol=1e-5, atol=1e-6)
+26: 
+27: 
+28: def test_constant_signal_has_finite_shape_features():
+29:     result = extract_robust_features(np.zeros((1, 1, 2560)), 256)
+30:     assert np.isfinite(result).all()
+31:     assert result[0, 2] == 0.0
+32:     assert result[0, 3] == 0.0
+33: 
+34: 
+35: def test_rejects_invalid_sampling_rate():
+36:     with pytest.raises(ValueError):
+37:         extract_robust_features(np.ones((1, 1, 256)), 40)
+38: 
+39: 
+40: def test_rejects_too_short_window_for_spectral_features():
+41:     with pytest.raises(ValueError, match="at least 2 seconds"):
+42:         extract_robust_features(np.ones((1, 1, 128)), 256)
+43: 
+44: 
+45: def test_accepts_exactly_two_seconds_for_spectral_features():
+46:     result = extract_robust_features(np.ones((1, 1, 512)), 256)
+47:     assert result.shape == (1, len(ROBUST_FEATURE_NAMES))
+48:     assert np.isfinite(result).all()
+49: 
+50: 
+51: def test_chunked_extraction_matches_single_chunk():
+52:     rng = np.random.default_rng(19)
+53:     windows = rng.normal(size=(7, 3, 2560)).astype(np.float32)
+54:     single = extract_robust_features(windows, 256, chunk_size=7)
+55:     chunked = extract_robust_features(windows, 256, chunk_size=2)
+56:     np.testing.assert_allclose(chunked, single, rtol=1e-6, atol=1e-6)
+57: 
+58: 
+59: def test_rejects_non_positive_chunk_size():
+60:     with pytest.raises(ValueError, match="chunk_size"):
+61:         extract_robust_features(np.ones((1, 1, 512)), 256, chunk_size=0)
+62: 
+63: 
+64: def test_rejects_non_finite_values_in_later_chunk():
+65:     windows = np.ones((3, 1, 512), dtype=np.float32)
+66:     windows[2, 0, 10] = np.nan
+67:     with pytest.raises(ValueError, match="NaN or infinite"):
+68:         extract_robust_features(windows, 256, chunk_size=2)
+
+================================================================================
+FILE: tests\test_saved_windows.py
+================================================================================
+
+...
+2: import unittest
+3: from pathlib import Path
+4: from unittest.mock import patch
+5: 
+6: import numpy as np
+7: import pandas as pd
+8: 
+9: import main
+10: from config import PREFERRED_CHANNELS
+11: 
+12: 
+13: class FakeRaw:
+14:     def __init__(self):
+15:         self.ch_names = list(PREFERRED_CHANNELS)
+16:         self.info = {"sfreq": 1.0}
+17:         self._data = np.zeros((len(PREFERRED_CHANNELS), 30), dtype=np.float32)
+18: 
+19:     def pick(self, channels):
+20:         self.ch_names = list(channels)
+21: 
+22:     def get_data(self):
+23:         return self._data
+24: 
+25: 
+26: class SavedWindowsIntegrationTests(unittest.TestCase):
+27:     def test_saved_npz_and_metadata_keep_timestamps_and_labels_aligned(self):
+28:         with tempfile.TemporaryDirectory() as temp_dir:
+29:             output_dir = Path(temp_dir)
+30:             edf_path = Path(temp_dir) / "chb01" / "chb01_03.edf"
+31: 
+32:             with (
+33:                 patch.object(main, "load_edf", return_value=FakeRaw()),
+34:                 patch.object(main, "read_seizure_intervals", return_value=[(12, 14)]),
+35:                 patch.object(main, "bandpass_and_notch", side_effect=lambda data, *args: data),
+36:                 patch.object(main, "PROCESSED_DIR", output_dir),
+37:             ):
+38:                 saved_path = main.process_edf(edf_path)
+39: 
+40:             self.assertIsNotNone(saved_path)
+41:             self.assertTrue(saved_path.exists())
+42: 
+43:             with np.load(saved_path, allow_pickle=False) as saved:
+44:                 X = saved["X"]
+45:                 labels = saved["y"]
+46:                 starts = saved["starts"]
+47: 
+48:                 self.assertEqual(X.shape, (5, len(PREFERRED_CHANNELS), 10))
+49:                 self.assertEqual(labels.shape, (5,))
+50:                 self.assertEqual(starts.shape, (5,))
+51:                 np.testing.assert_array_equal(starts, [0, 5, 10, 15, 20])
+52:                 np.testing.assert_array_equal(labels, [0, 1, 1, 0, 0])
+53:                 self.assertEqual(len(saved["channels"]), len(PREFERRED_CHANNELS))
+54:                 self.assertEqual(float(saved["sfreq"]), 1.0)
+55:                 self.assertEqual(float(saved["recording_duration_seconds"]), 30.0)
+56:                 self.assertEqual(str(saved["subject"]), "chb01")
+57:                 self.assertEqual(str(saved["source_file"]), "chb01_03.edf")
+58:                 self.assertEqual(str(saved["normalization"]), "none_fold_train_only_scaling_required")
+59: 
+60:             metadata_path = output_dir / "chb01_chb01_03_metadata.csv"
+61:             self.assertTrue(metadata_path.exists())
+62:             metadata = pd.read_csv(metadata_path)
+63:             self.assertEqual(len(metadata), len(starts))
+64:             self.assertTrue((metadata["recording_duration_seconds"] == 30.0).all())
+65:             np.testing.assert_array_equal(metadata["window_start_seconds"], starts)
+66:             np.testing.assert_array_equal(
+67:                 metadata["window_end_seconds"], starts + main.WINDOW_SECONDS
+68:             )
+69:             np.testing.assert_array_equal(metadata["label"], labels)
+70:             self.assertTrue((metadata["normalization"] == "none_fold_train_only_scaling_required").all())
+71: 
+72: 
+73: if __name__ == "__main__":
+74:     unittest.main()
+
+================================================================================
+FILE: tests\test_scaler_checkpoints.py
+================================================================================
+
+...
+1: import json
+2: import tempfile
+3: import unittest
+4: from pathlib import Path
+5: 
+6: import numpy as np
+7: 
+8: from preprocessing.normalization import (
+9:     FoldChannelStandardizer,
+10:     scaler_checkpoint_signature,
+11: )
+12: 
+13: 
+14: class CheckpointedScalerTests(unittest.TestCase):
+15:     def setUp(self):
+16:         rng = np.random.default_rng(17)
+17:         self.batches = [
+18:             rng.normal(loc=index * 2.0, scale=1.0 + index * 0.1, size=(3, 2, 5))
+19:             .astype(np.float32)
+20:             for index in range(5)
+21:         ]
+22: 
+23:     def _factory(self, batches, starts):
+
+...
+33: 
+34:             def interrupted_factory(start_index):
+35:                 calls.append(start_index)
+36:                 for index in range(start_index, 2):
+37:                     yield self.batches[index]
+38:                 raise RuntimeError("simulated interruption")
+39: 
+40:             with self.assertRaisesRegex(RuntimeError, "simulated interruption"):
+41:                 FoldChannelStandardizer().fit_batches_checkpointed(
+42:                     interrupted_factory, len(self.batches), checkpoint, "fold-a"
+43:                 )
+44: 
+45:             manifest = json.loads((checkpoint / "manifest.json").read_text())
+46:             self.assertEqual(manifest["completed_recordings"], 2)
+47:             self.assertFalse(manifest["complete"])
+48: 
+49:             resumed_starts = []
+50:             resumed = FoldChannelStandardizer().fit_batches_checkpointed(
+51:                 self._factory(self.batches, resumed_starts),
+52:                 len(self.batches), checkpoint, "fold-a",
+53:             )
+54:             uninterrupted = FoldChannelStandardizer().fit_batches(self.batches)
+55: 
+56:             self.assertEqual(resumed_starts, [2])
+57:             np.testing.assert_allclose(resumed.mean_, uninterrupted.mean_, rtol=1e-12, atol=1e-12)
+58:             np.testing.assert_allclose(resumed.scale_, uninterrupted.scale_, rtol=1e-12, atol=1e-12)
+59:             self.assertEqual(resumed.n_values_per_channel_, uninterrupted.n_values_per_channel_)
+60: 
+61:     def test_completed_checkpoint_is_reused_without_reading_batches(self):
+62:         with tempfile.TemporaryDirectory() as temporary:
+63:             checkpoint = Path(temporary)
+64:             expected = FoldChannelStandardizer().fit_batches_checkpointed(
+65:                 self._factory(self.batches, []), len(self.batches), checkpoint, "fold-b"
+66:             )
+67: 
+68:             def should_not_run(start_index):
+69:                 raise AssertionError("completed scaler checkpoint should be reused")
+70: 
+71:             actual = FoldChannelStandardizer().fit_batches_checkpointed(
+72:                 should_not_run, len(self.batches), checkpoint, "fold-b"
+73:             )
+74:             np.testing.assert_array_equal(actual.mean_, expected.mean_)
+75:             np.testing.assert_array_equal(actual.scale_, expected.scale_)
+76: 
+77:     def test_incompatible_signature_restarts_from_first_recording(self):
+78:         with tempfile.TemporaryDirectory() as temporary:
+79:             checkpoint = Path(temporary)
+80:             FoldChannelStandardizer().fit_batches_checkpointed(
+81:                 self._factory(self.batches, []), len(self.batches), checkpoint, "old-fold"
+82:             )
+83:             starts = []
+84:             FoldChannelStandardizer().fit_batches_checkpointed(
+85:                 self._factory(self.batches, starts),
+86:                 len(self.batches), checkpoint, "new-fold",
+87:             )
+88:             self.assertEqual(starts, [0])
+89: 
+90:     def test_corrupt_state_checkpoint_is_rejected_and_rebuilt(self):
+91:         with tempfile.TemporaryDirectory() as temporary:
+92:             checkpoint = Path(temporary)
+93:             FoldChannelStandardizer().fit_batches_checkpointed(
+94:                 self._factory(self.batches, []), len(self.batches), checkpoint, "fold-c"
+95:             )
+96:             manifest = json.loads((checkpoint / "manifest.json").read_text())
+97:             (checkpoint / manifest["state_file"]).write_bytes(b"not a numpy archive")
+98:             starts = []
+99:             rebuilt = FoldChannelStandardizer().fit_batches_checkpointed(
+100:                 self._factory(self.batches, starts),
+101:                 len(self.batches), checkpoint, "fold-c",
+102:             )
+103:             expected = FoldChannelStandardizer().fit_batches(self.batches)
+104:             self.assertEqual(starts, [0])
+105:             np.testing.assert_allclose(rebuilt.mean_, expected.mean_)
+106:             np.testing.assert_allclose(rebuilt.scale_, expected.scale_)
+107: 
+108:     def test_checkpoint_signature_changes_with_fold_context(self):
+109:         from data_management.patient_mapping import Recording
+110: 
+111:         with tempfile.TemporaryDirectory() as temporary:
+112:             directory = Path(temporary)
+113:             np.savez_compressed(
+114:                 directory / "chb01_chb01_01.npz",
+115:                 y=np.array([0, 1], dtype=np.int8),
+116:             )
+117:             recording = Recording(
+
+================================================================================
+FILE: tests\test_segmentation.py
+================================================================================
+
+...
+4: 
+5: from preprocessing.segmentation import make_windows
+6: 
+7: 
+8: class MakeWindowsTests(unittest.TestCase):
+9:     def test_window_count_shape_and_starts(self):
+10:         data = np.arange(2 * 30, dtype=np.float32).reshape(2, 30)
+11:         windows, labels, starts = make_windows(
+12:             data, sfreq=1, seizure_intervals=[], window_seconds=10, stride_seconds=5
+13:         )
+14:         self.assertEqual(windows.shape, (5, 2, 10))
+15:         np.testing.assert_array_equal(labels, np.zeros(5, dtype=np.int64))
+16:         np.testing.assert_allclose(starts, [0, 5, 10, 15, 20])
+17: 
+18:     def test_seizure_overlap_labels_positive(self):
+19:         data = np.zeros((1, 30), dtype=np.float32)
+20:         _, labels, _ = make_windows(
+21:             data, 1, [(12, 14)], window_seconds=10, stride_seconds=5
+22:         )
+23:         np.testing.assert_array_equal(labels, [0, 1, 1, 0, 0])
+24: 
+25:     def test_boundary_touch_without_overlap_is_negative(self):
+26:         data = np.zeros((1, 20), dtype=np.float32)
+
+================================================================================
+FILE: tests\test_signal_processing.py
+================================================================================
+
+...
+1: import unittest
+2: 
+3: import numpy as np
+4: 
+5: from preprocessing.signal_processing import bandpass_and_notch, robust_normalize
+6: 
+7: 
+8: class BandpassAndNotchTests(unittest.TestCase):
+9:     def test_filter_preserves_shape_and_returns_float32(self):
+10:         sfreq = 256.0
+11:         time = np.arange(int(sfreq * 5)) / sfreq
+12:         signal = np.sin(2 * np.pi * 10 * time)
+13:         data = np.vstack([signal, signal])
+14: 
+15:         result = bandpass_and_notch(data, sfreq)
+16: 
+17:         self.assertEqual(result.shape, data.shape)
+18:         self.assertEqual(result.dtype, np.float32)
+19:         self.assertTrue(np.all(np.isfinite(result)))
+20: 
+21:     def test_60_hz_notch_reduces_60_hz_component(self):
+22:         sfreq = 256.0
+23:         time = np.arange(int(sfreq * 10)) / sfreq
+24:         data = np.sin(2 * np.pi * 60 * time)[None, :]
+25: 
+26:         filtered = bandpass_and_notch(data, sfreq, low_hz=1.0, high_hz=100.0)
+27: 
+28:         # Ignore filter edge transients when measuring the remaining amplitude.
+29:         edge = int(sfreq)
+30:         rms_before = np.sqrt(np.mean(data[:, edge:-edge] ** 2))
+31:         rms_after = np.sqrt(np.mean(filtered[:, edge:-edge] ** 2))
+32:         self.assertLess(rms_after, rms_before * 0.2)
+33: 
+34:     def test_notch_is_skipped_when_at_or_above_nyquist(self):
+35:         sfreq = 80.0
+36:         time = np.arange(int(sfreq * 5)) / sfreq
+37:         data = np.sin(2 * np.pi * 10 * time)[None, :]
+38: 
+39:         result = bandpass_and_notch(data, sfreq, notch_hz=60.0)
+40: 
+41:         self.assertEqual(result.shape, data.shape)
+42:         self.assertTrue(np.all(np.isfinite(result)))
+43: 
+44:     def test_invalid_sampling_frequency_raises(self):
+45:         data = np.ones((2, 1000))
+46:         with self.assertRaisesRegex(ValueError, "Sampling frequency"):
+47:             bandpass_and_notch(data, 0)
+48: 
+49:     def test_invalid_data_shape_raises(self):
+50:         with self.assertRaisesRegex(ValueError, "non-empty 2D"):
+51:             bandpass_and_notch(np.ones(1000), 256)
+52: 
+53:     def test_non_finite_input_raises(self):
+54:         data = np.ones((2, 1000))
+55:         data[0, 10] = np.nan
+56:         with self.assertRaisesRegex(ValueError, "NaN or infinite"):
+57:             bandpass_and_notch(data, 256)
+58: 
+59: 
+60: class RobustNormalizeTests(unittest.TestCase):
+61:     def test_normalizes_each_channel_by_median_and_iqr(self):
+62:         data = np.array(
+63:             [[-2.0, -1.0, 0.0, 1.0, 2.0],
+64:              [10.0, 12.0, 14.0, 16.0, 18.0]]
+65:         )
+66: 
+67:         result = robust_normalize(data)
+68: 
+69:         self.assertEqual(result.shape, data.shape)
+70:         self.assertEqual(result.dtype, np.float32)
+71:         np.testing.assert_allclose(np.median(result, axis=1), 0.0)
+72:         np.testing.assert_allclose(
+73:             np.percentile(result, 75, axis=1)
+74:             - np.percentile(result, 25, axis=1),
+75:             1.0,
+76:             rtol=1e-6,
+77:         )
+78: 
+79:     def test_constant_channel_remains_finite(self):
+80:         data = np.ones((1, 100)) * 5.0
+81: 
+82:         result = robust_normalize(data)
+83: 
+84:         self.assertTrue(np.all(np.isfinite(result)))
+85:         np.testing.assert_array_equal(result, np.zeros_like(result))
+86: 
+87:     def test_invalid_input_raises(self):
+88:         with self.assertRaisesRegex(ValueError, "non-empty 2D"):
+89:             robust_normalize(np.ones(100))
+90: 
+91:     def test_non_finite_input_raises(self):
+92:         data = np.ones((1, 100))
+93:         data[0, 0] = np.inf
+94:         with self.assertRaisesRegex(ValueError, "NaN or infinite"):
+95:             robust_normalize(data)
+96: 
+97: 
+98: if __name__ == "__main__":
+99:     unittest.main()
+
+================================================================================
+FILE: verify_full_cohort.py
+================================================================================
+
+...
+1: import csv
+2: from pathlib import Path
+3: 
+4: from config import PROCESSED_DIR, LOG_DIR
+5: from data_management.cohort import filter_primary_cohort
+6: from data_management.fold_data import load_recording_windows
+7: from data_management.patient_mapping import load_recording_manifest
+8: from main import _metadata_is_consistent
+9: 
+10: AUDIT = Path(r"..\..\docs\full_annotation_audit.csv")
+11: 
+12: 
+13: def main():
+14:     recordings = filter_primary_cohort(load_recording_manifest(AUDIT))
+15:     errors = []
+16:     total_windows = 0
+17:     total_seizure_windows = 0
+18:     total_normal_windows = 0
+19: 
+20:     print(f"Expected primary cohort: {len(recordings)} recordings")
+21: 
+22:     for index, recording in enumerate(recordings, 1):
+23:         metadata_path = Path(PROCESSED_DIR) / (
+24:             f"{recording.subject}_{Path(recording.edf_file).stem}_metadata.csv"
+25:         )
+26: 
+27:         try:
+28:             windows = load_recording_windows(PROCESSED_DIR, recording)
+29: 
+30:             if not _metadata_is_consistent(
+31:                 recording, metadata_path, windows
+32:             ):
+33:                 raise ValueError("Metadata missing or inconsistent")
+34: 
+35:             total_windows += len(windows.y)
+36:             total_seizure_windows += int((windows.y == 1).sum())
+37:             total_normal_windows += int((windows.y == 0).sum())
+38: 
+39:         except Exception as exc:
+40:             errors.append((recording.relative_path, str(exc)))
+41: 
+42:         if index % 50 == 0 or index == len(recordings):

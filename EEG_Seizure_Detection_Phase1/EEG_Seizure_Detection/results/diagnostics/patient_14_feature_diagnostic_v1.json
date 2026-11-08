@@ -1,0 +1,1807 @@
+{
+  "diagnostic_only": true,
+  "feature_summary": [
+    {
+      "channel": "C3-P3",
+      "feature": "excess_kurtosis",
+      "mean_recording_auc": 0.6935238649001191,
+      "median_recording_auc": 0.6748251748251748,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "C3-P3",
+      "feature": "log_std",
+      "mean_recording_auc": 0.13089460863201274,
+      "median_recording_auc": 0.12447552447552446,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 0,
+      "recordings_auc_below_0_5": 7
+    },
+    {
+      "channel": "C3-P3",
+      "feature": "normalized_line_length",
+      "mean_recording_auc": 0.7431482067587617,
+      "median_recording_auc": 0.7680577849117174,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "C3-P3",
+      "feature": "relative_alpha_power",
+      "mean_recording_auc": 0.5355488886035451,
+      "median_recording_auc": 0.5402097902097902,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 4,
+      "recordings_auc_below_0_5": 3
+    },
+    {
+      "channel": "C3-P3",
+      "feature": "relative_beta_power",
+      "mean_recording_auc": 0.7780192819389686,
+      "median_recording_auc": 0.8134028892455859,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "C3-P3",
+      "feature": "relative_delta_power",
+      "mean_recording_auc": 0.5207684720084842,
+      "median_recording_auc": 0.4853314527503526,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 2,
+      "recordings_auc_below_0_5": 5
+    },
+    {
+      "channel": "C3-P3",
+      "feature": "relative_gamma_power",
+      "mean_recording_auc": 0.9069525588713825,
+      "median_recording_auc": 0.9546548956661316,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "C3-P3",
+      "feature": "relative_theta_power",
+      "mean_recording_auc": 0.24315689717582217,
+      "median_recording_auc": 0.2365303244005642,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 1,
+      "recordings_auc_below_0_5": 6
+    },
+    {
+      "channel": "C3-P3",
+      "feature": "skewness",
+      "mean_recording_auc": 0.6332329795147634,
+      "median_recording_auc": 0.6731092436974789,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 4,
+      "recordings_auc_below_0_5": 3
+    },
+    {
+      "channel": "C3-P3",
+      "feature": "spectral_entropy",
+      "mean_recording_auc": 0.48807377869055685,
+      "median_recording_auc": 0.5218487394957982,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 4,
+      "recordings_auc_below_0_5": 3
+    },
+    {
+      "channel": "C4-P4",
+      "feature": "excess_kurtosis",
+      "mean_recording_auc": 0.7852938792283781,
+      "median_recording_auc": 0.8052805280528053,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "C4-P4",
+      "feature": "log_std",
+      "mean_recording_auc": 0.1341328653484688,
+      "median_recording_auc": 0.12937062937062938,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 0,
+      "recordings_auc_below_0_5": 7
+    },
+    {
+      "channel": "C4-P4",
+      "feature": "normalized_line_length",
+      "mean_recording_auc": 0.7220405275255894,
+      "median_recording_auc": 0.6988795518207283,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "C4-P4",
+      "feature": "relative_alpha_power",
+      "mean_recording_auc": 0.4820236155990985,
+      "median_recording_auc": 0.5448519040902681,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 4,
+      "recordings_auc_below_0_5": 3
+    },
+    {
+      "channel": "C4-P4",
+      "feature": "relative_beta_power",
+      "mean_recording_auc": 0.6829572691529526,
+      "median_recording_auc": 0.6638616175783076,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 6,
+      "recordings_auc_below_0_5": 1
+    },
+    {
+      "channel": "C4-P4",
+      "feature": "relative_delta_power",
+      "mean_recording_auc": 0.6026237782815597,
+      "median_recording_auc": 0.49802538787023976,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 3,
+      "recordings_auc_below_0_5": 4
+    },
+    {
+      "channel": "C4-P4",
+      "feature": "relative_gamma_power",
+      "mean_recording_auc": 0.8793970899848188,
+      "median_recording_auc": 0.8730769230769231,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "C4-P4",
+      "feature": "relative_theta_power",
+      "mean_recording_auc": 0.22794314721913492,
+      "median_recording_auc": 0.1713681241184767,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 1,
+      "recordings_auc_below_0_5": 6
+    },
+    {
+      "channel": "C4-P4",
+      "feature": "skewness",
+      "mean_recording_auc": 0.5720591352763904,
+      "median_recording_auc": 0.6255244755244755,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 5,
+      "recordings_auc_below_0_5": 2
+    },
+    {
+      "channel": "C4-P4",
+      "feature": "spectral_entropy",
+      "mean_recording_auc": 0.4056298322587842,
+      "median_recording_auc": 0.46118881118881117,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 3,
+      "recordings_auc_below_0_5": 4
+    },
+    {
+      "channel": "CZ-PZ",
+      "feature": "excess_kurtosis",
+      "mean_recording_auc": 0.7746211684328725,
+      "median_recording_auc": 0.7939406099518459,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "CZ-PZ",
+      "feature": "log_std",
+      "mean_recording_auc": 0.2803792061595671,
+      "median_recording_auc": 0.19236209335219234,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 1,
+      "recordings_auc_below_0_5": 6
+    },
+    {
+      "channel": "CZ-PZ",
+      "feature": "normalized_line_length",
+      "mean_recording_auc": 0.5732503943872045,
+      "median_recording_auc": 0.663986013986014,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 5,
+      "recordings_auc_below_0_5": 2
+    },
+    {
+      "channel": "CZ-PZ",
+      "feature": "relative_alpha_power",
+      "mean_recording_auc": 0.49641503588786035,
+      "median_recording_auc": 0.47785613540197464,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 3,
+      "recordings_auc_below_0_5": 4
+    },
+    {
+      "channel": "CZ-PZ",
+      "feature": "relative_beta_power",
+      "mean_recording_auc": 0.6281799225555423,
+      "median_recording_auc": 0.7209790209790209,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 6,
+      "recordings_auc_below_0_5": 1
+    },
+    {
+      "channel": "CZ-PZ",
+      "feature": "relative_delta_power",
+      "mean_recording_auc": 0.6081549967038652,
+      "median_recording_auc": 0.6667832167832168,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 4,
+      "recordings_auc_below_0_5": 3
+    },
+    {
+      "channel": "CZ-PZ",
+      "feature": "relative_gamma_power",
+      "mean_recording_auc": 0.786854075934046,
+      "median_recording_auc": 0.8830256821829856,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 6,
+      "recordings_auc_below_0_5": 1
+    },
+    {
+      "channel": "CZ-PZ",
+      "feature": "relative_theta_power",
+      "mean_recording_auc": 0.2068620505510857,
+      "median_recording_auc": 0.16516220028208745,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 1,
+      "recordings_auc_below_0_5": 6
+    },
+    {
+      "channel": "CZ-PZ",
+      "feature": "skewness",
+      "mean_recording_auc": 0.613354702547005,
+      "median_recording_auc": 0.5547752808988764,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 6,
+      "recordings_auc_below_0_5": 1
+    },
+    {
+      "channel": "CZ-PZ",
+      "feature": "spectral_entropy",
+      "mean_recording_auc": 0.41001430262983213,
+      "median_recording_auc": 0.5311188811188812,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 4,
+      "recordings_auc_below_0_5": 3
+    },
+    {
+      "channel": "F3-C3",
+      "feature": "excess_kurtosis",
+      "mean_recording_auc": 0.7695108997636444,
+      "median_recording_auc": 0.7805359661495064,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "F3-C3",
+      "feature": "log_std",
+      "mean_recording_auc": 0.1445099111835327,
+      "median_recording_auc": 0.055633473585787754,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 1,
+      "recordings_auc_below_0_5": 6
+    },
+    {
+      "channel": "F3-C3",
+      "feature": "normalized_line_length",
+      "mean_recording_auc": 0.7678347522634449,
+      "median_recording_auc": 0.8214285714285714,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 6,
+      "recordings_auc_below_0_5": 1
+    },
+    {
+      "channel": "F3-C3",
+      "feature": "relative_alpha_power",
+      "mean_recording_auc": 0.5377561839679099,
+      "median_recording_auc": 0.5204481792717087,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 4,
+      "recordings_auc_below_0_5": 3
+    },
+    {
+      "channel": "F3-C3",
+      "feature": "relative_beta_power",
+      "mean_recording_auc": 0.7229593183754108,
+      "median_recording_auc": 0.7165021156558533,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 6,
+      "recordings_auc_below_0_5": 1
+    },
+    {
+      "channel": "F3-C3",
+      "feature": "relative_delta_power",
+      "mean_recording_auc": 0.5203473629319103,
+      "median_recording_auc": 0.5422969187675071,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 4,
+      "recordings_auc_below_0_5": 3
+    },
+    {
+      "channel": "F3-C3",
+      "feature": "relative_gamma_power",
+      "mean_recording_auc": 0.8742151744061768,
+      "median_recording_auc": 0.9350163627863488,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "F3-C3",
+      "feature": "relative_theta_power",
+      "mean_recording_auc": 0.34343390312330474,
+      "median_recording_auc": 0.3165959453088166,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 2,
+      "recordings_auc_below_0_5": 5
+    },
+    {
+      "channel": "F3-C3",
+      "feature": "skewness",
+      "mean_recording_auc": 0.600303704902439,
+      "median_recording_auc": 0.6667335473515248,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 4,
+      "recordings_auc_below_0_5": 3
+    },
+    {
+      "channel": "F3-C3",
+      "feature": "spectral_entropy",
+      "mean_recording_auc": 0.5206075263724962,
+      "median_recording_auc": 0.4707807386629266,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 3,
+      "recordings_auc_below_0_5": 4
+    },
+    {
+      "channel": "F4-C4",
+      "feature": "excess_kurtosis",
+      "mean_recording_auc": 0.7797472673041664,
+      "median_recording_auc": 0.7497884344146686,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "F4-C4",
+      "feature": "log_std",
+      "mean_recording_auc": 0.10251979671943942,
+      "median_recording_auc": 0.057545839210155145,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 0,
+      "recordings_auc_below_0_5": 7
+    },
+    {
+      "channel": "F4-C4",
+      "feature": "normalized_line_length",
+      "mean_recording_auc": 0.8153438549970579,
+      "median_recording_auc": 0.8239831697054698,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "F4-C4",
+      "feature": "relative_alpha_power",
+      "mean_recording_auc": 0.6177221626088538,
+      "median_recording_auc": 0.5716783216783217,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 6,
+      "recordings_auc_below_0_5": 1
+    },
+    {
+      "channel": "F4-C4",
+      "feature": "relative_beta_power",
+      "mean_recording_auc": 0.7618102592767643,
+      "median_recording_auc": 0.8047752808988764,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "F4-C4",
+      "feature": "relative_delta_power",
+      "mean_recording_auc": 0.443915883132565,
+      "median_recording_auc": 0.4350140056022409,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 2,
+      "recordings_auc_below_0_5": 5
+    },
+    {
+      "channel": "F4-C4",
+      "feature": "relative_gamma_power",
+      "mean_recording_auc": 0.9123536368967055,
+      "median_recording_auc": 0.9219502407704654,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "F4-C4",
+      "feature": "relative_theta_power",
+      "mean_recording_auc": 0.3397217396642776,
+      "median_recording_auc": 0.28851540616246496,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 2,
+      "recordings_auc_below_0_5": 5
+    },
+    {
+      "channel": "F4-C4",
+      "feature": "skewness",
+      "mean_recording_auc": 0.46703858461642966,
+      "median_recording_auc": 0.46750700280112045,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 2,
+      "recordings_auc_below_0_5": 5
+    },
+    {
+      "channel": "F4-C4",
+      "feature": "spectral_entropy",
+      "mean_recording_auc": 0.5527456832209673,
+      "median_recording_auc": 0.5184665731650304,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 4,
+      "recordings_auc_below_0_5": 3
+    },
+    {
+      "channel": "F7-T7",
+      "feature": "excess_kurtosis",
+      "mean_recording_auc": 0.6776615247143757,
+      "median_recording_auc": 0.8031468531468531,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 5,
+      "recordings_auc_below_0_5": 2
+    },
+    {
+      "channel": "F7-T7",
+      "feature": "log_std",
+      "mean_recording_auc": 0.39314459712771654,
+      "median_recording_auc": 0.3304195804195804,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 2,
+      "recordings_auc_below_0_5": 5
+    },
+    {
+      "channel": "F7-T7",
+      "feature": "normalized_line_length",
+      "mean_recording_auc": 0.6723271656579544,
+      "median_recording_auc": 0.6481792717086834,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 6,
+      "recordings_auc_below_0_5": 1
+    },
+    {
+      "channel": "F7-T7",
+      "feature": "relative_alpha_power",
+      "mean_recording_auc": 0.4169714633759552,
+      "median_recording_auc": 0.3034128097241702,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 2,
+      "recordings_auc_below_0_5": 5
+    },
+    {
+      "channel": "F7-T7",
+      "feature": "relative_beta_power",
+      "mean_recording_auc": 0.6166972063407349,
+      "median_recording_auc": 0.6228490832157969,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 5,
+      "recordings_auc_below_0_5": 2
+    },
+    {
+      "channel": "F7-T7",
+      "feature": "relative_delta_power",
+      "mean_recording_auc": 0.5565905209515124,
+      "median_recording_auc": 0.644927536231884,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 5,
+      "recordings_auc_below_0_5": 2
+    },
+    {
+      "channel": "F7-T7",
+      "feature": "relative_gamma_power",
+      "mean_recording_auc": 0.837089233059242,
+      "median_recording_auc": 0.820957095709571,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "F7-T7",
+      "feature": "relative_theta_power",
+      "mean_recording_auc": 0.3905626779907641,
+      "median_recording_auc": 0.3851540616246498,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 1,
+      "recordings_auc_below_0_5": 6
+    },
+    {
+      "channel": "F7-T7",
+      "feature": "skewness",
+      "mean_recording_auc": 0.7228528461282926,
+      "median_recording_auc": 0.723916532905297,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "F7-T7",
+      "feature": "spectral_entropy",
+      "mean_recording_auc": 0.42743141288704056,
+      "median_recording_auc": 0.3449929478138223,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 2,
+      "recordings_auc_below_0_5": 5
+    },
+    {
+      "channel": "F8-T8",
+      "feature": "excess_kurtosis",
+      "mean_recording_auc": 0.6604749826554019,
+      "median_recording_auc": 0.6622377622377622,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 5,
+      "recordings_auc_below_0_5": 2
+    },
+    {
+      "channel": "F8-T8",
+      "feature": "log_std",
+      "mean_recording_auc": 0.24856079034253792,
+      "median_recording_auc": 0.1841112682696841,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 0,
+      "recordings_auc_below_0_5": 7
+    },
+    {
+      "channel": "F8-T8",
+      "feature": "normalized_line_length",
+      "mean_recording_auc": 0.8029411126808534,
+      "median_recording_auc": 0.8179055633473586,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "F8-T8",
+      "feature": "relative_alpha_power",
+      "mean_recording_auc": 0.5612629985224622,
+      "median_recording_auc": 0.4962599345488546,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 3,
+      "recordings_auc_below_0_5": 4
+    },
+    {
+      "channel": "F8-T8",
+      "feature": "relative_beta_power",
+      "mean_recording_auc": 0.7789874046085181,
+      "median_recording_auc": 0.7325553983969826,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "F8-T8",
+      "feature": "relative_delta_power",
+      "mean_recording_auc": 0.4671088664168966,
+      "median_recording_auc": 0.49398868458274403,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 3,
+      "recordings_auc_below_0_5": 4
+    },
+    {
+      "channel": "F8-T8",
+      "feature": "relative_gamma_power",
+      "mean_recording_auc": 0.8399100344283188,
+      "median_recording_auc": 0.8545454545454545,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "F8-T8",
+      "feature": "relative_theta_power",
+      "mean_recording_auc": 0.34638447653075055,
+      "median_recording_auc": 0.2975524475524476,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 1,
+      "recordings_auc_below_0_5": 6
+    },
+    {
+      "channel": "F8-T8",
+      "feature": "skewness",
+      "mean_recording_auc": 0.6734059023793911,
+      "median_recording_auc": 0.7517482517482518,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 5,
+      "recordings_auc_below_0_5": 2
+    },
+    {
+      "channel": "F8-T8",
+      "feature": "spectral_entropy",
+      "mean_recording_auc": 0.576413658256569,
+      "median_recording_auc": 0.5150872230080151,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 4,
+      "recordings_auc_below_0_5": 3
+    },
+    {
+      "channel": "FP1-F3",
+      "feature": "excess_kurtosis",
+      "mean_recording_auc": 0.5316638786662117,
+      "median_recording_auc": 0.5404795486600846,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 4,
+      "recordings_auc_below_0_5": 3
+    },
+    {
+      "channel": "FP1-F3",
+      "feature": "log_std",
+      "mean_recording_auc": 0.31836917671676473,
+      "median_recording_auc": 0.2894217207334273,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 2,
+      "recordings_auc_below_0_5": 5
+    },
+    {
+      "channel": "FP1-F3",
+      "feature": "normalized_line_length",
+      "mean_recording_auc": 0.6474957848563349,
+      "median_recording_auc": 0.6252921926133707,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 5,
+      "recordings_auc_below_0_5": 2
+    },
+    {
+      "channel": "FP1-F3",
+      "feature": "relative_alpha_power",
+      "mean_recording_auc": 0.5841502386416987,
+      "median_recording_auc": 0.5820728291316527,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 4,
+      "recordings_auc_below_0_5": 3
+    },
+    {
+      "channel": "FP1-F3",
+      "feature": "relative_beta_power",
+      "mean_recording_auc": 0.5802371160582719,
+      "median_recording_auc": 0.6240896358543417,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 4,
+      "recordings_auc_below_0_5": 3
+    },
+    {
+      "channel": "FP1-F3",
+      "feature": "relative_delta_power",
+      "mean_recording_auc": 0.3666449512710033,
+      "median_recording_auc": 0.4117647058823529,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 2,
+      "recordings_auc_below_0_5": 5
+    },
+    {
+      "channel": "FP1-F3",
+      "feature": "relative_gamma_power",
+      "mean_recording_auc": 0.7319024275938196,
+      "median_recording_auc": 0.8065810593900482,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 6,
+      "recordings_auc_below_0_5": 1
+    },
+    {
+      "channel": "FP1-F3",
+      "feature": "relative_theta_power",
+      "mean_recording_auc": 0.6161409287999421,
+      "median_recording_auc": 0.5742296918767508,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 6,
+      "recordings_auc_below_0_5": 1
+    },
+    {
+      "channel": "FP1-F3",
+      "feature": "skewness",
+      "mean_recording_auc": 0.6262087468208434,
+      "median_recording_auc": 0.6783356907119283,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 5,
+      "recordings_auc_below_0_5": 2
+    },
+    {
+      "channel": "FP1-F3",
+      "feature": "spectral_entropy",
+      "mean_recording_auc": 0.6053779340348514,
+      "median_recording_auc": 0.6260032102728731,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 4,
+      "recordings_auc_below_0_5": 3
+    },
+    {
+      "channel": "FP1-F7",
+      "feature": "excess_kurtosis",
+      "mean_recording_auc": 0.4859234744117515,
+      "median_recording_auc": 0.42184873949579826,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 2,
+      "recordings_auc_below_0_5": 5
+    },
+    {
+      "channel": "FP1-F7",
+      "feature": "log_std",
+      "mean_recording_auc": 0.7162353834041648,
+      "median_recording_auc": 0.6703081232492998,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 6,
+      "recordings_auc_below_0_5": 1
+    },
+    {
+      "channel": "FP1-F7",
+      "feature": "normalized_line_length",
+      "mean_recording_auc": 0.43139547508349907,
+      "median_recording_auc": 0.3310938236680811,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 1,
+      "recordings_auc_below_0_5": 6
+    },
+    {
+      "channel": "FP1-F7",
+      "feature": "relative_alpha_power",
+      "mean_recording_auc": 0.4146863889101139,
+      "median_recording_auc": 0.3899018232819074,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 2,
+      "recordings_auc_below_0_5": 5
+    },
+    {
+      "channel": "FP1-F7",
+      "feature": "relative_beta_power",
+      "mean_recording_auc": 0.31214720748501873,
+      "median_recording_auc": 0.19720279720279718,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 1,
+      "recordings_auc_below_0_5": 6
+    },
+    {
+      "channel": "FP1-F7",
+      "feature": "relative_delta_power",
+      "mean_recording_auc": 0.492295516014991,
+      "median_recording_auc": 0.5196078431372549,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 4,
+      "recordings_auc_below_0_5": 3
+    },
+    {
+      "channel": "FP1-F7",
+      "feature": "relative_gamma_power",
+      "mean_recording_auc": 0.37648555523710986,
+      "median_recording_auc": 0.3559390048154093,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 2,
+      "recordings_auc_below_0_5": 5
+    },
+    {
+      "channel": "FP1-F7",
+      "feature": "relative_theta_power",
+      "mean_recording_auc": 0.5209066440238895,
+      "median_recording_auc": 0.542296918767507,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 5,
+      "recordings_auc_below_0_5": 2
+    },
+    {
+      "channel": "FP1-F7",
+      "feature": "skewness",
+      "mean_recording_auc": 0.6236273029636153,
+      "median_recording_auc": 0.5981664315937941,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 6,
+      "recordings_auc_below_0_5": 1
+    },
+    {
+      "channel": "FP1-F7",
+      "feature": "spectral_entropy",
+      "mean_recording_auc": 0.39784243719283496,
+      "median_recording_auc": 0.29243281471004245,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 2,
+      "recordings_auc_below_0_5": 5
+    },
+    {
+      "channel": "FP2-F4",
+      "feature": "excess_kurtosis",
+      "mean_recording_auc": 0.5085078631770155,
+      "median_recording_auc": 0.47489421720733427,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 3,
+      "recordings_auc_below_0_5": 4
+    },
+    {
+      "channel": "FP2-F4",
+      "feature": "log_std",
+      "mean_recording_auc": 0.2925329855034242,
+      "median_recording_auc": 0.22242595204513396,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 2,
+      "recordings_auc_below_0_5": 5
+    },
+    {
+      "channel": "FP2-F4",
+      "feature": "normalized_line_length",
+      "mean_recording_auc": 0.6858146265913465,
+      "median_recording_auc": 0.644927536231884,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 6,
+      "recordings_auc_below_0_5": 1
+    },
+    {
+      "channel": "FP2-F4",
+      "feature": "relative_alpha_power",
+      "mean_recording_auc": 0.6370742792143302,
+      "median_recording_auc": 0.5719962599345488,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 5,
+      "recordings_auc_below_0_5": 2
+    },
+    {
+      "channel": "FP2-F4",
+      "feature": "relative_beta_power",
+      "mean_recording_auc": 0.6312620232554925,
+      "median_recording_auc": 0.6565826330532213,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 5,
+      "recordings_auc_below_0_5": 2
+    },
+    {
+      "channel": "FP2-F4",
+      "feature": "relative_delta_power",
+      "mean_recording_auc": 0.3292683367010244,
+      "median_recording_auc": 0.3974612129760226,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 1,
+      "recordings_auc_below_0_5": 6
+    },
+    {
+      "channel": "FP2-F4",
+      "feature": "relative_gamma_power",
+      "mean_recording_auc": 0.7220129383087139,
+      "median_recording_auc": 0.7485955056179776,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 6,
+      "recordings_auc_below_0_5": 1
+    },
+    {
+      "channel": "FP2-F4",
+      "feature": "relative_theta_power",
+      "mean_recording_auc": 0.6608097297755409,
+      "median_recording_auc": 0.6084626234132581,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 6,
+      "recordings_auc_below_0_5": 1
+    },
+    {
+      "channel": "FP2-F4",
+      "feature": "skewness",
+      "mean_recording_auc": 0.6127983157005489,
+      "median_recording_auc": 0.6444055944055944,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 5,
+      "recordings_auc_below_0_5": 2
+    },
+    {
+      "channel": "FP2-F4",
+      "feature": "spectral_entropy",
+      "mean_recording_auc": 0.6519181496130392,
+      "median_recording_auc": 0.643860353130016,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 6,
+      "recordings_auc_below_0_5": 1
+    },
+    {
+      "channel": "FP2-F8",
+      "feature": "excess_kurtosis",
+      "mean_recording_auc": 0.5233233829774268,
+      "median_recording_auc": 0.5084033613445378,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 5,
+      "recordings_auc_below_0_5": 2
+    },
+    {
+      "channel": "FP2-F8",
+      "feature": "log_std",
+      "mean_recording_auc": 0.6128211443510828,
+      "median_recording_auc": 0.6486757624398074,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 5,
+      "recordings_auc_below_0_5": 2
+    },
+    {
+      "channel": "FP2-F8",
+      "feature": "normalized_line_length",
+      "mean_recording_auc": 0.5231998354890417,
+      "median_recording_auc": 0.4866760168302945,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 3,
+      "recordings_auc_below_0_5": 4
+    },
+    {
+      "channel": "FP2-F8",
+      "feature": "relative_alpha_power",
+      "mean_recording_auc": 0.5075700731180663,
+      "median_recording_auc": 0.4612760834670947,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 2,
+      "recordings_auc_below_0_5": 5
+    },
+    {
+      "channel": "FP2-F8",
+      "feature": "relative_beta_power",
+      "mean_recording_auc": 0.4005641143015207,
+      "median_recording_auc": 0.3140056022408964,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 2,
+      "recordings_auc_below_0_5": 5
+    },
+    {
+      "channel": "FP2-F8",
+      "feature": "relative_delta_power",
+      "mean_recording_auc": 0.40310803776696424,
+      "median_recording_auc": 0.4908062234794908,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 3,
+      "recordings_auc_below_0_5": 4
+    },
+    {
+      "channel": "FP2-F8",
+      "feature": "relative_gamma_power",
+      "mean_recording_auc": 0.47863088158817657,
+      "median_recording_auc": 0.4125200642054575,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 3,
+      "recordings_auc_below_0_5": 4
+    },
+    {
+      "channel": "FP2-F8",
+      "feature": "relative_theta_power",
+      "mean_recording_auc": 0.6175142318634965,
+      "median_recording_auc": 0.5515087223008015,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 4,
+      "recordings_auc_below_0_5": 3
+    },
+    {
+      "channel": "FP2-F8",
+      "feature": "skewness",
+      "mean_recording_auc": 0.6702997303436298,
+      "median_recording_auc": 0.6574728901461575,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 6,
+      "recordings_auc_below_0_5": 1
+    },
+    {
+      "channel": "FP2-F8",
+      "feature": "spectral_entropy",
+      "mean_recording_auc": 0.5060144666403171,
+      "median_recording_auc": 0.393935119887165,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 3,
+      "recordings_auc_below_0_5": 4
+    },
+    {
+      "channel": "FZ-CZ",
+      "feature": "excess_kurtosis",
+      "mean_recording_auc": 0.6547713073376382,
+      "median_recording_auc": 0.6613162118780096,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 6,
+      "recordings_auc_below_0_5": 1
+    },
+    {
+      "channel": "FZ-CZ",
+      "feature": "log_std",
+      "mean_recording_auc": 0.12061829992178275,
+      "median_recording_auc": 0.07342657342657341,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 0,
+      "recordings_auc_below_0_5": 7
+    },
+    {
+      "channel": "FZ-CZ",
+      "feature": "normalized_line_length",
+      "mean_recording_auc": 0.7617311947181065,
+      "median_recording_auc": 0.8513399153737659,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 6,
+      "recordings_auc_below_0_5": 1
+    },
+    {
+      "channel": "FZ-CZ",
+      "feature": "relative_alpha_power",
+      "mean_recording_auc": 0.6575163531191536,
+      "median_recording_auc": 0.6679830747531735,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 6,
+      "recordings_auc_below_0_5": 1
+    },
+    {
+      "channel": "FZ-CZ",
+      "feature": "relative_beta_power",
+      "mean_recording_auc": 0.7638590390479717,
+      "median_recording_auc": 0.7692307692307693,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "FZ-CZ",
+      "feature": "relative_delta_power",
+      "mean_recording_auc": 0.4380803581758442,
+      "median_recording_auc": 0.44195804195804195,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 3,
+      "recordings_auc_below_0_5": 4
+    },
+    {
+      "channel": "FZ-CZ",
+      "feature": "relative_gamma_power",
+      "mean_recording_auc": 0.9083931623191248,
+      "median_recording_auc": 0.943006993006993,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "FZ-CZ",
+      "feature": "relative_theta_power",
+      "mean_recording_auc": 0.3763249295465288,
+      "median_recording_auc": 0.31643356643356646,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 2,
+      "recordings_auc_below_0_5": 5
+    },
+    {
+      "channel": "FZ-CZ",
+      "feature": "skewness",
+      "mean_recording_auc": 0.4106029412616782,
+      "median_recording_auc": 0.3758765778401122,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 3,
+      "recordings_auc_below_0_5": 4
+    },
+    {
+      "channel": "FZ-CZ",
+      "feature": "spectral_entropy",
+      "mean_recording_auc": 0.6061982113742319,
+      "median_recording_auc": 0.646067415730337,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 4,
+      "recordings_auc_below_0_5": 3
+    },
+    {
+      "channel": "P3-O1",
+      "feature": "excess_kurtosis",
+      "mean_recording_auc": 0.7903042440164223,
+      "median_recording_auc": 0.7887239165329052,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "P3-O1",
+      "feature": "log_std",
+      "mean_recording_auc": 0.12248032634923793,
+      "median_recording_auc": 0.10074801309022909,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 0,
+      "recordings_auc_below_0_5": 7
+    },
+    {
+      "channel": "P3-O1",
+      "feature": "normalized_line_length",
+      "mean_recording_auc": 0.8761766643691831,
+      "median_recording_auc": 0.8929406264609632,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "P3-O1",
+      "feature": "relative_alpha_power",
+      "mean_recording_auc": 0.6743781965720114,
+      "median_recording_auc": 0.6859951845906902,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 6,
+      "recordings_auc_below_0_5": 1
+    },
+    {
+      "channel": "P3-O1",
+      "feature": "relative_beta_power",
+      "mean_recording_auc": 0.8268030667184806,
+      "median_recording_auc": 0.8350140056022408,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "P3-O1",
+      "feature": "relative_delta_power",
+      "mean_recording_auc": 0.4846983224947259,
+      "median_recording_auc": 0.45489510489510493,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 3,
+      "recordings_auc_below_0_5": 4
+    },
+    {
+      "channel": "P3-O1",
+      "feature": "relative_gamma_power",
+      "mean_recording_auc": 0.9164132737289901,
+      "median_recording_auc": 0.9102384291725105,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "P3-O1",
+      "feature": "relative_theta_power",
+      "mean_recording_auc": 0.1561878532367115,
+      "median_recording_auc": 0.1969187675070028,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 0,
+      "recordings_auc_below_0_5": 7
+    },
+    {
+      "channel": "P3-O1",
+      "feature": "skewness",
+      "mean_recording_auc": 0.5528724179439999,
+      "median_recording_auc": 0.5162464985994397,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 4,
+      "recordings_auc_below_0_5": 3
+    },
+    {
+      "channel": "P3-O1",
+      "feature": "spectral_entropy",
+      "mean_recording_auc": 0.5914149548670355,
+      "median_recording_auc": 0.7190476190476192,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 4,
+      "recordings_auc_below_0_5": 3
+    },
+    {
+      "channel": "P4-O2",
+      "feature": "excess_kurtosis",
+      "mean_recording_auc": 0.7950633343224423,
+      "median_recording_auc": 0.8287729196050775,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "P4-O2",
+      "feature": "log_std",
+      "mean_recording_auc": 0.2018568541240316,
+      "median_recording_auc": 0.16725601131541726,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 0,
+      "recordings_auc_below_0_5": 7
+    },
+    {
+      "channel": "P4-O2",
+      "feature": "normalized_line_length",
+      "mean_recording_auc": 0.8799790824516156,
+      "median_recording_auc": 0.9325842696629214,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "P4-O2",
+      "feature": "relative_alpha_power",
+      "mean_recording_auc": 0.5560504345835283,
+      "median_recording_auc": 0.48573785950023574,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 3,
+      "recordings_auc_below_0_5": 4
+    },
+    {
+      "channel": "P4-O2",
+      "feature": "relative_beta_power",
+      "mean_recording_auc": 0.8291845991896445,
+      "median_recording_auc": 0.879414125200642,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "P4-O2",
+      "feature": "relative_delta_power",
+      "mean_recording_auc": 0.6005248723354365,
+      "median_recording_auc": 0.5785007072135785,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 5,
+      "recordings_auc_below_0_5": 2
+    },
+    {
+      "channel": "P4-O2",
+      "feature": "relative_gamma_power",
+      "mean_recording_auc": 0.9121457127587247,
+      "median_recording_auc": 0.9447552447552449,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "P4-O2",
+      "feature": "relative_theta_power",
+      "mean_recording_auc": 0.08444457646780587,
+      "median_recording_auc": 0.09475524475524474,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 0,
+      "recordings_auc_below_0_5": 7
+    },
+    {
+      "channel": "P4-O2",
+      "feature": "skewness",
+      "mean_recording_auc": 0.5429612282435222,
+      "median_recording_auc": 0.5762237762237762,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 5,
+      "recordings_auc_below_0_5": 2
+    },
+    {
+      "channel": "P4-O2",
+      "feature": "spectral_entropy",
+      "mean_recording_auc": 0.47474639209216013,
+      "median_recording_auc": 0.4355256954266855,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 3,
+      "recordings_auc_below_0_5": 4
+    },
+    {
+      "channel": "P7-O1",
+      "feature": "excess_kurtosis",
+      "mean_recording_auc": 0.7410248120663028,
+      "median_recording_auc": 0.7425762439807384,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 6,
+      "recordings_auc_below_0_5": 1
+    },
+    {
+      "channel": "P7-O1",
+      "feature": "log_std",
+      "mean_recording_auc": 0.19039110820333138,
+      "median_recording_auc": 0.14539504441327722,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 1,
+      "recordings_auc_below_0_5": 6
+    },
+    {
+      "channel": "P7-O1",
+      "feature": "normalized_line_length",
+      "mean_recording_auc": 0.8788522991508085,
+      "median_recording_auc": 0.9055944055944056,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "P7-O1",
+      "feature": "relative_alpha_power",
+      "mean_recording_auc": 0.7235751771478274,
+      "median_recording_auc": 0.7587657784011221,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "P7-O1",
+      "feature": "relative_beta_power",
+      "mean_recording_auc": 0.8640036747112418,
+      "median_recording_auc": 0.8488920320603488,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "P7-O1",
+      "feature": "relative_delta_power",
+      "mean_recording_auc": 0.39349639969135825,
+      "median_recording_auc": 0.4416131621187801,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 1,
+      "recordings_auc_below_0_5": 6
+    },
+    {
+      "channel": "P7-O1",
+      "feature": "relative_gamma_power",
+      "mean_recording_auc": 0.9177203127478173,
+      "median_recording_auc": 0.9114071996259935,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "P7-O1",
+      "feature": "relative_theta_power",
+      "mean_recording_auc": 0.11113007617666769,
+      "median_recording_auc": 0.04266855256954269,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 0,
+      "recordings_auc_below_0_5": 7
+    },
+    {
+      "channel": "P7-O1",
+      "feature": "skewness",
+      "mean_recording_auc": 0.41744371300897726,
+      "median_recording_auc": 0.3868630201028518,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 2,
+      "recordings_auc_below_0_5": 5
+    },
+    {
+      "channel": "P7-O1",
+      "feature": "spectral_entropy",
+      "mean_recording_auc": 0.6784959980540616,
+      "median_recording_auc": 0.6617174959871589,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 6,
+      "recordings_auc_below_0_5": 1
+    },
+    {
+      "channel": "P8-O2",
+      "feature": "excess_kurtosis",
+      "mean_recording_auc": 0.7909572455851529,
+      "median_recording_auc": 0.7636107193229901,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "P8-O2",
+      "feature": "log_std",
+      "mean_recording_auc": 0.26942735867473916,
+      "median_recording_auc": 0.18281471004243283,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 2,
+      "recordings_auc_below_0_5": 5
+    },
+    {
+      "channel": "P8-O2",
+      "feature": "normalized_line_length",
+      "mean_recording_auc": 0.8829976168233696,
+      "median_recording_auc": 0.8798307475317348,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "P8-O2",
+      "feature": "relative_alpha_power",
+      "mean_recording_auc": 0.6218265636938562,
+      "median_recording_auc": 0.5734837799717913,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 5,
+      "recordings_auc_below_0_5": 2
+    },
+    {
+      "channel": "P8-O2",
+      "feature": "relative_beta_power",
+      "mean_recording_auc": 0.8384540320297249,
+      "median_recording_auc": 0.8380480905233381,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "P8-O2",
+      "feature": "relative_delta_power",
+      "mean_recording_auc": 0.4935392179270281,
+      "median_recording_auc": 0.5279349363507779,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 4,
+      "recordings_auc_below_0_5": 3
+    },
+    {
+      "channel": "P8-O2",
+      "feature": "relative_gamma_power",
+      "mean_recording_auc": 0.9192977380813732,
+      "median_recording_auc": 0.9301833568406206,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "P8-O2",
+      "feature": "relative_theta_power",
+      "mean_recording_auc": 0.08149804266749365,
+      "median_recording_auc": 0.06280096308186198,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 0,
+      "recordings_auc_below_0_5": 7
+    },
+    {
+      "channel": "P8-O2",
+      "feature": "skewness",
+      "mean_recording_auc": 0.3943199054274628,
+      "median_recording_auc": 0.3832167832167832,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 1,
+      "recordings_auc_below_0_5": 6
+    },
+    {
+      "channel": "P8-O2",
+      "feature": "spectral_entropy",
+      "mean_recording_auc": 0.6313759384645509,
+      "median_recording_auc": 0.5574021687883074,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 6,
+      "recordings_auc_below_0_5": 1
+    },
+    {
+      "channel": "T7-P7",
+      "feature": "excess_kurtosis",
+      "mean_recording_auc": 0.7744851204078881,
+      "median_recording_auc": 0.7734265734265734,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "T7-P7",
+      "feature": "log_std",
+      "mean_recording_auc": 0.2657291641756777,
+      "median_recording_auc": 0.24545454545454548,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 1,
+      "recordings_auc_below_0_5": 6
+    },
+    {
+      "channel": "T7-P7",
+      "feature": "normalized_line_length",
+      "mean_recording_auc": 0.8696159713701267,
+      "median_recording_auc": 0.9100046750818139,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "T7-P7",
+      "feature": "relative_alpha_power",
+      "mean_recording_auc": 0.6576265456296128,
+      "median_recording_auc": 0.6243571762505843,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 6,
+      "recordings_auc_below_0_5": 1
+    },
+    {
+      "channel": "T7-P7",
+      "feature": "relative_beta_power",
+      "mean_recording_auc": 0.850193398684909,
+      "median_recording_auc": 0.8787128712871287,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "T7-P7",
+      "feature": "relative_delta_power",
+      "mean_recording_auc": 0.3971634538275753,
+      "median_recording_auc": 0.4409090909090909,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 3,
+      "recordings_auc_below_0_5": 4
+    },
+    {
+      "channel": "T7-P7",
+      "feature": "relative_gamma_power",
+      "mean_recording_auc": 0.8919937712068284,
+      "median_recording_auc": 0.9338755304101839,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 7,
+      "recordings_auc_below_0_5": 0
+    },
+    {
+      "channel": "T7-P7",
+      "feature": "relative_theta_power",
+      "mean_recording_auc": 0.18431464917034385,
+      "median_recording_auc": 0.18263305322128853,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 0,
+      "recordings_auc_below_0_5": 7
+    },
+    {
+      "channel": "T7-P7",
+      "feature": "skewness",
+      "mean_recording_auc": 0.6785383004998252,
+      "median_recording_auc": 0.6780999528524282,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 6,
+      "recordings_auc_below_0_5": 1
+    },
+    {
+      "channel": "T7-P7",
+      "feature": "spectral_entropy",
+      "mean_recording_auc": 0.6524174544422737,
+      "median_recording_auc": 0.7447108603667137,
+      "recording_count": 7,
+      "recordings_auc_above_0_5": 5,
+      "recordings_auc_below_0_5": 2
+    }
+  ],
+  "heldout_patient": "patient_14",
+  "invariance_comparison": {
+    "features_compared_per_channel": [
+      "normalized_line_length",
+      "skewness",
+      "excess_kurtosis",
+      "relative_delta_power",
+      "relative_theta_power",
+      "relative_alpha_power",
+      "relative_beta_power",
+      "relative_gamma_power",
+      "spectral_entropy"
+    ],
+    "interpretation": "Numerical audit only; affine invariance is mathematical, while float32 rounding can cause small differences.",
+    "max_absolute_difference": 7.62939453125e-06,
+    "total_values_over_1e-3": 0,
+    "total_values_over_1e-4": 0
+  },
+  "model_retrained": false,
+  "negative_window_count": 18646,
+  "notes": [
+    "Within-recording AUCs are exploratory and can be unstable with few positive windows.",
+    "AUC below 0.5 means the feature is lower in seizure windows for that recording; it does not justify reversing a feature or score.",
+    "The patient-level OOF model and its predictions are unchanged."
+  ],
+  "outer_test_patient_loaded": false,
+  "outputs": [
+    "results\\diagnostics\\patient_14_feature_separation.csv",
+    "results\\diagnostics\\patient_14_affine_invariance.csv"
+  ],
+  "patient_recording_count": 26,
+  "positive_window_count": 48,
+  "recordings": [
+    {
+      "feature_auc_count": 0,
+      "mean_feature_auc": null,
+      "median_feature_auc": null,
+      "negative_windows": 719,
+      "positive_windows": 0,
+      "recording": "chb14/chb14_01.edf",
+      "windows": 719
+    },
+    {
+      "feature_auc_count": 0,
+      "mean_feature_auc": null,
+      "median_feature_auc": null,
+      "negative_windows": 719,
+      "positive_windows": 0,
+      "recording": "chb14/chb14_02.edf",
+      "windows": 719
+    },
+    {
+      "feature_auc_count": 170,
+      "mean_feature_auc": 0.6091176470588235,
+      "median_feature_auc": 0.6681818181818182,
+      "negative_windows": 715,
+      "positive_windows": 4,
+      "recording": "chb14/chb14_03.edf",
+      "windows": 719
+    },
+    {
+      "feature_auc_count": 170,
+      "mean_feature_auc": 0.4988046703830047,
+      "median_feature_auc": 0.4955799151343706,
+      "negative_windows": 707,
+      "positive_windows": 12,
+      "recording": "chb14/chb14_04.edf",
+      "windows": 719
+    },
+    {
+      "feature_auc_count": 170,
+      "mean_feature_auc": 0.6515117235705471,
+      "median_feature_auc": 0.7377622377622377,
+      "negative_windows": 715,
+      "positive_windows": 4,
+      "recording": "chb14/chb14_06.edf",
+      "windows": 719
+    },
+    {
+      "feature_auc_count": 0,
+      "mean_feature_auc": null,
+      "median_feature_auc": null,
+      "negative_windows": 719,
+      "positive_windows": 0,
+      "recording": "chb14/chb14_07.edf",
+      "windows": 719
+    },
+    {
+      "feature_auc_count": 170,
+      "mean_feature_auc": 0.5736430764125114,
+      "median_feature_auc": 0.5969675599435825,
+      "negative_windows": 709,
+      "positive_windows": 10,
+      "recording": "chb14/chb14_11.edf",
+      "windows": 719
+    },
+    {
+      "feature_auc_count": 0,
+      "mean_feature_auc": null,
+      "median_feature_auc": null,
+      "negative_windows": 719,
+      "positive_windows": 0,
+      "recording": "chb14/chb14_12.edf",
+      "windows": 719
+    },
+    {
+      "feature_auc_count": 0,
+      "mean_feature_auc": null,
+      "median_feature_auc": null,
+      "negative_windows": 719,
+      "positive_windows": 0,
+      "recording": "chb14/chb14_13.edf",
+      "windows": 719
+    },
+    {
+      "feature_auc_count": 0,
+      "mean_feature_auc": null,
+      "median_feature_auc": null,
+      "negative_windows": 719,
+      "positive_windows": 0,
+      "recording": "chb14/chb14_14.edf",
+      "windows": 719
+    },
+    {
+      "feature_auc_count": 0,
+      "mean_feature_auc": null,
+      "median_feature_auc": null,
+      "negative_windows": 719,
+      "positive_windows": 0,
+      "recording": "chb14/chb14_16.edf",
+      "windows": 719
+    },
+    {
+      "feature_auc_count": 170,
+      "mean_feature_auc": 0.5391304347826087,
+      "median_feature_auc": 0.5499064983637214,
+      "negative_windows": 713,
+      "positive_windows": 6,
+      "recording": "chb14/chb14_17.edf",
+      "windows": 719
+    },
+    {
+      "feature_auc_count": 170,
+      "mean_feature_auc": 0.5394910773298083,
+      "median_feature_auc": 0.6159711075441412,
+      "negative_windows": 712,
+      "positive_windows": 7,
+      "recording": "chb14/chb14_18.edf",
+      "windows": 719
+    },
+    {
+      "feature_auc_count": 0,
+      "mean_feature_auc": null,
+      "median_feature_auc": null,
+      "negative_windows": 719,
+      "positive_windows": 0,
+      "recording": "chb14/chb14_19.edf",
+      "windows": 719
+    },
+    {
+      "feature_auc_count": 0,
+      "mean_feature_auc": null,
+      "median_feature_auc": null,
+      "negative_windows": 719,
+      "positive_windows": 0,
+      "recording": "chb14/chb14_20.edf",
+      "windows": 719
+    },
+    {
+      "feature_auc_count": 0,
+      "mean_feature_auc": null,
+      "median_feature_auc": null,
+      "negative_windows": 719,
+      "positive_windows": 0,
+      "recording": "chb14/chb14_22.edf",
+      "windows": 719
+    },
+    {
+      "feature_auc_count": 0,
+      "mean_feature_auc": null,
+      "median_feature_auc": null,
+      "negative_windows": 719,
+      "positive_windows": 0,
+      "recording": "chb14/chb14_24.edf",
+      "windows": 719
+    },
+    {
+      "feature_auc_count": 0,
+      "mean_feature_auc": null,
+      "median_feature_auc": null,
+      "negative_windows": 719,
+      "positive_windows": 0,
+      "recording": "chb14/chb14_25.edf",
+      "windows": 719
+    },
+    {
+      "feature_auc_count": 0,
+      "mean_feature_auc": null,
+      "median_feature_auc": null,
+      "negative_windows": 719,
+      "positive_windows": 0,
+      "recording": "chb14/chb14_26.edf",
+      "windows": 719
+    },
+    {
+      "feature_auc_count": 170,
+      "mean_feature_auc": 0.5737782171692206,
+      "median_feature_auc": 0.576610644257703,
+      "negative_windows": 714,
+      "positive_windows": 5,
+      "recording": "chb14/chb14_27.edf",
+      "windows": 719
+    },
+    {
+      "feature_auc_count": 0,
+      "mean_feature_auc": null,
+      "median_feature_auc": null,
+      "negative_windows": 719,
+      "positive_windows": 0,
+      "recording": "chb14/chb14_29.edf",
+      "windows": 719
+    },
+    {
+      "feature_auc_count": 0,
+      "mean_feature_auc": null,
+      "median_feature_auc": null,
+      "negative_windows": 719,
+      "positive_windows": 0,
+      "recording": "chb14/chb14_30.edf",
+      "windows": 719
+    },
+    {
+      "feature_auc_count": 0,
+      "mean_feature_auc": null,
+      "median_feature_auc": null,
+      "negative_windows": 719,
+      "positive_windows": 0,
+      "recording": "chb14/chb14_32.edf",
+      "windows": 719
+    },
+    {
+      "feature_auc_count": 0,
+      "mean_feature_auc": null,
+      "median_feature_auc": null,
+      "negative_windows": 719,
+      "positive_windows": 0,
+      "recording": "chb14/chb14_37.edf",
+      "windows": 719
+    },
+    {
+      "feature_auc_count": 0,
+      "mean_feature_auc": null,
+      "median_feature_auc": null,
+      "negative_windows": 719,
+      "positive_windows": 0,
+      "recording": "chb14/chb14_39.edf",
+      "windows": 719
+    },
+    {
+      "feature_auc_count": 0,
+      "mean_feature_auc": null,
+      "median_feature_auc": null,
+      "negative_windows": 719,
+      "positive_windows": 0,
+      "recording": "chb14/chb14_42.edf",
+      "windows": 719
+    }
+  ],
+  "seizure_containing_recordings": 7,
+  "status": "completed",
+  "threshold_tuned": false,
+  "window_count": 18694
+}

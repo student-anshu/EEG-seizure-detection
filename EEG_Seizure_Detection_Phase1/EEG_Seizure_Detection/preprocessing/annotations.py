@@ -11,8 +11,40 @@ def find_summary_file(edf_path: str | Path) -> Path:
     return summary
 
 
+def is_officially_unannotated_recording(edf_path: str | Path) -> bool:
+    """Confirm an unlisted EDF is negative using both official CHB-MIT manifests."""
+    edf_path = Path(edf_path)
+    summary_path = find_summary_file(edf_path)
+    summary_text = summary_path.read_text(encoding="utf-8", errors="ignore")
+    if re.search(
+        rf"^File Name\s*:\s*{re.escape(edf_path.name)}\s*$",
+        summary_text,
+        flags=re.IGNORECASE | re.MULTILINE,
+    ):
+        return False
+
+    dataset_root = edf_path.parent.parent
+    records_path = dataset_root / "RECORDS"
+    seizure_records_path = dataset_root / "RECORDS-WITH-SEIZURES"
+    if not records_path.is_file() or not seizure_records_path.is_file():
+        return False
+
+    relative_path = edf_path.relative_to(dataset_root).as_posix()
+    records = {
+        line.strip()
+        for line in records_path.read_text(encoding="utf-8", errors="ignore").splitlines()
+        if line.strip()
+    }
+    seizure_records = {
+        line.strip()
+        for line in seizure_records_path.read_text(encoding="utf-8", errors="ignore").splitlines()
+        if line.strip()
+    }
+    return relative_path in records and relative_path not in seizure_records
+
+
 def read_seizure_intervals(edf_path: str | Path) -> list[tuple[float, float]]:
-    """Read seizure intervals from numbered or unnumbered CHB-MIT summary fields."""
+    """Read intervals from a subject summary; use official manifests for omitted negatives."""
     edf_path = Path(edf_path)
     summary_path = find_summary_file(edf_path)
     text = summary_path.read_text(encoding="utf-8", errors="ignore")
@@ -29,12 +61,9 @@ def read_seizure_intervals(edf_path: str | Path) -> list[tuple[float, float]]:
         if not count:
             raise ValueError(f"Missing seizure count for {edf_path.name}")
         expected = int(count.group(1))
-
         pattern = r"^Seizure(?:\s+\d+)?\s+{0}\s+Time\s*:\s*(\d+(?:\.\d+)?)\s*seconds?\s*$"
-        starts = re.findall(pattern.format("Start"), block,
-                            flags=re.IGNORECASE | re.MULTILINE)
-        ends = re.findall(pattern.format("End"), block,
-                          flags=re.IGNORECASE | re.MULTILINE)
+        starts = re.findall(pattern.format("Start"), block, flags=re.IGNORECASE | re.MULTILINE)
+        ends = re.findall(pattern.format("End"), block, flags=re.IGNORECASE | re.MULTILINE)
 
         if expected == 0:
             if starts or ends:
@@ -57,7 +86,10 @@ def read_seizure_intervals(edf_path: str | Path) -> list[tuple[float, float]]:
             intervals.append((start, end))
         return intervals
 
+    if is_officially_unannotated_recording(edf_path):
+        return []
+
     raise ValueError(
-        f"{edf_path.name} was not listed in {summary_path.name}. "
-        "Check that the EDF and summary file belong to the same subject."
+        f"{edf_path.name} was not listed in {summary_path.name}, and the official "
+        "RECORDS manifests do not confirm it as a non-seizure recording."
     )

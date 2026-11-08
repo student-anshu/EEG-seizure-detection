@@ -1,0 +1,542 @@
+
+===========================================================================
+SOURCE FILE: preprocessing/load_data.py
+===========================================================================
+1: from pathlib import Path
+2: import mne
+3: 
+4: def load_edf(edf_path: str | Path, preload: bool = True):
+5:     """Load an EDF recording and return an MNE Raw object."""
+6:     edf_path = Path(edf_path)
+7:     if not edf_path.exists():
+8:         raise FileNotFoundError(f"EDF file does not exist: {edf_path}")
+9:     raw = mne.io.read_raw_edf(edf_path, preload=preload, verbose="ERROR")
+10:     return raw
+
+===========================================================================
+SOURCE FILE: preprocessing/signal_processing.py
+===========================================================================
+1: import numpy as np
+2: from scipy.signal import butter, iirnotch, sosfiltfilt, tf2sos
+3: 
+4: 
+5: def bandpass_and_notch(
+6:     data: np.ndarray,
+7:     sfreq: float,
+8:     low_hz: float = 0.5,
+9:     high_hz: float = 40.0,
+10:     notch_hz: float = 60.0,
+11: ) -> np.ndarray:
+12:     """
+13:     Apply zero-phase bandpass and optional mains-frequency notch filtering.
+14: 
+15:     Parameters
+16:     ----------
+17:     data:
+18:         EEG array with shape (channels, samples).
+19:     sfreq:
+20:         Sampling frequency in Hz.
+21:     low_hz, high_hz:
+22:         Requested bandpass cutoffs in Hz. The high cutoff is capped below
+23:         Nyquist when necessary.
+24:     notch_hz:
+25:         Notch frequency in Hz. Set to 0 to disable the notch filter. A notch
+26:         at or above Nyquist is skipped.
+27: 
+28:     Returns
+29:     -------
+30:     np.ndarray
+31:         Filtered EEG data with shape (channels, samples), dtype float32.
+32: 
+33:     Notes
+34:     -----
+35:     Forward-backward filtering avoids phase delay. It is an offline operation
+36:     and is not suitable as-is for causal real-time streaming.
+37:     """
+38:     data = np.asarray(data, dtype=np.float64)
+39: 
+40:     if data.ndim != 2 or data.shape[0] == 0 or data.shape[1] == 0:
+41:         raise ValueError("EEG data must be a non-empty 2D array (channels, samples).")
+42:     if not np.all(np.isfinite(data)):
+43:         raise ValueError("EEG data contains NaN or infinite values.")
+44:     if not np.isfinite(sfreq) or sfreq <= 0:
+45:         raise ValueError("Sampling frequency must be a finite positive number.")
+46:     if not np.isfinite(low_hz) or not np.isfinite(high_hz):
+47:         raise ValueError("Bandpass cutoff frequencies must be finite.")
+48:     if not np.isfinite(notch_hz) or notch_hz < 0:
+49:         raise ValueError("Notch frequency must be finite and non-negative.")
+50: 
+51:     nyquist = sfreq / 2.0
+52:     high = min(high_hz, nyquist * 0.95)
+53:     if low_hz <= 0 or high_hz <= 0 or low_hz >= high:
+54:         raise ValueError(
+55:             "Invalid bandpass frequencies for this sampling rate: "
+56:             f"low={low_hz:g} Hz, effective high={high:g} Hz, "
+57:             f"Nyquist={nyquist:g} Hz."
+58:         )
+59: 
+60:     bandpass_sos = butter(
+61:         4, [low_hz, high], btype="bandpass", fs=sfreq, output="sos"
+62:     )
+63:     try:
+64:         filtered = sosfiltfilt(bandpass_sos, data, axis=-1)
+65:     except ValueError as exc:
+66:         raise ValueError(
+67:             "EEG recording is too short for zero-phase bandpass filtering. "
+68:             "Provide more samples or handle the short recording explicitly."
+69:         ) from exc
+70: 
+71:     if 0 < notch_hz < nyquist:
+72:         b, a = iirnotch(notch_hz, Q=30, fs=sfreq)
+73:         notch_sos = tf2sos(b, a)
+74:         try:
+75:             filtered = sosfiltfilt(notch_sos, filtered, axis=-1)
+76:         except ValueError as exc:
+77:             raise ValueError(
+78:                 "EEG recording is too short for zero-phase notch filtering."
+79:             ) from exc
+80: 
+81:     return filtered.astype(np.float32)
+82: 
+83: 
+84: def robust_normalize(data: np.ndarray) -> np.ndarray:
+85:     """
+86:     Normalize each channel using its median and interquartile range.
+87: 
+88:     Input must have shape (channels, samples). Statistics are calculated over
+89:     the complete supplied recording, so this is an offline, per-recording
+90:     transform rather than a causal streaming transform.
+91:     """
+92:     data = np.asarray(data, dtype=np.float64)
+93: 
+94:     if data.ndim != 2 or data.shape[0] == 0 or data.shape[1] == 0:
+95:         raise ValueError("EEG data must be a non-empty 2D array (channels, samples).")
+96:     if not np.all(np.isfinite(data)):
+97:         raise ValueError("EEG data contains NaN or infinite values.")
+98: 
+99:     median = np.median(data, axis=-1, keepdims=True)
+100:     q75 = np.percentile(data, 75, axis=-1, keepdims=True)
+101:     q25 = np.percentile(data, 25, axis=-1, keepdims=True)
+102:     scale = np.maximum(q75 - q25, 1e-6)
+103:     normalized = (data - median) / scale
+104:     return normalized.astype(np.float32)
+
+===========================================================================
+SOURCE FILE: preprocessing/segmentation.py
+===========================================================================
+1: import numpy as np
+2: 
+3: 
+4: def make_windows(
+5:     data: np.ndarray,
+6:     sfreq: float,
+7:     seizure_intervals: list[tuple[float, float]],
+8:     window_seconds: float = 10,
+9:     stride_seconds: float = 5,
+10: ):
+11:     """
+12:     Convert (channels, samples) into windows shaped (windows, channels, samples).
+13: 
+14:     A window is seizure-positive when its time interval overlaps any seizure
+15:     annotation. Windows are half-open intervals [start, end), so a window
+16:     ending exactly at seizure onset is not positive.
+17:     """
+18:     data = np.asarray(data)
+19: 
+20:     if data.ndim != 2 or data.shape[0] == 0 or data.shape[1] == 0:
+21:         raise ValueError("EEG data must be a non-empty 2D array (channels, samples).")
+22:     if not np.all(np.isfinite(data)):
+23:         raise ValueError("EEG data contains NaN or infinite values.")
+24:     if not np.isfinite(sfreq) or sfreq <= 0:
+25:         raise ValueError("Sampling frequency must be a finite positive number.")
+26:     if not np.isfinite(window_seconds) or window_seconds <= 0:
+27:         raise ValueError("Window duration must be a finite positive number.")
+28:     if not np.isfinite(stride_seconds) or stride_seconds <= 0:
+29:         raise ValueError("Window stride must be a finite positive number.")
+30: 
+31:     window_size = int(round(window_seconds * sfreq))
+32:     stride = int(round(stride_seconds * sfreq))
+33:     if window_size <= 0 or stride <= 0:
+34:         raise ValueError("Window and stride must each correspond to at least one sample.")
+35: 
+36:     validated_intervals = []
+37:     for index, interval in enumerate(seizure_intervals):
+38:         if len(interval) != 2:
+39:             raise ValueError(f"Seizure interval #{index + 1} must contain start and end.")
+40:         start, end = interval
+41:         if not np.isfinite(start) or not np.isfinite(end) or start < 0 or end <= start:
+42:             raise ValueError(
+43:                 f"Invalid seizure interval #{index + 1}: {interval}. "
+44:                 "Expected finite values with 0 <= start < end."
+45:             )
+46:         validated_intervals.append((float(start), float(end)))
+47: 
+48:     windows, labels, starts = [], [], []
+49:     total_samples = data.shape[1]
+50: 
+51:     for start_sample in range(0, total_samples - window_size + 1, stride):
+52:         end_sample = start_sample + window_size
+53:         start_sec = start_sample / sfreq
+54:         end_sec = end_sample / sfreq
+55: 
+56:         label = int(any(
+57:             start_sec < seizure_end and end_sec > seizure_start
+58:             for seizure_start, seizure_end in validated_intervals
+59:         ))
+60:         windows.append(data[:, start_sample:end_sample])
+61:         labels.append(label)
+62:         starts.append(start_sec)
+63: 
+64:     if not windows:
+65:         return (
+66:             np.empty((0, data.shape[0], window_size), dtype=np.float32),
+67:             np.empty((0,), dtype=np.int64),
+68:             np.empty((0,), dtype=np.float32),
+69:         )
+70: 
+71:     return (
+72:         np.stack(windows).astype(np.float32),
+73:         np.asarray(labels, dtype=np.int64),
+74:         np.asarray(starts, dtype=np.float32),
+75:     )
+
+===========================================================================
+SOURCE FILE: preprocessing/normalization.py
+===========================================================================
+1: """Fold-specific EEG channel normalization with resumable statistics."""
+2: from __future__ import annotations
+3: 
+4: import hashlib
+5: import json
+6: import os
+7: import zipfile
+8: from pathlib import Path
+9: 
+10: import numpy as np
+11: 
+12: 
+13: _SCALER_CHECKPOINT_VERSION = 1
+14: 
+15: 
+16: def scaler_checkpoint_signature(recordings, processed_dir, context, epsilon=1e-6):
+17:     """Fingerprint the exact recording set, processed inputs and scaler context."""
+18:     directory = Path(processed_dir)
+19:     sources = []
+20:     identities = []
+21:     for recording in recordings:
+22:         path = directory / (
+23:             f"{recording.subject}_{Path(recording.edf_file).stem}.npz"
+24:         )
+25:         if not path.is_file():
+26:             raise FileNotFoundError(
+27:                 f"Processed windows missing for {recording.relative_path}: {path}"
+28:             )
+29:         stat = path.stat()
+30:         sources.append({
+31:             "path": str(path.resolve()),
+32:             "size": stat.st_size,
+33:             "mtime_ns": stat.st_mtime_ns,
+34:         })
+35:         identities.append({
+36:             "relative_path": recording.relative_path,
+37:             "patient_id": recording.patient_id,
+38:             "subject": recording.subject,
+39:             "edf_file": recording.edf_file,
+40:             "seizure_count": recording.seizure_count,
+41:         })
+42: 
+43:     payload = {
+44:         "checkpoint_version": _SCALER_CHECKPOINT_VERSION,
+45:         "algorithm": "parallel_welford_population_variance_v1",
+46:         "epsilon": float(epsilon),
+47:         "context": context,
+48:         "recordings": identities,
+49:         "processed_sources": sources,
+50:     }
+51:     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+52:     return hashlib.sha256(encoded).hexdigest()
+53: 
+54: 
+55: class FoldChannelStandardizer:
+56:     """Standardize channels using statistics fitted on training-fold windows.
+57: 
+58:     Input shape: (windows, channels, samples). The caller must enforce that
+59:     only the permitted training recordings are passed to fit methods.
+60:     """
+61: 
+62:     def __init__(self, epsilon=1e-6):
+63:         if not np.isfinite(epsilon) or epsilon <= 0:
+64:             raise ValueError("epsilon must be a finite positive number.")
+65:         self.epsilon = float(epsilon)
+66:         self.mean_ = None
+67:         self.scale_ = None
+68:         self.n_channels_ = None
+69:         self.n_values_per_channel_ = None
+70:         self._count = 0
+71:         self._mean = None
+72:         self._m2 = None
+73:         self._n_channels = None
+74: 
+75:     @staticmethod
+76:     def _validate_windows(windows):
+77:         values = np.asarray(windows, dtype=np.float64)
+78:         if values.ndim != 3:
+79:             raise ValueError("EEG windows must have shape (windows, channels, samples).")
+80:         if any(size == 0 for size in values.shape):
+81:             raise ValueError("EEG windows must be non-empty on every axis.")
+82:         if not np.all(np.isfinite(values)):
+83:             raise ValueError("EEG windows contain NaN or infinite values.")
+84:         return values
+85: 
+86:     def partial_fit(self, training_windows):
+87:         """Merge one recording/batch into the running population statistics."""
+88:         if self.mean_ is not None:
+89:             raise RuntimeError("Cannot partial_fit after the scaler has been finalized.")
+90:         values = self._validate_windows(training_windows)
+91:         if self._n_channels is None:
+92:             self._n_channels = values.shape[1]
+93:         elif values.shape[1] != self._n_channels:
+94:             raise ValueError("Training batches have inconsistent channel counts.")
+95: 
+96:         flattened = values.transpose(1, 0, 2).reshape(values.shape[1], -1)
+97:         batch_count = flattened.shape[1]
+98:         batch_mean = np.mean(flattened, axis=1)
+99:         centered = flattened - batch_mean[:, None]
+100:         batch_m2 = np.sum(centered * centered, axis=1)
+101: 
+102:         if self._count == 0:
+103:             self._count = int(batch_count)
+104:             self._mean = batch_mean
+105:             self._m2 = batch_m2
+106:         else:
+107:             total = self._count + batch_count
+108:             delta = batch_mean - self._mean
+109:             self._mean = self._mean + delta * (batch_count / total)
+110:             self._m2 = (
+111:                 self._m2 + batch_m2
+112:                 + delta * delta * (self._count * batch_count / total)
+113:             )
+114:             self._count = int(total)
+115:         return self
+116: 
+117:     def state_dict(self):
+118:         """Return a detached, serializable snapshot of the running accumulator."""
+119:         return {
+120:             "count": int(self._count),
+121:             "n_channels": int(self._n_channels) if self._n_channels is not None else 0,
+122:             "mean": None if self._mean is None else self._mean.copy(),
+123:             "m2": None if self._m2 is None else self._m2.copy(),
+124:         }
+125: 
+126:     def load_state_dict(self, state):
+127:         """Restore and validate an unfinished accumulator checkpoint."""
+128:         if self.mean_ is not None:
+129:             raise RuntimeError("Cannot restore state after the scaler has been finalized.")
+130:         try:
+131:             count = int(state["count"])
+132:             n_channels = int(state["n_channels"])
+133:             mean = np.asarray(state["mean"], dtype=np.float64)
+134:             m2 = np.asarray(state["m2"], dtype=np.float64)
+135:         except (KeyError, TypeError, ValueError) as exc:
+136:             raise ValueError("Invalid scaler accumulator checkpoint.") from exc
+137:         if count <= 0 or n_channels <= 0:
+138:             raise ValueError("Scaler checkpoint must contain completed samples and channels.")
+139:         if mean.shape != (n_channels,) or m2.shape != (n_channels,):
+140:             raise ValueError("Scaler checkpoint arrays have inconsistent dimensions.")
+141:         if not np.isfinite(mean).all() or not np.isfinite(m2).all() or np.any(m2 < 0):
+142:             raise ValueError("Scaler checkpoint contains invalid statistics.")
+143:         self._count = count
+144:         self._n_channels = n_channels
+145:         self._mean = mean.copy()
+146:         self._m2 = m2.copy()
+147:         return self
+148: 
+149:     def finalize(self):
+150:         """Convert running accumulators into immutable transform statistics."""
+151:         if self._count == 0 or self._mean is None or self._m2 is None:
+152:             raise ValueError("Cannot fit standardizer on no training windows.")
+153:         variance = np.maximum(self._m2 / self._count, 0.0)
+154:         self.n_channels_ = int(self._n_channels)
+155:         self.n_values_per_channel_ = int(self._count)
+156:         self.mean_ = self._mean.copy()
+157:         self.scale_ = np.maximum(np.sqrt(variance), self.epsilon)
+158:         return self
+159: 
+160:     def fit(self, training_windows):
+161:         return self.fit_batches([training_windows])
+162: 
+163:     def fit_batches(self, training_batches):
+164:         """Incrementally fit exact population statistics over recording batches."""
+165:         for batch in training_batches:
+166:             self.partial_fit(batch)
+167:         return self.finalize()
+168: 
+169:     def fit_batches_checkpointed(
+170:         self, batch_factory, total_batches, checkpoint_dir, signature,
+171:         progress_label="channel-scaler fit", progress_every=25,
+172:     ):
+173:         """Fit from a per-recording atomic checkpoint, resuming after the last commit.
+174: 
+175:         batch_factory(start_index) must return an iterator over batches beginning
+176:         at the zero-based recording index supplied. A checkpoint advances only
+177:         after a complete batch has been merged and its state file is durable.
+178:         """
+179:         if not callable(batch_factory):
+180:             raise TypeError("batch_factory must be callable.")
+181:         if int(total_batches) <= 0:
+182:             raise ValueError("total_batches must be positive.")
+183:         if not signature:
+184:             raise ValueError("A non-empty scaler checkpoint signature is required.")
+185:         if int(progress_every) <= 0:
+186:             raise ValueError("progress_every must be positive.")
+187:         if self._count or self.mean_ is not None:
+188:             raise RuntimeError("Checkpointed fitting requires a fresh, unfitted scaler.")
+189: 
+190:         root = Path(checkpoint_dir)
+191:         root.mkdir(parents=True, exist_ok=True)
+192:         manifest_path = root / "manifest.json"
+193:         completed = 0
+194: 
+195:         if manifest_path.is_file():
+196:             try:
+197:                 manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+198:                 if manifest.get("schema_version") != _SCALER_CHECKPOINT_VERSION:
+199:                     raise ValueError("unsupported checkpoint schema")
+200:                 if manifest.get("signature") != signature:
+201:                     raise ValueError("checkpoint signature mismatch")
+202:                 completed = int(manifest["completed_recordings"])
+203:                 state_name = manifest["state_file"]
+204:                 if not isinstance(state_name, str) or Path(state_name).name != state_name:
+205:                     raise ValueError("invalid checkpoint state filename")
+206:                 if not 0 < completed <= int(total_batches):
+207:                     raise ValueError("invalid completed-recording cursor")
+208:                 if bool(manifest.get("complete")) != (completed == int(total_batches)):
+209:                     raise ValueError("checkpoint completion flag mismatch")
+210:                 state_path = root / state_name
+211:                 with np.load(state_path, allow_pickle=False) as saved:
+212:                     state = {
+213:                         "count": int(saved["count"]),
+214:                         "n_channels": int(saved["n_channels"]),
+215:                         "mean": saved["mean"],
+216:                         "m2": saved["m2"],
+217:                     }
+218:                 self.load_state_dict(state)
+219:                 if int(manifest["sample_count"]) != self._count:
+220:                     raise ValueError("checkpoint sample count mismatch")
+221:                 print(
+222:                     f"    resuming channel-scaler checkpoint: "
+223:                     f"{completed}/{total_batches} recordings",
+224:                     flush=True,
+225:                 )
+226:             except (OSError, EOFError, ValueError, TypeError, KeyError, zipfile.BadZipFile, json.JSONDecodeError) as exc:
+227:                 print(
+228:                     f"    rejecting invalid scaler checkpoint ({exc}); restarting scaler fit",
+229:                     flush=True,
+230:                 )
+231:                 self._reset_accumulator()
+232:                 completed = 0
+233: 
+234:         if completed == int(total_batches):
+235:             return self.finalize()
+236: 
+237:         processed_count = completed
+238:         for index, batch in enumerate(batch_factory(completed), start=completed + 1):
+239:             if index > int(total_batches):
+240:                 raise RuntimeError("Scaler batch factory yielded too many recordings.")
+241:             self.partial_fit(batch)
+242:             state_name = f"state_{index:06d}.npz"
+243:             state_path = root / state_name
+244:             temporary_state = root / (state_name + ".tmp")
+245:             with temporary_state.open("wb") as handle:
+246:                 np.savez_compressed(
+247:                     handle,
+248:                     count=np.asarray(self._count, dtype=np.int64),
+249:                     n_channels=np.asarray(self._n_channels, dtype=np.int64),
+250:                     mean=self._mean,
+251:                     m2=self._m2,
+252:                 )
+253:                 handle.flush()
+254:                 os.fsync(handle.fileno())
+255:             os.replace(temporary_state, state_path)
+256: 
+257:             manifest = {
+258:                 "schema_version": _SCALER_CHECKPOINT_VERSION,
+259:                 "signature": signature,
+260:                 "completed_recordings": index,
+261:                 "sample_count": self._count,
+262:                 "state_file": state_name,
+263:                 "complete": index == int(total_batches),
+264:             }
+265:             temporary_manifest = manifest_path.with_suffix(".json.tmp")
+266:             with temporary_manifest.open("w", encoding="utf-8") as handle:
+267:                 handle.write(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
+268:                 handle.flush()
+269:                 os.fsync(handle.fileno())
+270:             os.replace(temporary_manifest, manifest_path)
+271:             processed_count = index
+272: 
+273:             if index % int(progress_every) == 0 or index == int(total_batches):
+274:                 print(
+275:                     f"    {progress_label}: {index}/{total_batches} recordings",
+276:                     flush=True,
+277:                 )
+278: 
+279:         if processed_count != int(total_batches):
+280:             raise RuntimeError(
+281:                 f"Scaler batch factory ended at {processed_count}/{total_batches} recordings."
+282:             )
+283:         return self.finalize()
+284: 
+285:     def _reset_accumulator(self):
+286:         self.mean_ = None
+287:         self.scale_ = None
+288:         self.n_channels_ = None
+289:         self.n_values_per_channel_ = None
+290:         self._count = 0
+291:         self._mean = None
+292:         self._m2 = None
+293:         self._n_channels = None
+294: 
+295:     def transform(self, windows):
+296:         if self.mean_ is None or self.scale_ is None:
+297:             raise RuntimeError("Standardizer must be fitted before transform().")
+298:         values = self._validate_windows(windows)
+299:         if values.shape[1] != self.n_channels_:
+300:             raise ValueError(
+301:                 f"Expected {self.n_channels_} channels, received {values.shape[1]}."
+302:             )
+303:         return ((values - self.mean_[None, :, None]) /
+304:                 self.scale_[None, :, None]).astype(np.float32)
+305: 
+306:     def fit_transform(self, training_windows):
+307:         return self.fit(training_windows).transform(training_windows)
+
+===========================================================================
+SOURCE FILE: config.py
+===========================================================================
+1: import os
+2: from pathlib import Path
+3: 
+4: PROJECT_ROOT = Path(__file__).resolve().parent
+5: _default_dataset_dir = PROJECT_ROOT.parent / "dataset" / "chbmit"
+6: DATASET_DIR = Path(os.environ.get("EEG_DATASET_DIR", str(_default_dataset_dir))).expanduser().resolve()
+7: PROCESSED_DIR = PROJECT_ROOT / "processed"
+8: LOG_DIR = PROJECT_ROOT / "logs"
+9: 
+10: LOW_CUT_HZ = 0.5
+11: HIGH_CUT_HZ = 40.0
+12: NOTCH_HZ = 60.0
+13: WINDOW_SECONDS = 10
+14: STRIDE_SECONDS = 5
+15: 
+16: # Fixed 17-channel longitudinal bipolar montage for the primary cohort.
+17: # T8-P8 is omitted because it is not consistently available under the
+18: # channel-label audit. Every recording must contain all channels below.
+19: PREFERRED_CHANNELS = [
+20:     "FP1-F7", "F7-T7", "T7-P7", "P7-O1",
+21:     "FP1-F3", "F3-C3", "C3-P3", "P3-O1",
+22:     "FP2-F4", "F4-C4", "C4-P4", "P4-O2",
+23:     "FP2-F8", "F8-T8", "P8-O2",
+24:     "FZ-CZ", "CZ-PZ",
+25: ]
+26: RANDOM_STATE = 42

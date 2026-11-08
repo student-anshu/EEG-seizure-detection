@@ -6,3 +6,4 @@ processed/
 logs/
 saved_models/
 .streamlit/
+cache/

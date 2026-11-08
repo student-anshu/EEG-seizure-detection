@@ -1,0 +1,309 @@
+
+======================================================================
+ROBUST FEATURE EXTRACTOR
+======================================================================
+File: feature_selection\robust_feature_extraction.py
+1: """Patient-robust EEG features with bounded-memory window batching."""
+2: from __future__ import annotations
+3: 
+4: import numpy as np
+5: from scipy.signal import welch
+6: 
+7: ROBUST_FEATURE_VERSION = "relative_spectral_shape_v1"
+8: ROBUST_FREQUENCY_BANDS = (
+9:     (0.5, 4.0), (4.0, 8.0), (8.0, 13.0), (13.0, 30.0), (30.0, 40.0),
+10: )
+11: ROBUST_FEATURE_NAMES = (
+12:     "log_std", "normalized_line_length", "skewness", "excess_kurtosis",
+13:     "relative_delta_power", "relative_theta_power", "relative_alpha_power",
+14:     "relative_beta_power", "relative_gamma_power", "spectral_entropy",
+15: )
+16: 
+17: 
+18: def extract_robust_features(
+19:     windows: np.ndarray, sfreq: float, chunk_size: int = 256
+20: ) -> np.ndarray:
+21:     """Extract 10 features/channel in bounded-memory chunks.
+22: 
+23:     Input is (n_windows, n_channels, n_samples); output is finite float32.
+24:     Chunking limits temporary float64 and Welch PSD allocations without
+25:     changing feature definitions or the order of output rows/features.
+26:     """
+27:     values = np.asarray(windows)
+28:     if values.ndim != 3 or any(size == 0 for size in values.shape):
+29:         raise ValueError("Expected windows shaped (n_windows, n_channels, n_samples).")
+30:     if not isinstance(chunk_size, (int, np.integer)) or isinstance(chunk_size, bool) or chunk_size <= 0:
+31:         raise ValueError("chunk_size must be a positive integer.")
+32:     if not np.isscalar(sfreq) or not np.isfinite(sfreq) or sfreq < 80:
+33:         raise ValueError("Sampling frequency must be finite and at least 80 Hz.")
+34:     minimum_samples = int(np.ceil(2.0 * float(sfreq)))
+35:     if values.shape[-1] < minimum_samples:
+36:         raise ValueError(
+37:             f"Each window must contain at least 2 seconds of EEG "
+38:             f"({minimum_samples} samples at {sfreq} Hz)."
+39:         )
+40: 
+41:     n_windows, n_channels, _ = values.shape
+42:     output = np.empty(
+43:         (n_windows, n_channels, len(ROBUST_FEATURE_NAMES)), dtype=np.float32
+44:     )
+45:     eps = np.finfo(np.float64).eps
+46:     nperseg = min(values.shape[-1], max(1, int(round(2.0 * float(sfreq)))))
+47: 
+48:     for start in range(0, n_windows, int(chunk_size)):
+49:         stop = min(start + int(chunk_size), n_windows)
+50:         chunk = np.asarray(values[start:stop], dtype=np.float64)
+51:         if not np.isfinite(chunk).all():
+52:             raise ValueError("EEG windows contain NaN or infinite values.")
+53: 
+54:         centered = chunk - np.mean(chunk, axis=-1, keepdims=True)
+55:         std = np.std(centered, axis=-1)
+56:         safe_std = np.maximum(std, eps)
+57:         log_std = np.log(np.maximum(std, 1e-12))
+58:         normalized_line_length = (
+59:             np.mean(np.abs(np.diff(chunk, axis=-1)), axis=-1) / safe_std
+60:         )
+61:         skewness = np.mean(centered ** 3, axis=-1) / (safe_std ** 3)
+62:         kurtosis = np.mean(centered ** 4, axis=-1) / (safe_std ** 4) - 3.0
+63:         near_constant = std <= eps * np.maximum(
+64:             1.0, np.max(np.abs(chunk), axis=-1)
+65:         )
+66:         skewness = np.where(near_constant, 0.0, skewness)
+67:         kurtosis = np.where(near_constant, 0.0, kurtosis)
+68: 
+69:         frequencies, psd = welch(
+70:             chunk, fs=float(sfreq), nperseg=nperseg, axis=-1,
+71:             detrend="constant", scaling="density",
+72:         )
+73:         df = float(frequencies[1] - frequencies[0])
+74:         band_powers = []
+75:         for low, high in ROBUST_FREQUENCY_BANDS:
+76:             mask = (frequencies >= low) & (frequencies < high)
+77:             band_powers.append(np.sum(psd[..., mask], axis=-1) * df)
+78:         powers = np.stack(band_powers, axis=-1)
+79:         total_power = np.sum(powers, axis=-1, keepdims=True)
+80:         relative = np.divide(
+81:             powers, total_power, out=np.zeros_like(powers), where=total_power > eps
+82:         )
+83: 
+84:         retained = (frequencies >= 0.5) & (frequencies <= 40.0)
+85:         spectral = np.maximum(psd[..., retained], 0.0)
+86:         spectral_total = np.sum(spectral, axis=-1, keepdims=True)
+87:         probabilities = np.divide(
+88:             spectral, spectral_total, out=np.zeros_like(spectral),
+89:             where=spectral_total > eps,
+90:         )
+91:         log_probabilities = np.zeros_like(probabilities)
+92:         positive = probabilities > 0
+93:         log_probabilities[positive] = np.log(probabilities[positive])
+94:         entropy = -np.sum(
+95:             probabilities * log_probabilities, axis=-1
+96:         ) / np.log(max(2, spectral.shape[-1]))
+97: 
+98:         output[start:stop] = np.stack([
+99:             log_std, normalized_line_length, skewness, kurtosis,
+100:             *[relative[..., index] for index in range(relative.shape[-1])],
+101:             entropy,
+102:         ], axis=-1).astype(np.float32)
+103: 
+104:     result = output.reshape(n_windows, -1)
+105:     if not np.isfinite(result).all():
+106:         raise ValueError("Robust feature extraction generated non-finite values.")
+107:     return result
+
+======================================================================
+CHANNEL STANDARDIZER
+======================================================================
+File: preprocessing\normalization.py
+55: class FoldChannelStandardizer:
+56:     """Standardize channels using statistics fitted on training-fold windows.
+57: 
+58:     Input shape: (windows, channels, samples). The caller must enforce that
+59:     only the permitted training recordings are passed to fit methods.
+60:     """
+61: 
+62:     def __init__(self, epsilon=1e-6):
+63:         if not np.isfinite(epsilon) or epsilon <= 0:
+64:             raise ValueError("epsilon must be a finite positive number.")
+65:         self.epsilon = float(epsilon)
+66:         self.mean_ = None
+67:         self.scale_ = None
+68:         self.n_channels_ = None
+69:         self.n_values_per_channel_ = None
+70:         self._count = 0
+71:         self._mean = None
+72:         self._m2 = None
+73:         self._n_channels = None
+74: 
+75:     @staticmethod
+76:     def _validate_windows(windows):
+77:         values = np.asarray(windows, dtype=np.float64)
+78:         if values.ndim != 3:
+79:             raise ValueError("EEG windows must have shape (windows, channels, samples).")
+80:         if any(size == 0 for size in values.shape):
+81:             raise ValueError("EEG windows must be non-empty on every axis.")
+82:         if not np.all(np.isfinite(values)):
+83:             raise ValueError("EEG windows contain NaN or infinite values.")
+84:         return values
+85: 
+86:     def partial_fit(self, training_windows):
+87:         """Merge one recording/batch into the running population statistics."""
+88:         if self.mean_ is not None:
+89:             raise RuntimeError("Cannot partial_fit after the scaler has been finalized.")
+90:         values = self._validate_windows(training_windows)
+91:         if self._n_channels is None:
+92:             self._n_channels = values.shape[1]
+93:         elif values.shape[1] != self._n_channels:
+94:             raise ValueError("Training batches have inconsistent channel counts.")
+95: 
+96:         flattened = values.transpose(1, 0, 2).reshape(values.shape[1], -1)
+97:         batch_count = flattened.shape[1]
+98:         batch_mean = np.mean(flattened, axis=1)
+99:         centered = flattened - batch_mean[:, None]
+100:         batch_m2 = np.sum(centered * centered, axis=1)
+101: 
+102:         if self._count == 0:
+103:             self._count = int(batch_count)
+104:             self._mean = batch_mean
+105:             self._m2 = batch_m2
+106:         else:
+107:             total = self._count + batch_count
+108:             delta = batch_mean - self._mean
+109:             self._mean = self._mean + delta * (batch_count / total)
+110:             self._m2 = (
+111:                 self._m2 + batch_m2
+112:                 + delta * delta * (self._count * batch_count / total)
+113:             )
+114:             self._count = int(total)
+115:         return self
+116: 
+117:     def state_dict(self):
+118:         """Return a detached, serializable snapshot of the running accumulator."""
+119:         return {
+120:             "count": int(self._count),
+121:             "n_channels": int(self._n_channels) if self._n_channels is not None else 0,
+122:             "mean": None if self._mean is None else self._mean.copy(),
+123:             "m2": None if self._m2 is None else self._m2.copy(),
+124:         }
+125: 
+126:     def load_state_dict(self, state):
+127:         """Restore and validate an unfinished accumulator checkpoint."""
+128:         if self.mean_ is not None:
+129:             raise RuntimeError("Cannot restore state after the scaler has been finalized.")
+130:         try:
+131:             count = int(state["count"])
+132:             n_channels = int(state["n_channels"])
+133:             mean = np.asarray(state["mean"], dtype=np.float64)
+134:             m2 = np.asarray(state["m2"], dtype=np.float64)
+135:         except (KeyError, TypeError, ValueError) as exc:
+136:             raise ValueError("Invalid scaler accumulator checkpoint.") from exc
+137:         if count <= 0 or n_channels <= 0:
+138:             raise ValueError("Scaler checkpoint must contain completed samples and channels.")
+139:         if mean.shape != (n_channels,) or m2.shape != (n_channels,):
+140:             raise ValueError("Scaler checkpoint arrays have inconsistent dimensions.")
+141:         if not np.isfinite(mean).all() or not np.isfinite(m2).all() or np.any(m2 < 0):
+142:             raise ValueError("Scaler checkpoint contains invalid statistics.")
+143:         self._count = count
+144:         self._n_channels = n_channels
+145:         self._mean = mean.copy()
+146:         self._m2 = m2.copy()
+147:         return self
+148: 
+149:     def finalize(self):
+150:         """Convert running accumulators into immutable transform statistics."""
+151:         if self._count == 0 or self._mean is None or self._m2 is None:
+152:             raise ValueError("Cannot fit standardizer on no training windows.")
+153:         variance = np.maximum(self._m2 / self._count, 0.0)
+154:         self.n_channels_ = int(self._n_channels)
+155:         self.n_values_per_channel_ = int(self._count)
+156:         self.mean_ = self._mean.copy()
+157:         self.scale_ = np.maximum(np.sqrt(variance), self.epsilon)
+158:         return self
+159: 
+160:     def fit(self, training_windows):
+161:         return self.fit_batches([training_windows])
+162: 
+163:     def fit_batches(self, training_batches):
+164:         """Incrementally fit exact population statistics over recording batches."""
+165:         for batch in training_batches:
+166:             self.partial_fit(batch)
+167:         return self.finalize()
+168: 
+169:     def fit_batches_checkpointed(
+170:         self, batch_factory, total_batches, checkpoint_dir, signature,
+171:         progress_label="channel-scaler fit", progress_every=25,
+172:     ):
+173:         """Fit from a per-recording atomic checkpoint, resuming after the last commit.
+174: 
+175:         batch_factory(start_index) must return an iterator over batches beginning
+176:         at the zero-based recording index supplied. A checkpoint advances only
+177:         after a complete batch has been merged and its state file is durable.
+178:         """
+179:         if not callable(batch_factory):
+180:             raise TypeError("batch_factory must be callable.")
+
+======================================================================
+EDF PREPROCESSING
+======================================================================
+File: main.py
+25: def _normalize_channel_name(name: str) -> str:
+26:     return "".join(str(name).upper().split())
+27: 
+28: 
+29: def choose_channels(raw):
+30:     """Select all canonical channels in fixed order or reject the recording."""
+31:     lookup = {_normalize_channel_name(name): name for name in raw.ch_names}
+32:     missing = [name for name in PREFERRED_CHANNELS if _normalize_channel_name(name) not in lookup]
+33:     if missing:
+34:         raise ValueError(
+35:             "Recording is incompatible with the fixed 17-channel primary montage. "
+36:             "Missing channels: " + ", ".join(missing)
+37:         )
+38:     return [lookup[_normalize_channel_name(name)] for name in PREFERRED_CHANNELS]
+39: 
+40: 
+41: def process_edf(edf_path: str | Path):
+42:     edf_path = Path(edf_path)
+43:     print(f"\nLoading: {edf_path}")
+44:     raw = load_edf(edf_path)
+45:     channels = choose_channels(raw)
+46:     raw.pick(channels)
+47:     sfreq = float(raw.info["sfreq"])
+48:     data = raw.get_data()
+49:     recording_duration_seconds = float(data.shape[-1] / sfreq)
+50:     intervals = read_seizure_intervals(edf_path)
+51:     print(f"Channels selected: {len(channels)}")
+52:     print(f"Sampling frequency: {sfreq:g} Hz")
+53:     print(f"Seizure intervals: {intervals if intervals else 'None'}")
+54:     filtered = bandpass_and_notch(data, sfreq, LOW_CUT_HZ, HIGH_CUT_HZ, NOTCH_HZ)
+55:     # Keep filtered windows unnormalized here. A scaler must be fitted only
+56:     # on the outer-fold training patients and then reused for validation/test.
+57:     X, y, starts = make_windows(filtered, sfreq, intervals, WINDOW_SECONDS, STRIDE_SECONDS)
+58:     if len(y) == 0:
+59:         print("Recording is shorter than one configured window; skipped.")
+60:         return None
+61:     subject = edf_path.parent.name
+62:     PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
+63:     output_name = f"{subject}_{edf_path.stem}"
+64:     npz_path = PROCESSED_DIR / f"{output_name}.npz"
+65:     np.savez_compressed(
+66:         npz_path, X=X, y=y, starts=starts, channels=np.asarray(channels),
+67:         sfreq=sfreq, subject=subject, source_file=edf_path.name,
+68:         recording_duration_seconds=recording_duration_seconds,
+69:         normalization=NORMALIZATION_POLICY,
+70:     )
+71:     metadata = pd.DataFrame({
+72:         "subject": subject, "source_file": edf_path.name,
+73:         "window_start_seconds": starts, "window_end_seconds": starts + WINDOW_SECONDS,
+74:         "sampling_frequency_hz": sfreq,
+75:         "recording_duration_seconds": recording_duration_seconds,
+76:         "channels": "|".join(channels),
+77:         "normalization": NORMALIZATION_POLICY, "label": y,
+78:     })
+79:     metadata.to_csv(PROCESSED_DIR / f"{output_name}_metadata.csv", index=False)
+80:     print(f"Saved {len(y)} windows: {np.bincount(y, minlength=2).tolist()} [normal, seizure]")
+81:     print(f"Saved: {npz_path}")
+82:     return npz_path
+83: 
+84: 
+85: def _metadata_is_consistent(recording, metadata_path: Path, windows) -> bool:

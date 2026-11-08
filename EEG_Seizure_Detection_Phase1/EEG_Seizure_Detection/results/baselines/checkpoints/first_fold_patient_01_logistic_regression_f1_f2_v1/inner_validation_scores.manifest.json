@@ -1,0 +1,9 @@
+{
+  "artifact": "inner_validation_scores.npz",
+  "complete": true,
+  "kind": "scores",
+  "sha256": "eedebe1bde7ea2ca9a6d9d7be1cb0c02639301df2a27bdb7f6838454c0908940",
+  "signature": "5491bb88a9eb671e11884bebfc3c88288fadd420480a4ce90faa8a30afcd1893",
+  "stage": "inner_validation_scores",
+  "version": 1
+}

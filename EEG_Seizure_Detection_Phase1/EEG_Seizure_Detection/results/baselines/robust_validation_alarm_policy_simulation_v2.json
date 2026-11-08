@@ -1,0 +1,1852 @@
+{
+  "status": "completed",
+  "experiment": "robust_validation_alarm_policy_interval_simulation",
+  "version": "duration_filter_gap_grouping_v2_evidence_preserving",
+  "scope": "inner_validation_only",
+  "source_result": "results\\baselines\\robust_feature_first_fold_event_metrics_v1.json",
+  "model_retrained": false,
+  "features_reextracted": false,
+  "thresholds_changed": false,
+  "outer_test_read": false,
+  "policy_grid": {
+    "minimum_alarm_duration_seconds": [
+      0.0,
+      15.0,
+      20.0,
+      30.0
+    ],
+    "merge_gap_seconds": [
+      0.0,
+      5.0,
+      10.0,
+      15.0,
+      20.0,
+      30.0
+    ],
+    "combination_count": 24,
+    "order": "filter each actual alarm by duration first, then group retained alarms by gap"
+  },
+  "metric_notes": [
+    "Seizure detection and delay use only actual retained model-positive intervals; gap envelopes cannot create seizure detections.",
+    "Minimum duration is applied to each actual alarm run before gap grouping; silent gaps do not count as positive evidence.",
+    "Gap grouping changes alarm episode counts only.",
+    "A grouped episode is non-false only when at least one actual retained alarm in that group overlaps an annotated seizure.",
+    "False alarms/hour uses saved exact non-seizure exposure.",
+    "Patient macro metrics average seizure-bearing validation patients.",
+    "Event F2 proxy is exploratory, not clinical utility.",
+    "No policy is automatically selected."
+  ],
+  "baseline_source_metrics": {
+    "recording_count": 139,
+    "event_count": 29,
+    "detected_events": 27,
+    "missed_events": 2,
+    "event_sensitivity": 0.9310344827586207,
+    "mean_detection_delay_seconds": 14.148148148148149,
+    "false_alarm_count": 1272,
+    "non_seizure_duration_seconds": 1078457.0,
+    "false_alarms_per_hour": 4.2460663707500625
+  },
+  "simulations": [
+    {
+      "min_alarm_duration_seconds": 0.0,
+      "merge_gap_seconds": 0.0,
+      "pooled": {
+        "recording_count": 139,
+        "event_count": 29,
+        "detected_events": 27,
+        "missed_events": 2,
+        "event_sensitivity": 0.9310344827586207,
+        "mean_detection_delay_seconds": 14.148148148148149,
+        "false_alarm_count": 1272,
+        "non_seizure_exposure_hours": 299.57138888888886,
+        "false_alarms_per_non_seizure_hour": 4.2460663707500625
+      },
+      "seizure_bearing_patient_count": 5,
+      "patient_macro_event_sensitivity": 0.8666666666666668,
+      "patient_macro_event_f2_proxy": 0.1730183881666205,
+      "patients": {
+        "patient_04": {
+          "recording_count": 42,
+          "event_count": 4,
+          "detected_events": 4,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 35.75,
+          "false_alarm_count": 879,
+          "non_seizure_exposure_hours": 155.96,
+          "false_alarms_per_non_seizure_hour": 5.6360605283406
+        },
+        "patient_07": {
+          "recording_count": 19,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 22.333333333333332,
+          "false_alarm_count": 192,
+          "non_seizure_exposure_hours": 66.96194444444444,
+          "false_alarms_per_non_seizure_hour": 2.8673002493124207
+        },
+        "patient_11": {
+          "recording_count": 35,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 9.333333333333334,
+          "false_alarm_count": 78,
+          "non_seizure_exposure_hours": 34.569722222222225,
+          "false_alarms_per_non_seizure_hour": 2.256309712256229
+        },
+        "patient_17": {
+          "recording_count": 21,
+          "event_count": 3,
+          "detected_events": 1,
+          "missed_events": 2,
+          "event_sensitivity": 0.3333333333333333,
+          "mean_detection_delay_seconds": 55.0,
+          "false_alarm_count": 53,
+          "non_seizure_exposure_hours": 20.92527777777778,
+          "false_alarms_per_non_seizure_hour": 2.532821813065006
+        },
+        "patient_24": {
+          "recording_count": 22,
+          "event_count": 16,
+          "detected_events": 16,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 5.5625,
+          "false_alarm_count": 70,
+          "non_seizure_exposure_hours": 21.154444444444444,
+          "false_alarms_per_non_seizure_hour": 3.3089973212878827
+        }
+      }
+    },
+    {
+      "min_alarm_duration_seconds": 0.0,
+      "merge_gap_seconds": 5.0,
+      "pooled": {
+        "recording_count": 139,
+        "event_count": 29,
+        "detected_events": 27,
+        "missed_events": 2,
+        "event_sensitivity": 0.9310344827586207,
+        "mean_detection_delay_seconds": 14.148148148148149,
+        "false_alarm_count": 1135,
+        "non_seizure_exposure_hours": 299.57138888888886,
+        "false_alarms_per_non_seizure_hour": 3.7887463292463215
+      },
+      "seizure_bearing_patient_count": 5,
+      "patient_macro_event_sensitivity": 0.8666666666666668,
+      "patient_macro_event_f2_proxy": 0.17967841804805224,
+      "patients": {
+        "patient_04": {
+          "recording_count": 42,
+          "event_count": 4,
+          "detected_events": 4,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 35.75,
+          "false_alarm_count": 774,
+          "non_seizure_exposure_hours": 155.96,
+          "false_alarms_per_non_seizure_hour": 4.962810977173634
+        },
+        "patient_07": {
+          "recording_count": 19,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 22.333333333333332,
+          "false_alarm_count": 170,
+          "non_seizure_exposure_hours": 66.96194444444444,
+          "false_alarms_per_non_seizure_hour": 2.5387554290787055
+        },
+        "patient_11": {
+          "recording_count": 35,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 9.333333333333334,
+          "false_alarm_count": 74,
+          "non_seizure_exposure_hours": 34.569722222222225,
+          "false_alarms_per_non_seizure_hour": 2.140601521884115
+        },
+        "patient_17": {
+          "recording_count": 21,
+          "event_count": 3,
+          "detected_events": 1,
+          "missed_events": 2,
+          "event_sensitivity": 0.3333333333333333,
+          "mean_detection_delay_seconds": 55.0,
+          "false_alarm_count": 50,
+          "non_seizure_exposure_hours": 20.92527777777778,
+          "false_alarms_per_non_seizure_hour": 2.3894545406273644
+        },
+        "patient_24": {
+          "recording_count": 22,
+          "event_count": 16,
+          "detected_events": 16,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 5.5625,
+          "false_alarm_count": 67,
+          "non_seizure_exposure_hours": 21.154444444444444,
+          "false_alarms_per_non_seizure_hour": 3.167183150375545
+        }
+      }
+    },
+    {
+      "min_alarm_duration_seconds": 0.0,
+      "merge_gap_seconds": 10.0,
+      "pooled": {
+        "recording_count": 139,
+        "event_count": 29,
+        "detected_events": 27,
+        "missed_events": 2,
+        "event_sensitivity": 0.9310344827586207,
+        "mean_detection_delay_seconds": 14.148148148148149,
+        "false_alarm_count": 1037,
+        "non_seizure_exposure_hours": 299.57138888888886,
+        "false_alarms_per_non_seizure_hour": 3.461612284958974
+      },
+      "seizure_bearing_patient_count": 5,
+      "patient_macro_event_sensitivity": 0.8666666666666668,
+      "patient_macro_event_f2_proxy": 0.1851055563432141,
+      "patients": {
+        "patient_04": {
+          "recording_count": 42,
+          "event_count": 4,
+          "detected_events": 4,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 35.75,
+          "false_alarm_count": 699,
+          "non_seizure_exposure_hours": 155.96,
+          "false_alarms_per_non_seizure_hour": 4.481918440625801
+        },
+        "patient_07": {
+          "recording_count": 19,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 22.333333333333332,
+          "false_alarm_count": 155,
+          "non_seizure_exposure_hours": 66.96194444444444,
+          "false_alarms_per_non_seizure_hour": 2.3147475971011726
+        },
+        "patient_11": {
+          "recording_count": 35,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 9.333333333333334,
+          "false_alarm_count": 71,
+          "non_seizure_exposure_hours": 34.569722222222225,
+          "false_alarms_per_non_seizure_hour": 2.053820379105029
+        },
+        "patient_17": {
+          "recording_count": 21,
+          "event_count": 3,
+          "detected_events": 1,
+          "missed_events": 2,
+          "event_sensitivity": 0.3333333333333333,
+          "mean_detection_delay_seconds": 55.0,
+          "false_alarm_count": 47,
+          "non_seizure_exposure_hours": 20.92527777777778,
+          "false_alarms_per_non_seizure_hour": 2.2460872681897226
+        },
+        "patient_24": {
+          "recording_count": 22,
+          "event_count": 16,
+          "detected_events": 16,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 5.5625,
+          "false_alarm_count": 65,
+          "non_seizure_exposure_hours": 21.154444444444444,
+          "false_alarms_per_non_seizure_hour": 3.0726403697673197
+        }
+      }
+    },
+    {
+      "min_alarm_duration_seconds": 0.0,
+      "merge_gap_seconds": 15.0,
+      "pooled": {
+        "recording_count": 139,
+        "event_count": 29,
+        "detected_events": 27,
+        "missed_events": 2,
+        "event_sensitivity": 0.9310344827586207,
+        "mean_detection_delay_seconds": 14.148148148148149,
+        "false_alarm_count": 940,
+        "non_seizure_exposure_hours": 299.57138888888886,
+        "false_alarms_per_non_seizure_hour": 3.1378163431643546
+      },
+      "seizure_bearing_patient_count": 5,
+      "patient_macro_event_sensitivity": 0.8666666666666668,
+      "patient_macro_event_f2_proxy": 0.19071227608542146,
+      "patients": {
+        "patient_04": {
+          "recording_count": 42,
+          "event_count": 4,
+          "detected_events": 4,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 35.75,
+          "false_alarm_count": 624,
+          "non_seizure_exposure_hours": 155.96,
+          "false_alarms_per_non_seizure_hour": 4.001025904077968
+        },
+        "patient_07": {
+          "recording_count": 19,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 22.333333333333332,
+          "false_alarm_count": 140,
+          "non_seizure_exposure_hours": 66.96194444444444,
+          "false_alarms_per_non_seizure_hour": 2.09073976512364
+        },
+        "patient_11": {
+          "recording_count": 35,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 9.333333333333334,
+          "false_alarm_count": 69,
+          "non_seizure_exposure_hours": 34.569722222222225,
+          "false_alarms_per_non_seizure_hour": 1.995966283918972
+        },
+        "patient_17": {
+          "recording_count": 21,
+          "event_count": 3,
+          "detected_events": 1,
+          "missed_events": 2,
+          "event_sensitivity": 0.3333333333333333,
+          "mean_detection_delay_seconds": 55.0,
+          "false_alarm_count": 44,
+          "non_seizure_exposure_hours": 20.92527777777778,
+          "false_alarms_per_non_seizure_hour": 2.102719995752081
+        },
+        "patient_24": {
+          "recording_count": 22,
+          "event_count": 16,
+          "detected_events": 16,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 5.5625,
+          "false_alarm_count": 63,
+          "non_seizure_exposure_hours": 21.154444444444444,
+          "false_alarms_per_non_seizure_hour": 2.9780975891590944
+        }
+      }
+    },
+    {
+      "min_alarm_duration_seconds": 0.0,
+      "merge_gap_seconds": 20.0,
+      "pooled": {
+        "recording_count": 139,
+        "event_count": 29,
+        "detected_events": 27,
+        "missed_events": 2,
+        "event_sensitivity": 0.9310344827586207,
+        "mean_detection_delay_seconds": 14.148148148148149,
+        "false_alarm_count": 896,
+        "non_seizure_exposure_hours": 299.57138888888886,
+        "false_alarms_per_non_seizure_hour": 2.990939833484321
+      },
+      "seizure_bearing_patient_count": 5,
+      "patient_macro_event_sensitivity": 0.8666666666666668,
+      "patient_macro_event_f2_proxy": 0.19267184388401773,
+      "patients": {
+        "patient_04": {
+          "recording_count": 42,
+          "event_count": 4,
+          "detected_events": 4,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 35.75,
+          "false_alarm_count": 587,
+          "non_seizure_exposure_hours": 155.96,
+          "false_alarms_per_non_seizure_hour": 3.7637855860477045
+        },
+        "patient_07": {
+          "recording_count": 19,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 22.333333333333332,
+          "false_alarm_count": 136,
+          "non_seizure_exposure_hours": 66.96194444444444,
+          "false_alarms_per_non_seizure_hour": 2.0310043432629645
+        },
+        "patient_11": {
+          "recording_count": 35,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 9.333333333333334,
+          "false_alarm_count": 68,
+          "non_seizure_exposure_hours": 34.569722222222225,
+          "false_alarms_per_non_seizure_hour": 1.9670392363259435
+        },
+        "patient_17": {
+          "recording_count": 21,
+          "event_count": 3,
+          "detected_events": 1,
+          "missed_events": 2,
+          "event_sensitivity": 0.3333333333333333,
+          "mean_detection_delay_seconds": 55.0,
+          "false_alarm_count": 42,
+          "non_seizure_exposure_hours": 20.92527777777778,
+          "false_alarms_per_non_seizure_hour": 2.007141814126986
+        },
+        "patient_24": {
+          "recording_count": 22,
+          "event_count": 16,
+          "detected_events": 16,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 5.5625,
+          "false_alarm_count": 63,
+          "non_seizure_exposure_hours": 21.154444444444444,
+          "false_alarms_per_non_seizure_hour": 2.9780975891590944
+        }
+      }
+    },
+    {
+      "min_alarm_duration_seconds": 0.0,
+      "merge_gap_seconds": 30.0,
+      "pooled": {
+        "recording_count": 139,
+        "event_count": 29,
+        "detected_events": 27,
+        "missed_events": 2,
+        "event_sensitivity": 0.9310344827586207,
+        "mean_detection_delay_seconds": 14.148148148148149,
+        "false_alarm_count": 809,
+        "non_seizure_exposure_hours": 299.57138888888886,
+        "false_alarms_per_non_seizure_hour": 2.7005249166169816
+      },
+      "seizure_bearing_patient_count": 5,
+      "patient_macro_event_sensitivity": 0.8666666666666668,
+      "patient_macro_event_f2_proxy": 0.19840694593993516,
+      "patients": {
+        "patient_04": {
+          "recording_count": 42,
+          "event_count": 4,
+          "detected_events": 4,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 35.75,
+          "false_alarm_count": 514,
+          "non_seizure_exposure_hours": 155.96,
+          "false_alarms_per_non_seizure_hour": 3.2957168504744803
+        },
+        "patient_07": {
+          "recording_count": 19,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 22.333333333333332,
+          "false_alarm_count": 131,
+          "non_seizure_exposure_hours": 66.96194444444444,
+          "false_alarms_per_non_seizure_hour": 1.9563350659371204
+        },
+        "patient_11": {
+          "recording_count": 35,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 9.333333333333334,
+          "false_alarm_count": 63,
+          "non_seizure_exposure_hours": 34.569722222222225,
+          "false_alarms_per_non_seizure_hour": 1.8224039983608005
+        },
+        "patient_17": {
+          "recording_count": 21,
+          "event_count": 3,
+          "detected_events": 1,
+          "missed_events": 2,
+          "event_sensitivity": 0.3333333333333333,
+          "mean_detection_delay_seconds": 55.0,
+          "false_alarm_count": 39,
+          "non_seizure_exposure_hours": 20.92527777777778,
+          "false_alarms_per_non_seizure_hour": 1.8637745416893443
+        },
+        "patient_24": {
+          "recording_count": 22,
+          "event_count": 16,
+          "detected_events": 16,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 5.5625,
+          "false_alarm_count": 62,
+          "non_seizure_exposure_hours": 21.154444444444444,
+          "false_alarms_per_non_seizure_hour": 2.930826198854982
+        }
+      }
+    },
+    {
+      "min_alarm_duration_seconds": 15.0,
+      "merge_gap_seconds": 0.0,
+      "pooled": {
+        "recording_count": 139,
+        "event_count": 29,
+        "detected_events": 25,
+        "missed_events": 4,
+        "event_sensitivity": 0.8620689655172413,
+        "mean_detection_delay_seconds": 15.24,
+        "false_alarm_count": 679,
+        "non_seizure_exposure_hours": 299.57138888888886,
+        "false_alarms_per_non_seizure_hour": 2.266571592562337
+      },
+      "seizure_bearing_patient_count": 5,
+      "patient_macro_event_sensitivity": 0.8416666666666668,
+      "patient_macro_event_f2_proxy": 0.24211001453686148,
+      "patients": {
+        "patient_04": {
+          "recording_count": 42,
+          "event_count": 4,
+          "detected_events": 4,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 35.75,
+          "false_alarm_count": 474,
+          "non_seizure_exposure_hours": 155.96,
+          "false_alarms_per_non_seizure_hour": 3.039240830982303
+        },
+        "patient_07": {
+          "recording_count": 19,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 22.333333333333332,
+          "false_alarm_count": 110,
+          "non_seizure_exposure_hours": 66.96194444444444,
+          "false_alarms_per_non_seizure_hour": 1.6427241011685743
+        },
+        "patient_11": {
+          "recording_count": 35,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 9.333333333333334,
+          "false_alarm_count": 40,
+          "non_seizure_exposure_hours": 34.569722222222225,
+          "false_alarms_per_non_seizure_hour": 1.157081903721143
+        },
+        "patient_17": {
+          "recording_count": 21,
+          "event_count": 3,
+          "detected_events": 1,
+          "missed_events": 2,
+          "event_sensitivity": 0.3333333333333333,
+          "mean_detection_delay_seconds": 55.0,
+          "false_alarm_count": 24,
+          "non_seizure_exposure_hours": 20.92527777777778,
+          "false_alarms_per_non_seizure_hour": 1.1469381795011349
+        },
+        "patient_24": {
+          "recording_count": 22,
+          "event_count": 16,
+          "detected_events": 14,
+          "missed_events": 2,
+          "event_sensitivity": 0.875,
+          "mean_detection_delay_seconds": 6.285714285714286,
+          "false_alarm_count": 31,
+          "non_seizure_exposure_hours": 21.154444444444444,
+          "false_alarms_per_non_seizure_hour": 1.465413099427491
+        }
+      }
+    },
+    {
+      "min_alarm_duration_seconds": 15.0,
+      "merge_gap_seconds": 5.0,
+      "pooled": {
+        "recording_count": 139,
+        "event_count": 29,
+        "detected_events": 25,
+        "missed_events": 4,
+        "event_sensitivity": 0.8620689655172413,
+        "mean_detection_delay_seconds": 15.24,
+        "false_alarm_count": 609,
+        "non_seizure_exposure_hours": 299.57138888888886,
+        "false_alarms_per_non_seizure_hour": 2.0329044180713742
+      },
+      "seizure_bearing_patient_count": 5,
+      "patient_macro_event_sensitivity": 0.8416666666666668,
+      "patient_macro_event_f2_proxy": 0.2484111725279714,
+      "patients": {
+        "patient_04": {
+          "recording_count": 42,
+          "event_count": 4,
+          "detected_events": 4,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 35.75,
+          "false_alarm_count": 418,
+          "non_seizure_exposure_hours": 155.96,
+          "false_alarms_per_non_seizure_hour": 2.6801744036932544
+        },
+        "patient_07": {
+          "recording_count": 19,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 22.333333333333332,
+          "false_alarm_count": 99,
+          "non_seizure_exposure_hours": 66.96194444444444,
+          "false_alarms_per_non_seizure_hour": 1.478451691051717
+        },
+        "patient_11": {
+          "recording_count": 35,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 9.333333333333334,
+          "false_alarm_count": 39,
+          "non_seizure_exposure_hours": 34.569722222222225,
+          "false_alarms_per_non_seizure_hour": 1.1281548561281145
+        },
+        "patient_17": {
+          "recording_count": 21,
+          "event_count": 3,
+          "detected_events": 1,
+          "missed_events": 2,
+          "event_sensitivity": 0.3333333333333333,
+          "mean_detection_delay_seconds": 55.0,
+          "false_alarm_count": 23,
+          "non_seizure_exposure_hours": 20.92527777777778,
+          "false_alarms_per_non_seizure_hour": 1.0991490886885875
+        },
+        "patient_24": {
+          "recording_count": 22,
+          "event_count": 16,
+          "detected_events": 14,
+          "missed_events": 2,
+          "event_sensitivity": 0.875,
+          "mean_detection_delay_seconds": 6.285714285714286,
+          "false_alarm_count": 30,
+          "non_seizure_exposure_hours": 21.154444444444444,
+          "false_alarms_per_non_seizure_hour": 1.4181417091233783
+        }
+      }
+    },
+    {
+      "min_alarm_duration_seconds": 15.0,
+      "merge_gap_seconds": 10.0,
+      "pooled": {
+        "recording_count": 139,
+        "event_count": 29,
+        "detected_events": 25,
+        "missed_events": 4,
+        "event_sensitivity": 0.8620689655172413,
+        "mean_detection_delay_seconds": 15.24,
+        "false_alarm_count": 556,
+        "non_seizure_exposure_hours": 299.57138888888886,
+        "false_alarms_per_non_seizure_hour": 1.8559849859567885
+      },
+      "seizure_bearing_patient_count": 5,
+      "patient_macro_event_sensitivity": 0.8416666666666668,
+      "patient_macro_event_f2_proxy": 0.25487209530639987,
+      "patients": {
+        "patient_04": {
+          "recording_count": 42,
+          "event_count": 4,
+          "detected_events": 4,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 35.75,
+          "false_alarm_count": 376,
+          "non_seizure_exposure_hours": 155.96,
+          "false_alarms_per_non_seizure_hour": 2.410874583226468
+        },
+        "patient_07": {
+          "recording_count": 19,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 22.333333333333332,
+          "false_alarm_count": 92,
+          "non_seizure_exposure_hours": 66.96194444444444,
+          "false_alarms_per_non_seizure_hour": 1.3739147027955347
+        },
+        "patient_11": {
+          "recording_count": 35,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 9.333333333333334,
+          "false_alarm_count": 37,
+          "non_seizure_exposure_hours": 34.569722222222225,
+          "false_alarms_per_non_seizure_hour": 1.0703007609420574
+        },
+        "patient_17": {
+          "recording_count": 21,
+          "event_count": 3,
+          "detected_events": 1,
+          "missed_events": 2,
+          "event_sensitivity": 0.3333333333333333,
+          "mean_detection_delay_seconds": 55.0,
+          "false_alarm_count": 21,
+          "non_seizure_exposure_hours": 20.92527777777778,
+          "false_alarms_per_non_seizure_hour": 1.003570907063493
+        },
+        "patient_24": {
+          "recording_count": 22,
+          "event_count": 16,
+          "detected_events": 14,
+          "missed_events": 2,
+          "event_sensitivity": 0.875,
+          "mean_detection_delay_seconds": 6.285714285714286,
+          "false_alarm_count": 30,
+          "non_seizure_exposure_hours": 21.154444444444444,
+          "false_alarms_per_non_seizure_hour": 1.4181417091233783
+        }
+      }
+    },
+    {
+      "min_alarm_duration_seconds": 15.0,
+      "merge_gap_seconds": 15.0,
+      "pooled": {
+        "recording_count": 139,
+        "event_count": 29,
+        "detected_events": 25,
+        "missed_events": 4,
+        "event_sensitivity": 0.8620689655172413,
+        "mean_detection_delay_seconds": 15.24,
+        "false_alarm_count": 520,
+        "non_seizure_exposure_hours": 299.57138888888886,
+        "false_alarms_per_non_seizure_hour": 1.735813296218579
+      },
+      "seizure_bearing_patient_count": 5,
+      "patient_macro_event_sensitivity": 0.8416666666666668,
+      "patient_macro_event_f2_proxy": 0.2605942399984456,
+      "patients": {
+        "patient_04": {
+          "recording_count": 42,
+          "event_count": 4,
+          "detected_events": 4,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 35.75,
+          "false_alarm_count": 350,
+          "non_seizure_exposure_hours": 155.96,
+          "false_alarms_per_non_seizure_hour": 2.244165170556553
+        },
+        "patient_07": {
+          "recording_count": 19,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 22.333333333333332,
+          "false_alarm_count": 85,
+          "non_seizure_exposure_hours": 66.96194444444444,
+          "false_alarms_per_non_seizure_hour": 1.2693777145393528
+        },
+        "patient_11": {
+          "recording_count": 35,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 9.333333333333334,
+          "false_alarm_count": 37,
+          "non_seizure_exposure_hours": 34.569722222222225,
+          "false_alarms_per_non_seizure_hour": 1.0703007609420574
+        },
+        "patient_17": {
+          "recording_count": 21,
+          "event_count": 3,
+          "detected_events": 1,
+          "missed_events": 2,
+          "event_sensitivity": 0.3333333333333333,
+          "mean_detection_delay_seconds": 55.0,
+          "false_alarm_count": 19,
+          "non_seizure_exposure_hours": 20.92527777777778,
+          "false_alarms_per_non_seizure_hour": 0.9079927254383985
+        },
+        "patient_24": {
+          "recording_count": 22,
+          "event_count": 16,
+          "detected_events": 14,
+          "missed_events": 2,
+          "event_sensitivity": 0.875,
+          "mean_detection_delay_seconds": 6.285714285714286,
+          "false_alarm_count": 29,
+          "non_seizure_exposure_hours": 21.154444444444444,
+          "false_alarms_per_non_seizure_hour": 1.3708703188192657
+        }
+      }
+    },
+    {
+      "min_alarm_duration_seconds": 15.0,
+      "merge_gap_seconds": 20.0,
+      "pooled": {
+        "recording_count": 139,
+        "event_count": 29,
+        "detected_events": 25,
+        "missed_events": 4,
+        "event_sensitivity": 0.8620689655172413,
+        "mean_detection_delay_seconds": 15.24,
+        "false_alarm_count": 501,
+        "non_seizure_exposure_hours": 299.57138888888886,
+        "false_alarms_per_non_seizure_hour": 1.6723893488567465
+      },
+      "seizure_bearing_patient_count": 5,
+      "patient_macro_event_sensitivity": 0.8416666666666668,
+      "patient_macro_event_f2_proxy": 0.2628263308332996,
+      "patients": {
+        "patient_04": {
+          "recording_count": 42,
+          "event_count": 4,
+          "detected_events": 4,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 35.75,
+          "false_alarm_count": 334,
+          "non_seizure_exposure_hours": 155.96,
+          "false_alarms_per_non_seizure_hour": 2.141574762759682
+        },
+        "patient_07": {
+          "recording_count": 19,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 22.333333333333332,
+          "false_alarm_count": 83,
+          "non_seizure_exposure_hours": 66.96194444444444,
+          "false_alarms_per_non_seizure_hour": 1.2395100036090152
+        },
+        "patient_11": {
+          "recording_count": 35,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 9.333333333333334,
+          "false_alarm_count": 36,
+          "non_seizure_exposure_hours": 34.569722222222225,
+          "false_alarms_per_non_seizure_hour": 1.0413737133490288
+        },
+        "patient_17": {
+          "recording_count": 21,
+          "event_count": 3,
+          "detected_events": 1,
+          "missed_events": 2,
+          "event_sensitivity": 0.3333333333333333,
+          "mean_detection_delay_seconds": 55.0,
+          "false_alarm_count": 19,
+          "non_seizure_exposure_hours": 20.92527777777778,
+          "false_alarms_per_non_seizure_hour": 0.9079927254383985
+        },
+        "patient_24": {
+          "recording_count": 22,
+          "event_count": 16,
+          "detected_events": 14,
+          "missed_events": 2,
+          "event_sensitivity": 0.875,
+          "mean_detection_delay_seconds": 6.285714285714286,
+          "false_alarm_count": 29,
+          "non_seizure_exposure_hours": 21.154444444444444,
+          "false_alarms_per_non_seizure_hour": 1.3708703188192657
+        }
+      }
+    },
+    {
+      "min_alarm_duration_seconds": 15.0,
+      "merge_gap_seconds": 30.0,
+      "pooled": {
+        "recording_count": 139,
+        "event_count": 29,
+        "detected_events": 25,
+        "missed_events": 4,
+        "event_sensitivity": 0.8620689655172413,
+        "mean_detection_delay_seconds": 15.24,
+        "false_alarm_count": 451,
+        "non_seizure_exposure_hours": 299.57138888888886,
+        "false_alarms_per_non_seizure_hour": 1.5054842242203446
+      },
+      "seizure_bearing_patient_count": 5,
+      "patient_macro_event_sensitivity": 0.8416666666666668,
+      "patient_macro_event_f2_proxy": 0.26813373071471835,
+      "patients": {
+        "patient_04": {
+          "recording_count": 42,
+          "event_count": 4,
+          "detected_events": 4,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 35.75,
+          "false_alarm_count": 290,
+          "non_seizure_exposure_hours": 155.96,
+          "false_alarms_per_non_seizure_hour": 1.8594511413182866
+        },
+        "patient_07": {
+          "recording_count": 19,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 22.333333333333332,
+          "false_alarm_count": 79,
+          "non_seizure_exposure_hours": 66.96194444444444,
+          "false_alarms_per_non_seizure_hour": 1.1797745817483396
+        },
+        "patient_11": {
+          "recording_count": 35,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 9.333333333333334,
+          "false_alarm_count": 34,
+          "non_seizure_exposure_hours": 34.569722222222225,
+          "false_alarms_per_non_seizure_hour": 0.9835196181629717
+        },
+        "patient_17": {
+          "recording_count": 21,
+          "event_count": 3,
+          "detected_events": 1,
+          "missed_events": 2,
+          "event_sensitivity": 0.3333333333333333,
+          "mean_detection_delay_seconds": 55.0,
+          "false_alarm_count": 19,
+          "non_seizure_exposure_hours": 20.92527777777778,
+          "false_alarms_per_non_seizure_hour": 0.9079927254383985
+        },
+        "patient_24": {
+          "recording_count": 22,
+          "event_count": 16,
+          "detected_events": 14,
+          "missed_events": 2,
+          "event_sensitivity": 0.875,
+          "mean_detection_delay_seconds": 6.285714285714286,
+          "false_alarm_count": 29,
+          "non_seizure_exposure_hours": 21.154444444444444,
+          "false_alarms_per_non_seizure_hour": 1.3708703188192657
+        }
+      }
+    },
+    {
+      "min_alarm_duration_seconds": 20.0,
+      "merge_gap_seconds": 0.0,
+      "pooled": {
+        "recording_count": 139,
+        "event_count": 29,
+        "detected_events": 18,
+        "missed_events": 11,
+        "event_sensitivity": 0.6206896551724138,
+        "mean_detection_delay_seconds": 14.444444444444445,
+        "false_alarm_count": 356,
+        "non_seizure_exposure_hours": 299.57138888888886,
+        "false_alarms_per_non_seizure_hour": 1.1883644874111812
+      },
+      "seizure_bearing_patient_count": 5,
+      "patient_macro_event_sensitivity": 0.7,
+      "patient_macro_event_f2_proxy": 0.2611956342744223,
+      "patients": {
+        "patient_04": {
+          "recording_count": 42,
+          "event_count": 4,
+          "detected_events": 4,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 39.75,
+          "false_alarm_count": 281,
+          "non_seizure_exposure_hours": 155.96,
+          "false_alarms_per_non_seizure_hour": 1.8017440369325468
+        },
+        "patient_07": {
+          "recording_count": 19,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 22.333333333333332,
+          "false_alarm_count": 41,
+          "non_seizure_exposure_hours": 66.96194444444444,
+          "false_alarms_per_non_seizure_hour": 0.6122880740719231
+        },
+        "patient_11": {
+          "recording_count": 35,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 9.333333333333334,
+          "false_alarm_count": 16,
+          "non_seizure_exposure_hours": 34.569722222222225,
+          "false_alarms_per_non_seizure_hour": 0.46283276148845726
+        },
+        "patient_17": {
+          "recording_count": 21,
+          "event_count": 3,
+          "detected_events": 0,
+          "missed_events": 3,
+          "event_sensitivity": 0.0,
+          "mean_detection_delay_seconds": null,
+          "false_alarm_count": 8,
+          "non_seizure_exposure_hours": 20.92527777777778,
+          "false_alarms_per_non_seizure_hour": 0.3823127265003783
+        },
+        "patient_24": {
+          "recording_count": 22,
+          "event_count": 16,
+          "detected_events": 8,
+          "missed_events": 8,
+          "event_sensitivity": 0.5,
+          "mean_detection_delay_seconds": 0.75,
+          "false_alarm_count": 10,
+          "non_seizure_exposure_hours": 21.154444444444444,
+          "false_alarms_per_non_seizure_hour": 0.47271390304112615
+        }
+      }
+    },
+    {
+      "min_alarm_duration_seconds": 20.0,
+      "merge_gap_seconds": 5.0,
+      "pooled": {
+        "recording_count": 139,
+        "event_count": 29,
+        "detected_events": 18,
+        "missed_events": 11,
+        "event_sensitivity": 0.6206896551724138,
+        "mean_detection_delay_seconds": 14.444444444444445,
+        "false_alarm_count": 311,
+        "non_seizure_exposure_hours": 299.57138888888886,
+        "false_alarms_per_non_seizure_hour": 1.0381498752384195
+      },
+      "seizure_bearing_patient_count": 5,
+      "patient_macro_event_sensitivity": 0.7,
+      "patient_macro_event_f2_proxy": 0.27159363049680596,
+      "patients": {
+        "patient_04": {
+          "recording_count": 42,
+          "event_count": 4,
+          "detected_events": 4,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 39.75,
+          "false_alarm_count": 243,
+          "non_seizure_exposure_hours": 155.96,
+          "false_alarms_per_non_seizure_hour": 1.5580918184149781
+        },
+        "patient_07": {
+          "recording_count": 19,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 22.333333333333332,
+          "false_alarm_count": 36,
+          "non_seizure_exposure_hours": 66.96194444444444,
+          "false_alarms_per_non_seizure_hour": 0.5376187967460788
+        },
+        "patient_11": {
+          "recording_count": 35,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 9.333333333333334,
+          "false_alarm_count": 15,
+          "non_seizure_exposure_hours": 34.569722222222225,
+          "false_alarms_per_non_seizure_hour": 0.4339057138954287
+        },
+        "patient_17": {
+          "recording_count": 21,
+          "event_count": 3,
+          "detected_events": 0,
+          "missed_events": 3,
+          "event_sensitivity": 0.0,
+          "mean_detection_delay_seconds": null,
+          "false_alarm_count": 7,
+          "non_seizure_exposure_hours": 20.92527777777778,
+          "false_alarms_per_non_seizure_hour": 0.334523635687831
+        },
+        "patient_24": {
+          "recording_count": 22,
+          "event_count": 16,
+          "detected_events": 8,
+          "missed_events": 8,
+          "event_sensitivity": 0.5,
+          "mean_detection_delay_seconds": 0.75,
+          "false_alarm_count": 10,
+          "non_seizure_exposure_hours": 21.154444444444444,
+          "false_alarms_per_non_seizure_hour": 0.47271390304112615
+        }
+      }
+    },
+    {
+      "min_alarm_duration_seconds": 20.0,
+      "merge_gap_seconds": 10.0,
+      "pooled": {
+        "recording_count": 139,
+        "event_count": 29,
+        "detected_events": 18,
+        "missed_events": 11,
+        "event_sensitivity": 0.6206896551724138,
+        "mean_detection_delay_seconds": 14.444444444444445,
+        "false_alarm_count": 286,
+        "non_seizure_exposure_hours": 299.57138888888886,
+        "false_alarms_per_non_seizure_hour": 0.9546973129202185
+      },
+      "seizure_bearing_patient_count": 5,
+      "patient_macro_event_sensitivity": 0.7,
+      "patient_macro_event_f2_proxy": 0.2741584859832001,
+      "patients": {
+        "patient_04": {
+          "recording_count": 42,
+          "event_count": 4,
+          "detected_events": 4,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 39.75,
+          "false_alarm_count": 221,
+          "non_seizure_exposure_hours": 155.96,
+          "false_alarms_per_non_seizure_hour": 1.4170300076942806
+        },
+        "patient_07": {
+          "recording_count": 19,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 22.333333333333332,
+          "false_alarm_count": 35,
+          "non_seizure_exposure_hours": 66.96194444444444,
+          "false_alarms_per_non_seizure_hour": 0.52268494128091
+        },
+        "patient_11": {
+          "recording_count": 35,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 9.333333333333334,
+          "false_alarm_count": 15,
+          "non_seizure_exposure_hours": 34.569722222222225,
+          "false_alarms_per_non_seizure_hour": 0.4339057138954287
+        },
+        "patient_17": {
+          "recording_count": 21,
+          "event_count": 3,
+          "detected_events": 0,
+          "missed_events": 3,
+          "event_sensitivity": 0.0,
+          "mean_detection_delay_seconds": null,
+          "false_alarm_count": 5,
+          "non_seizure_exposure_hours": 20.92527777777778,
+          "false_alarms_per_non_seizure_hour": 0.23894545406273643
+        },
+        "patient_24": {
+          "recording_count": 22,
+          "event_count": 16,
+          "detected_events": 8,
+          "missed_events": 8,
+          "event_sensitivity": 0.5,
+          "mean_detection_delay_seconds": 0.75,
+          "false_alarm_count": 10,
+          "non_seizure_exposure_hours": 21.154444444444444,
+          "false_alarms_per_non_seizure_hour": 0.47271390304112615
+        }
+      }
+    },
+    {
+      "min_alarm_duration_seconds": 20.0,
+      "merge_gap_seconds": 15.0,
+      "pooled": {
+        "recording_count": 139,
+        "event_count": 29,
+        "detected_events": 18,
+        "missed_events": 11,
+        "event_sensitivity": 0.6206896551724138,
+        "mean_detection_delay_seconds": 14.444444444444445,
+        "false_alarm_count": 265,
+        "non_seizure_exposure_hours": 299.57138888888886,
+        "false_alarms_per_non_seizure_hour": 0.8845971605729297
+      },
+      "seizure_bearing_patient_count": 5,
+      "patient_macro_event_sensitivity": 0.7,
+      "patient_macro_event_f2_proxy": 0.2768034834236925,
+      "patients": {
+        "patient_04": {
+          "recording_count": 42,
+          "event_count": 4,
+          "detected_events": 4,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 39.75,
+          "false_alarm_count": 202,
+          "non_seizure_exposure_hours": 155.96,
+          "false_alarms_per_non_seizure_hour": 1.2952038984354963
+        },
+        "patient_07": {
+          "recording_count": 19,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 22.333333333333332,
+          "false_alarm_count": 34,
+          "non_seizure_exposure_hours": 66.96194444444444,
+          "false_alarms_per_non_seizure_hour": 0.5077510858157411
+        },
+        "patient_11": {
+          "recording_count": 35,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 9.333333333333334,
+          "false_alarm_count": 15,
+          "non_seizure_exposure_hours": 34.569722222222225,
+          "false_alarms_per_non_seizure_hour": 0.4339057138954287
+        },
+        "patient_17": {
+          "recording_count": 21,
+          "event_count": 3,
+          "detected_events": 0,
+          "missed_events": 3,
+          "event_sensitivity": 0.0,
+          "mean_detection_delay_seconds": null,
+          "false_alarm_count": 4,
+          "non_seizure_exposure_hours": 20.92527777777778,
+          "false_alarms_per_non_seizure_hour": 0.19115636325018914
+        },
+        "patient_24": {
+          "recording_count": 22,
+          "event_count": 16,
+          "detected_events": 8,
+          "missed_events": 8,
+          "event_sensitivity": 0.5,
+          "mean_detection_delay_seconds": 0.75,
+          "false_alarm_count": 10,
+          "non_seizure_exposure_hours": 21.154444444444444,
+          "false_alarms_per_non_seizure_hour": 0.47271390304112615
+        }
+      }
+    },
+    {
+      "min_alarm_duration_seconds": 20.0,
+      "merge_gap_seconds": 20.0,
+      "pooled": {
+        "recording_count": 139,
+        "event_count": 29,
+        "detected_events": 18,
+        "missed_events": 11,
+        "event_sensitivity": 0.6206896551724138,
+        "mean_detection_delay_seconds": 14.444444444444445,
+        "false_alarm_count": 260,
+        "non_seizure_exposure_hours": 299.57138888888886,
+        "false_alarms_per_non_seizure_hour": 0.8679066481092895
+      },
+      "seizure_bearing_patient_count": 5,
+      "patient_macro_event_sensitivity": 0.7,
+      "patient_macro_event_f2_proxy": 0.2784095994629671,
+      "patients": {
+        "patient_04": {
+          "recording_count": 42,
+          "event_count": 4,
+          "detected_events": 4,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 39.75,
+          "false_alarm_count": 198,
+          "non_seizure_exposure_hours": 155.96,
+          "false_alarms_per_non_seizure_hour": 1.2695562964862785
+        },
+        "patient_07": {
+          "recording_count": 19,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 22.333333333333332,
+          "false_alarm_count": 33,
+          "non_seizure_exposure_hours": 66.96194444444444,
+          "false_alarms_per_non_seizure_hour": 0.4928172303505723
+        },
+        "patient_11": {
+          "recording_count": 35,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 9.333333333333334,
+          "false_alarm_count": 15,
+          "non_seizure_exposure_hours": 34.569722222222225,
+          "false_alarms_per_non_seizure_hour": 0.4339057138954287
+        },
+        "patient_17": {
+          "recording_count": 21,
+          "event_count": 3,
+          "detected_events": 0,
+          "missed_events": 3,
+          "event_sensitivity": 0.0,
+          "mean_detection_delay_seconds": null,
+          "false_alarm_count": 4,
+          "non_seizure_exposure_hours": 20.92527777777778,
+          "false_alarms_per_non_seizure_hour": 0.19115636325018914
+        },
+        "patient_24": {
+          "recording_count": 22,
+          "event_count": 16,
+          "detected_events": 8,
+          "missed_events": 8,
+          "event_sensitivity": 0.5,
+          "mean_detection_delay_seconds": 0.75,
+          "false_alarm_count": 10,
+          "non_seizure_exposure_hours": 21.154444444444444,
+          "false_alarms_per_non_seizure_hour": 0.47271390304112615
+        }
+      }
+    },
+    {
+      "min_alarm_duration_seconds": 20.0,
+      "merge_gap_seconds": 30.0,
+      "pooled": {
+        "recording_count": 139,
+        "event_count": 29,
+        "detected_events": 18,
+        "missed_events": 11,
+        "event_sensitivity": 0.6206896551724138,
+        "mean_detection_delay_seconds": 14.444444444444445,
+        "false_alarm_count": 225,
+        "non_seizure_exposure_hours": 299.57138888888886,
+        "false_alarms_per_non_seizure_hour": 0.7510730608638083
+      },
+      "seizure_bearing_patient_count": 5,
+      "patient_macro_event_sensitivity": 0.7,
+      "patient_macro_event_f2_proxy": 0.2857330186205088,
+      "patients": {
+        "patient_04": {
+          "recording_count": 42,
+          "event_count": 4,
+          "detected_events": 4,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 39.75,
+          "false_alarm_count": 166,
+          "non_seizure_exposure_hours": 155.96,
+          "false_alarms_per_non_seizure_hour": 1.0643754808925365
+        },
+        "patient_07": {
+          "recording_count": 19,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 22.333333333333332,
+          "false_alarm_count": 30,
+          "non_seizure_exposure_hours": 66.96194444444444,
+          "false_alarms_per_non_seizure_hour": 0.4480156639550657
+        },
+        "patient_11": {
+          "recording_count": 35,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 9.333333333333334,
+          "false_alarm_count": 15,
+          "non_seizure_exposure_hours": 34.569722222222225,
+          "false_alarms_per_non_seizure_hour": 0.4339057138954287
+        },
+        "patient_17": {
+          "recording_count": 21,
+          "event_count": 3,
+          "detected_events": 0,
+          "missed_events": 3,
+          "event_sensitivity": 0.0,
+          "mean_detection_delay_seconds": null,
+          "false_alarm_count": 4,
+          "non_seizure_exposure_hours": 20.92527777777778,
+          "false_alarms_per_non_seizure_hour": 0.19115636325018914
+        },
+        "patient_24": {
+          "recording_count": 22,
+          "event_count": 16,
+          "detected_events": 8,
+          "missed_events": 8,
+          "event_sensitivity": 0.5,
+          "mean_detection_delay_seconds": 0.75,
+          "false_alarm_count": 10,
+          "non_seizure_exposure_hours": 21.154444444444444,
+          "false_alarms_per_non_seizure_hour": 0.47271390304112615
+        }
+      }
+    },
+    {
+      "min_alarm_duration_seconds": 30.0,
+      "merge_gap_seconds": 0.0,
+      "pooled": {
+        "recording_count": 139,
+        "event_count": 29,
+        "detected_events": 10,
+        "missed_events": 19,
+        "event_sensitivity": 0.3448275862068966,
+        "mean_detection_delay_seconds": 24.2,
+        "false_alarm_count": 187,
+        "non_seizure_exposure_hours": 299.57138888888886,
+        "false_alarms_per_non_seizure_hour": 0.6242251661401429
+      },
+      "seizure_bearing_patient_count": 5,
+      "patient_macro_event_sensitivity": 0.5458333333333333,
+      "patient_macro_event_f2_proxy": 0.20839978734715575,
+      "patients": {
+        "patient_04": {
+          "recording_count": 42,
+          "event_count": 4,
+          "detected_events": 4,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 39.75,
+          "false_alarm_count": 151,
+          "non_seizure_exposure_hours": 155.96,
+          "false_alarms_per_non_seizure_hour": 0.96819697358297
+        },
+        "patient_07": {
+          "recording_count": 19,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 22.333333333333332,
+          "false_alarm_count": 23,
+          "non_seizure_exposure_hours": 66.96194444444444,
+          "false_alarms_per_non_seizure_hour": 0.3434786756988837
+        },
+        "patient_11": {
+          "recording_count": 35,
+          "event_count": 3,
+          "detected_events": 2,
+          "missed_events": 1,
+          "event_sensitivity": 0.6666666666666666,
+          "mean_detection_delay_seconds": 8.0,
+          "false_alarm_count": 8,
+          "non_seizure_exposure_hours": 34.569722222222225,
+          "false_alarms_per_non_seizure_hour": 0.23141638074422863
+        },
+        "patient_17": {
+          "recording_count": 21,
+          "event_count": 3,
+          "detected_events": 0,
+          "missed_events": 3,
+          "event_sensitivity": 0.0,
+          "mean_detection_delay_seconds": null,
+          "false_alarm_count": 4,
+          "non_seizure_exposure_hours": 20.92527777777778,
+          "false_alarms_per_non_seizure_hour": 0.19115636325018914
+        },
+        "patient_24": {
+          "recording_count": 22,
+          "event_count": 16,
+          "detected_events": 1,
+          "missed_events": 15,
+          "event_sensitivity": 0.0625,
+          "mean_detection_delay_seconds": 0.0,
+          "false_alarm_count": 1,
+          "non_seizure_exposure_hours": 21.154444444444444,
+          "false_alarms_per_non_seizure_hour": 0.047271390304112614
+        }
+      }
+    },
+    {
+      "min_alarm_duration_seconds": 30.0,
+      "merge_gap_seconds": 5.0,
+      "pooled": {
+        "recording_count": 139,
+        "event_count": 29,
+        "detected_events": 10,
+        "missed_events": 19,
+        "event_sensitivity": 0.3448275862068966,
+        "mean_detection_delay_seconds": 24.2,
+        "false_alarm_count": 163,
+        "non_seizure_exposure_hours": 299.57138888888886,
+        "false_alarms_per_non_seizure_hour": 0.54411070631467
+      },
+      "seizure_bearing_patient_count": 5,
+      "patient_macro_event_sensitivity": 0.5458333333333333,
+      "patient_macro_event_f2_proxy": 0.22476869535693064,
+      "patients": {
+        "patient_04": {
+          "recording_count": 42,
+          "event_count": 4,
+          "detected_events": 4,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 39.75,
+          "false_alarm_count": 133,
+          "non_seizure_exposure_hours": 155.96,
+          "false_alarms_per_non_seizure_hour": 0.8527827648114901
+        },
+        "patient_07": {
+          "recording_count": 19,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 22.333333333333332,
+          "false_alarm_count": 19,
+          "non_seizure_exposure_hours": 66.96194444444444,
+          "false_alarms_per_non_seizure_hour": 0.2837432538382083
+        },
+        "patient_11": {
+          "recording_count": 35,
+          "event_count": 3,
+          "detected_events": 2,
+          "missed_events": 1,
+          "event_sensitivity": 0.6666666666666666,
+          "mean_detection_delay_seconds": 8.0,
+          "false_alarm_count": 7,
+          "non_seizure_exposure_hours": 34.569722222222225,
+          "false_alarms_per_non_seizure_hour": 0.20248933315120005
+        },
+        "patient_17": {
+          "recording_count": 21,
+          "event_count": 3,
+          "detected_events": 0,
+          "missed_events": 3,
+          "event_sensitivity": 0.0,
+          "mean_detection_delay_seconds": null,
+          "false_alarm_count": 3,
+          "non_seizure_exposure_hours": 20.92527777777778,
+          "false_alarms_per_non_seizure_hour": 0.14336727243764186
+        },
+        "patient_24": {
+          "recording_count": 22,
+          "event_count": 16,
+          "detected_events": 1,
+          "missed_events": 15,
+          "event_sensitivity": 0.0625,
+          "mean_detection_delay_seconds": 0.0,
+          "false_alarm_count": 1,
+          "non_seizure_exposure_hours": 21.154444444444444,
+          "false_alarms_per_non_seizure_hour": 0.047271390304112614
+        }
+      }
+    },
+    {
+      "min_alarm_duration_seconds": 30.0,
+      "merge_gap_seconds": 10.0,
+      "pooled": {
+        "recording_count": 139,
+        "event_count": 29,
+        "detected_events": 10,
+        "missed_events": 19,
+        "event_sensitivity": 0.3448275862068966,
+        "mean_detection_delay_seconds": 24.2,
+        "false_alarm_count": 146,
+        "non_seizure_exposure_hours": 299.57138888888886,
+        "false_alarms_per_non_seizure_hour": 0.48736296393829337
+      },
+      "seizure_bearing_patient_count": 5,
+      "patient_macro_event_sensitivity": 0.5458333333333333,
+      "patient_macro_event_f2_proxy": 0.22761041175363425,
+      "patients": {
+        "patient_04": {
+          "recording_count": 42,
+          "event_count": 4,
+          "detected_events": 4,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 39.75,
+          "false_alarm_count": 118,
+          "non_seizure_exposure_hours": 155.96,
+          "false_alarms_per_non_seizure_hour": 0.7566042575019235
+        },
+        "patient_07": {
+          "recording_count": 19,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 22.333333333333332,
+          "false_alarm_count": 19,
+          "non_seizure_exposure_hours": 66.96194444444444,
+          "false_alarms_per_non_seizure_hour": 0.2837432538382083
+        },
+        "patient_11": {
+          "recording_count": 35,
+          "event_count": 3,
+          "detected_events": 2,
+          "missed_events": 1,
+          "event_sensitivity": 0.6666666666666666,
+          "mean_detection_delay_seconds": 8.0,
+          "false_alarm_count": 7,
+          "non_seizure_exposure_hours": 34.569722222222225,
+          "false_alarms_per_non_seizure_hour": 0.20248933315120005
+        },
+        "patient_17": {
+          "recording_count": 21,
+          "event_count": 3,
+          "detected_events": 0,
+          "missed_events": 3,
+          "event_sensitivity": 0.0,
+          "mean_detection_delay_seconds": null,
+          "false_alarm_count": 1,
+          "non_seizure_exposure_hours": 20.92527777777778,
+          "false_alarms_per_non_seizure_hour": 0.047789090812547286
+        },
+        "patient_24": {
+          "recording_count": 22,
+          "event_count": 16,
+          "detected_events": 1,
+          "missed_events": 15,
+          "event_sensitivity": 0.0625,
+          "mean_detection_delay_seconds": 0.0,
+          "false_alarm_count": 1,
+          "non_seizure_exposure_hours": 21.154444444444444,
+          "false_alarms_per_non_seizure_hour": 0.047271390304112614
+        }
+      }
+    },
+    {
+      "min_alarm_duration_seconds": 30.0,
+      "merge_gap_seconds": 15.0,
+      "pooled": {
+        "recording_count": 139,
+        "event_count": 29,
+        "detected_events": 10,
+        "missed_events": 19,
+        "event_sensitivity": 0.3448275862068966,
+        "mean_detection_delay_seconds": 24.2,
+        "false_alarm_count": 140,
+        "non_seizure_exposure_hours": 299.57138888888886,
+        "false_alarms_per_non_seizure_hour": 0.46733434898192516
+      },
+      "seizure_bearing_patient_count": 5,
+      "patient_macro_event_sensitivity": 0.5458333333333333,
+      "patient_macro_event_f2_proxy": 0.22892793481028773,
+      "patients": {
+        "patient_04": {
+          "recording_count": 42,
+          "event_count": 4,
+          "detected_events": 4,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 39.75,
+          "false_alarm_count": 112,
+          "non_seizure_exposure_hours": 155.96,
+          "false_alarms_per_non_seizure_hour": 0.718132854578097
+        },
+        "patient_07": {
+          "recording_count": 19,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 22.333333333333332,
+          "false_alarm_count": 19,
+          "non_seizure_exposure_hours": 66.96194444444444,
+          "false_alarms_per_non_seizure_hour": 0.2837432538382083
+        },
+        "patient_11": {
+          "recording_count": 35,
+          "event_count": 3,
+          "detected_events": 2,
+          "missed_events": 1,
+          "event_sensitivity": 0.6666666666666666,
+          "mean_detection_delay_seconds": 8.0,
+          "false_alarm_count": 7,
+          "non_seizure_exposure_hours": 34.569722222222225,
+          "false_alarms_per_non_seizure_hour": 0.20248933315120005
+        },
+        "patient_17": {
+          "recording_count": 21,
+          "event_count": 3,
+          "detected_events": 0,
+          "missed_events": 3,
+          "event_sensitivity": 0.0,
+          "mean_detection_delay_seconds": null,
+          "false_alarm_count": 1,
+          "non_seizure_exposure_hours": 20.92527777777778,
+          "false_alarms_per_non_seizure_hour": 0.047789090812547286
+        },
+        "patient_24": {
+          "recording_count": 22,
+          "event_count": 16,
+          "detected_events": 1,
+          "missed_events": 15,
+          "event_sensitivity": 0.0625,
+          "mean_detection_delay_seconds": 0.0,
+          "false_alarm_count": 1,
+          "non_seizure_exposure_hours": 21.154444444444444,
+          "false_alarms_per_non_seizure_hour": 0.047271390304112614
+        }
+      }
+    },
+    {
+      "min_alarm_duration_seconds": 30.0,
+      "merge_gap_seconds": 20.0,
+      "pooled": {
+        "recording_count": 139,
+        "event_count": 29,
+        "detected_events": 10,
+        "missed_events": 19,
+        "event_sensitivity": 0.3448275862068966,
+        "mean_detection_delay_seconds": 24.2,
+        "false_alarm_count": 138,
+        "non_seizure_exposure_hours": 299.57138888888886,
+        "false_alarms_per_non_seizure_hour": 0.4606581439964691
+      },
+      "seizure_bearing_patient_count": 5,
+      "patient_macro_event_sensitivity": 0.5458333333333333,
+      "patient_macro_event_f2_proxy": 0.2293941352764882,
+      "patients": {
+        "patient_04": {
+          "recording_count": 42,
+          "event_count": 4,
+          "detected_events": 4,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 39.75,
+          "false_alarm_count": 110,
+          "non_seizure_exposure_hours": 155.96,
+          "false_alarms_per_non_seizure_hour": 0.7053090536034881
+        },
+        "patient_07": {
+          "recording_count": 19,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 22.333333333333332,
+          "false_alarm_count": 19,
+          "non_seizure_exposure_hours": 66.96194444444444,
+          "false_alarms_per_non_seizure_hour": 0.2837432538382083
+        },
+        "patient_11": {
+          "recording_count": 35,
+          "event_count": 3,
+          "detected_events": 2,
+          "missed_events": 1,
+          "event_sensitivity": 0.6666666666666666,
+          "mean_detection_delay_seconds": 8.0,
+          "false_alarm_count": 7,
+          "non_seizure_exposure_hours": 34.569722222222225,
+          "false_alarms_per_non_seizure_hour": 0.20248933315120005
+        },
+        "patient_17": {
+          "recording_count": 21,
+          "event_count": 3,
+          "detected_events": 0,
+          "missed_events": 3,
+          "event_sensitivity": 0.0,
+          "mean_detection_delay_seconds": null,
+          "false_alarm_count": 1,
+          "non_seizure_exposure_hours": 20.92527777777778,
+          "false_alarms_per_non_seizure_hour": 0.047789090812547286
+        },
+        "patient_24": {
+          "recording_count": 22,
+          "event_count": 16,
+          "detected_events": 1,
+          "missed_events": 15,
+          "event_sensitivity": 0.0625,
+          "mean_detection_delay_seconds": 0.0,
+          "false_alarm_count": 1,
+          "non_seizure_exposure_hours": 21.154444444444444,
+          "false_alarms_per_non_seizure_hour": 0.047271390304112614
+        }
+      }
+    },
+    {
+      "min_alarm_duration_seconds": 30.0,
+      "merge_gap_seconds": 30.0,
+      "pooled": {
+        "recording_count": 139,
+        "event_count": 29,
+        "detected_events": 10,
+        "missed_events": 19,
+        "event_sensitivity": 0.3448275862068966,
+        "mean_detection_delay_seconds": 24.2,
+        "false_alarm_count": 121,
+        "non_seizure_exposure_hours": 299.57138888888886,
+        "false_alarms_per_non_seizure_hour": 0.40391040162009245
+      },
+      "seizure_bearing_patient_count": 5,
+      "patient_macro_event_sensitivity": 0.5458333333333333,
+      "patient_macro_event_f2_proxy": 0.2363864205969469,
+      "patients": {
+        "patient_04": {
+          "recording_count": 42,
+          "event_count": 4,
+          "detected_events": 4,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 39.75,
+          "false_alarm_count": 94,
+          "non_seizure_exposure_hours": 155.96,
+          "false_alarms_per_non_seizure_hour": 0.602718645806617
+        },
+        "patient_07": {
+          "recording_count": 19,
+          "event_count": 3,
+          "detected_events": 3,
+          "missed_events": 0,
+          "event_sensitivity": 1.0,
+          "mean_detection_delay_seconds": 22.333333333333332,
+          "false_alarm_count": 18,
+          "non_seizure_exposure_hours": 66.96194444444444,
+          "false_alarms_per_non_seizure_hour": 0.2688093983730394
+        },
+        "patient_11": {
+          "recording_count": 35,
+          "event_count": 3,
+          "detected_events": 2,
+          "missed_events": 1,
+          "event_sensitivity": 0.6666666666666666,
+          "mean_detection_delay_seconds": 8.0,
+          "false_alarm_count": 7,
+          "non_seizure_exposure_hours": 34.569722222222225,
+          "false_alarms_per_non_seizure_hour": 0.20248933315120005
+        },
+        "patient_17": {
+          "recording_count": 21,
+          "event_count": 3,
+          "detected_events": 0,
+          "missed_events": 3,
+          "event_sensitivity": 0.0,
+          "mean_detection_delay_seconds": null,
+          "false_alarm_count": 1,
+          "non_seizure_exposure_hours": 20.92527777777778,
+          "false_alarms_per_non_seizure_hour": 0.047789090812547286
+        },
+        "patient_24": {
+          "recording_count": 22,
+          "event_count": 16,
+          "detected_events": 1,
+          "missed_events": 15,
+          "event_sensitivity": 0.0625,
+          "mean_detection_delay_seconds": 0.0,
+          "false_alarm_count": 1,
+          "non_seizure_exposure_hours": 21.154444444444444,
+          "false_alarms_per_non_seizure_hour": 0.047271390304112614
+        }
+      }
+    }
+  ]
+}

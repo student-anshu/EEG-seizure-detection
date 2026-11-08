@@ -1,0 +1,16 @@
+cache\first_fold\model_stages\fold_1_logistic_regression_f1_f2_v1\final_model_fit.joblib (8.2 KB)
+cache\first_fold\model_stages\fold_1_logistic_regression_f1_f2_v1\final_model_fit.manifest.json (0.3 KB)
+cache\first_fold\model_stages\fold_1_logistic_regression_f1_f2_v1\fold_result.json (5.1 KB)
+cache\first_fold\model_stages\fold_1_logistic_regression_f1_f2_v1\fold_result.manifest.json (0.3 KB)
+cache\first_fold\model_stages\fold_1_logistic_regression_f1_f2_v1\inner_model_fit.joblib (8.2 KB)
+cache\first_fold\model_stages\fold_1_logistic_regression_f1_f2_v1\inner_model_fit.manifest.json (0.3 KB)
+cache\first_fold\model_stages\fold_1_logistic_regression_f1_f2_v1\inner_validation_f2_threshold.json (0.5 KB)
+cache\first_fold\model_stages\fold_1_logistic_regression_f1_f2_v1\inner_validation_f2_threshold.manifest.json (0.3 KB)
+cache\first_fold\model_stages\fold_1_logistic_regression_f1_f2_v1\inner_validation_scores.manifest.json (0.3 KB)
+cache\first_fold\model_stages\fold_1_logistic_regression_f1_f2_v1\inner_validation_scores.npz (1578.9 KB)
+cache\first_fold\model_stages\fold_1_logistic_regression_f1_f2_v1\inner_validation_threshold.json (0.5 KB)
+cache\first_fold\model_stages\fold_1_logistic_regression_f1_f2_v1\inner_validation_threshold.manifest.json (0.3 KB)
+cache\first_fold\model_stages\fold_1_logistic_regression_f1_f2_v1\outer_test_scores.manifest.json (0.3 KB)
+cache\first_fold\model_stages\fold_1_logistic_regression_f1_f2_v1\outer_test_scores.npz (390.1 KB)
+
+

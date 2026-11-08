@@ -1,0 +1,23 @@
+
+> modeling\baseline.py:282:def positive_scores(estimator, X: np.ndarray) -> np.ndarray:
+  modeling\baseline.py:283:    """Return a continuous positive-class score for threshold selection."""
+  modeling\baseline.py:284:    if hasattr(estimator, "predict_proba"):
+  modeling\baseline.py:285:        scores = estimator.predict_proba(X)[:, 1]
+  modeling\baseline.py:286:    elif hasattr(estimator, "decision_function"):
+  modeling\baseline.py:287:        scores = estimator.decision_function(X)
+  modeling\baseline.py:288:    else:
+  modeling\baseline.py:289:        raise TypeError("Estimator must expose predict_proba or decision_function")
+  modeling\baseline.py:290:    scores = np.asarray(scores, dtype=np.float64)
+  modeling\baseline.py:291:    if scores.ndim != 1 or not np.isfinite(scores).all():
+  modeling\baseline.py:292:        raise ValueError("Estimator returned invalid positive-class scores")
+  modeling\baseline.py:293:    return scores
+  modeling\baseline.py:294:
+  modeling\baseline.py:295:
+  modeling\baseline.py:296:def choose_fbeta_threshold(
+  modeling\baseline.py:297:    y_true: np.ndarray, scores: np.ndarray, beta: float = 1.0,
+  modeling\baseline.py:298:) -> float:
+  modeling\baseline.py:299:    """Choose an F-beta-maximizing threshold using validation labels only.
+  modeling\baseline.py:300:
+  modeling\baseline.py:301:    beta=1 is F1; beta=2 weights recall more heavily. This function must only
+  modeling\baseline.py:302:    receive inner-validation labels/scores, never outer-test labels.
+

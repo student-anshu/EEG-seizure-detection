@@ -1,0 +1,12 @@
+
+=== validation_scores.npz ===
+y_true: shape=(216005,), dtype=int8
+scores: shape=(216005,), dtype=float64
+
+=== outer_test_scores.npz ===
+y_true: shape=(52759,), dtype=int8
+scores: shape=(52759,), dtype=float64
+
+=== MODEL ARTIFACT ===
+Exists: True
+Size: 6797 bytes

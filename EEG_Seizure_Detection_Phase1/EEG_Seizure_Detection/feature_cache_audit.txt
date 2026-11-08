@@ -1,0 +1,134 @@
+=== FEATURE CACHE IMPLEMENTATION ===
+74: def collect_robust_batch(recordings, split_name: str, scaler, cache_root: Path) -> FeatureBatch:
+75:     """Build/resume one split's robust features using recording-level commits."""
+76:     if not recordings:
+77:         raise ValueError(f"{split_name} split is empty")
+78:     signature = _cache_signature(recordings, scaler)
+79:     directory = cache_root / split_name
+80:     directory.mkdir(parents=True, exist_ok=True)
+81:     manifest_path = directory / "manifest.json"
+82:     x_path, y_path = directory / "X.npy", directory / "y.npy"
+83: 
+84:     lengths = []
+85:     for recording in recordings:
+86:         source = processed_path_for_recording(PROCESSED_DIR, recording)
+87:         with np.load(source, allow_pickle=False) as saved:
+88:             labels = np.asarray(saved["y"])
+89:         if labels.ndim != 1 or not len(labels) or not np.isin(labels, (0, 1)).all():
+90:             raise ValueError(f"Invalid labels in {source.name}")
+91:         if bool(np.any(labels == 1)) != (recording.seizure_count > 0):
+92:             raise ValueError(f"Audit/label mismatch in {source.name}")
+93:         lengths.append(len(labels))
+94: 
+95:     total_windows = int(sum(lengths))
+96:     feature_count = len(PREFERRED_CHANNELS) * len(ROBUST_FEATURE_NAMES)
+97:     completed, cursor = 0, 0
+98:     X = y = None
+99:     if manifest_path.is_file() and x_path.is_file() and y_path.is_file():
+100:         try:
+101:             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+102:             if manifest.get("signature") == signature and manifest.get("shape") == [total_windows, feature_count]:
+103:                 candidate_x = np.load(x_path, mmap_mode="r+", allow_pickle=False)
+104:                 candidate_y = np.load(y_path, mmap_mode="r+", allow_pickle=False)
+105:                 completed = int(manifest["completed_recordings"])
+106:                 cursor = int(manifest["cursor"])
+107:                 expected_cursor = sum(lengths[:completed])
+108:                 if (candidate_x.shape == (total_windows, feature_count)
+109:                     and candidate_x.dtype == np.float32
+110:                     and candidate_y.shape == (total_windows,)
+111:                     and candidate_y.dtype == np.int8
+112:                     and 0 <= completed <= len(recordings)
+113:                     and cursor == expected_cursor):
+114:                     X, y = candidate_x, candidate_y
+115:                 else:
+116:                     completed, cursor = 0, 0
+117:         except (OSError, ValueError, TypeError, KeyError, json.JSONDecodeError):
+118:             completed, cursor = 0, 0
+119: 
+120:     if X is None:
+121:         # Release any rejected mappings before replacing cache files (Windows-safe).
+122:         if "candidate_x" in locals():
+123:             del candidate_x
+124:         if "candidate_y" in locals():
+125:             del candidate_y
+126:         X = np.lib.format.open_memmap(x_path, mode="w+", dtype=np.float32,
+127:                                       shape=(total_windows, feature_count))
+128:         y = np.lib.format.open_memmap(y_path, mode="w+", dtype=np.int8,
+129:                                       shape=(total_windows,))
+130:         manifest = {
+131:             "signature": signature, "shape": [total_windows, feature_count],
+132:             "completed_recordings": 0, "cursor": 0, "complete": False,
+133:         }
+134:         _write_json(manifest_path, manifest)
+135:     else:
+136:         print(f"  Resuming {split_name} feature cache at {completed}/{len(recordings)} recordings", flush=True)
+137: 
+138:     for index in range(completed, len(recordings)):
+139:         recording = recordings[index]
+140:         item = load_recording_windows(PROCESSED_DIR, recording)
+141:         next_cursor = cursor + len(item.y)
+142:         if len(item.y) != lengths[index]:
+143:             raise RuntimeError(f"Window count changed for {recording.relative_path}")
+144: 
+145:         # Bound temporary standardized EEG and Welch PSD memory. A recording is
+146:         # committed to the resumable manifest only after every chunk is written.
+147:         chunk_size = 256
+148:         for chunk_start in range(0, len(item.y), chunk_size):
+149:             chunk_end = min(chunk_start + chunk_size, len(item.y))
+150:             standardized_chunk = scaler.transform(item.X[chunk_start:chunk_end])
+151:             features = extract_robust_features(
+152:                 standardized_chunk, item.sfreq, chunk_size=chunk_size
+153:             )
+154:             expected_shape = (chunk_end - chunk_start, feature_count)
+155:             if features.shape != expected_shape or not np.isfinite(features).all():
+156:                 raise RuntimeError(
+157:                     f"Invalid robust feature chunk for {recording.relative_path} "
+158:                     f"at windows {chunk_start}:{chunk_end}"
+159:                 )
+160:             destination_start = cursor + chunk_start
+161:             destination_end = cursor + chunk_end
+162:             X[destination_start:destination_end] = features
+163:             del standardized_chunk, features
+164: 
+165:         y[cursor:next_cursor] = item.y.astype(np.int8, copy=False)
+166:         cursor = next_cursor
+167:         X.flush()
+168:         y.flush()
+169:         _write_json(manifest_path, {
+170:             "signature": signature, "shape": [total_windows, feature_count],
+171:             "completed_recordings": index + 1, "cursor": cursor,
+172:             "complete": index + 1 == len(recordings),
+173:         })
+174:         if (index + 1) % 25 == 0 or index + 1 == len(recordings):
+175:             print(f"  {split_name}: {index + 1}/{len(recordings)} recordings", flush=True)
+176:         del item
+177: 
+178:     if cursor != total_windows or not np.isin(y, (0, 1)).all():
+179:         raise RuntimeError(f"{split_name} feature/label arrays failed integrity checks")
+180:     X.flush()
+=== FOLD PREPARATION AND CACHE CALLS ===
+221:             f"Refusing to overwrite existing experiment result: {output_path}. "
+222:             "Choose a new --output path to preserve previous results."
+223:         )
+224:     recordings = filter_primary_cohort(load_recording_manifest(audit_path))
+225:     fold = build_lopo_folds(recordings)[0]
+226:     if fold.fold_id != 1:
+227:         raise RuntimeError("Expected deterministic first LOPO fold")
+228:     print(f"Primary cohort: {len(recordings)} recordings; held-out: {fold.test_patient_id}", flush=True)
+229: 
+230:     cache_root = PROJECT_ROOT / "cache" / "robust_feature_first_fold_v1"
+231:     prepared = prepare_lopo_fold(
+232:         fold, PROCESSED_DIR, validation_fraction=0.2, random_state=seed,
+233:         scaler_checkpoint_dir=cache_root / "scaler_checkpoint",
+234:     )
+235:     print("Extracting robust inner-fit features...", flush=True)
+236:     fit_batch = collect_robust_batch(prepared.fit_recordings, "inner_fit",
+237:                                      prepared.standardizer, cache_root)
+238:     print("Extracting robust inner-validation features...", flush=True)
+239:     validation_batch = collect_robust_batch(prepared.validation_recordings, "inner_validation",
+240:                                             prepared.standardizer, cache_root)
+241:     print("Extracting robust held-out test features...", flush=True)
+242:     test_batch = collect_robust_batch(prepared.test_recordings, "outer_test",
+243:                                       prepared.standardizer, cache_root)
+244: 
+245:     result = {

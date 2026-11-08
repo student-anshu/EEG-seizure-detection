@@ -1,0 +1,352 @@
+
+======================================================================
+MAIN IMPORTS AND CONFIGURATION
+======================================================================
+File: main.py
+1: import argparse
+2: import csv
+3: from pathlib import Path
+4: 
+5: import numpy as np
+6: import pandas as pd
+7: 
+8: from config import (
+9:     DATASET_DIR, PROCESSED_DIR, LOG_DIR, LOW_CUT_HZ, HIGH_CUT_HZ,
+10:     NOTCH_HZ, WINDOW_SECONDS, STRIDE_SECONDS, PREFERRED_CHANNELS,
+11: )
+12: from data_management.cohort import filter_primary_cohort
+13: from data_management.fold_data import load_recording_windows
+14: from data_management.patient_mapping import load_recording_manifest
+15: from preprocessing.load_data import load_edf
+16: from preprocessing.annotations import read_seizure_intervals
+17: from preprocessing.signal_processing import bandpass_and_notch
+18: from preprocessing.segmentation import make_windows
+19: 
+20: NORMALIZATION_POLICY = "none_fold_train_only_scaling_required"
+21: _LOG_FIELDS = ("relative_path", "status", "window_count", "normal_windows",
+22:                "seizure_windows", "message")
+23: 
+24: 
+25: def _normalize_channel_name(name: str) -> str:
+
+======================================================================
+EDF LOADING AND FILTERING FUNCTIONS
+======================================================================
+File: main.py
+85: def _metadata_is_consistent(recording, metadata_path: Path, windows) -> bool:
+86:     if not metadata_path.is_file():
+87:         return False
+88:     try:
+89:         metadata = pd.read_csv(metadata_path)
+90:         required = {"window_start_seconds", "label", "normalization"}
+91:         if not required.issubset(metadata.columns):
+92:             return False
+93:         if len(metadata) != len(windows.y):
+94:             return False
+95:         if not np.array_equal(metadata["window_start_seconds"].to_numpy(), windows.starts):
+96:             return False
+97:         if not np.array_equal(metadata["label"].to_numpy(), windows.y):
+98:             return False
+99:         if "recording_duration_seconds" in metadata.columns:
+100:             durations = metadata["recording_duration_seconds"].to_numpy(dtype=float)
+101:             if not np.isfinite(durations).all() or not np.allclose(
+102:                 durations, durations[0], rtol=0.0, atol=1e-9
+103:             ):
+104:                 return False
+105:         return bool((metadata["normalization"] == NORMALIZATION_POLICY).all())
+106:     except Exception:
+107:         return False
+108: 
+109: 
+110: def _processed_recording_is_valid(recording, processed_dir: Path) -> bool:
+111:     try:
+112:         windows = load_recording_windows(processed_dir, recording)
+113:         metadata_path = processed_dir / (
+114:             f"{recording.subject}_{Path(recording.edf_file).stem}_metadata.csv"
+115:         )
+116:         return _metadata_is_consistent(recording, metadata_path, windows)
+117:     except Exception:
+118:         # Any unreadable, corrupt, or incompatible artifact must be regenerated.
+119:         return False
+120: 
+121: 
+122: def _append_log(log_path: Path, row: dict) -> None:
+123:     log_path.parent.mkdir(parents=True, exist_ok=True)
+124:     write_header = not log_path.exists()
+125:     with log_path.open("a", encoding="utf-8", newline="") as handle:
+126:         writer = csv.DictWriter(handle, fieldnames=_LOG_FIELDS)
+127:         if write_header:
+128:             writer.writeheader()
+129:         writer.writerow(row)
+130: 
+131: 
+132: def prepare_primary_cohort(
+133:     audit_csv: str | Path,
+134:     *,
+135:     force: bool = False,
+136: ) -> dict[str, int]:
+137:     """Process the audited primary cohort, resuming valid outputs by default.
+138: 
+139:     Each recording is validated and logged immediately, so an interrupted run
+140:     can be restarted safely without reprocessing completed recordings.
+141:     """
+142:     dataset_root = DATASET_DIR.resolve()
+143:     processed_dir = PROCESSED_DIR
+144:     log_path = LOG_DIR / "full_cohort_preprocessing.csv"
+145:     recordings = filter_primary_cohort(load_recording_manifest(audit_csv))
+146:     counts = {"processed": 0, "skipped_valid": 0, "failed": 0}
+147:     print(f"Primary cohort recordings: {len(recordings)}")
+148:     print(f"Dataset directory: {dataset_root}")
+149:     print(f"Processed directory: {processed_dir}")
+150: 
+151:     for index, recording in enumerate(recordings, start=1):
+152:         relative_path = Path(recording.relative_path)
+153:         edf_path = (dataset_root / relative_path).resolve()
+154:         try:
+155:             # Reject paths that escape the configured dataset root.
+156:             edf_path.relative_to(dataset_root)
+157:             if not edf_path.is_file():
+158:                 raise FileNotFoundError(f"EDF file not found: {edf_path}")
+159: 
+160:             if not force and _processed_recording_is_valid(recording, processed_dir):
+161:                 row = {
+162:                     "relative_path": recording.relative_path,
+163:                     "status": "SKIPPED_VALID",
+164:                     "window_count": "",
+165:                     "normal_windows": "",
+166:                     "seizure_windows": "",
+167:                     "message": "Existing NPZ and metadata passed validation",
+168:                 }
+169:                 counts["skipped_valid"] += 1
+170:             else:
+171:                 saved_path = process_edf(edf_path)
+172:                 if saved_path is None:
+173:                     raise ValueError("Recording produced no complete windows")
+174:                 windows = load_recording_windows(processed_dir, recording)
+175:                 metadata_path = processed_dir / (
+176:                     f"{recording.subject}_{Path(recording.edf_file).stem}_metadata.csv"
+177:                 )
+178:                 if not _metadata_is_consistent(recording, metadata_path, windows):
+179:                     raise ValueError("Saved metadata does not match NPZ windows")
+180:                 row = {
+181:                     "relative_path": recording.relative_path,
+182:                     "status": "PROCESSED",
+183:                     "window_count": len(windows.y),
+184:                     "normal_windows": int(np.sum(windows.y == 0)),
+185:                     "seizure_windows": int(np.sum(windows.y == 1)),
+186:                     "message": "",
+187:                 }
+188:                 counts["processed"] += 1
+189:         except Exception as exc:
+190:             row = {
+
+======================================================================
+WINDOW CREATION FUNCTIONS
+======================================================================
+File: main.py
+190:             row = {
+191:                 "relative_path": recording.relative_path,
+192:                 "status": "FAILED",
+193:                 "window_count": "",
+194:                 "normal_windows": "",
+195:                 "seizure_windows": "",
+196:                 "message": f"{type(exc).__name__}: {exc}",
+197:             }
+198:             counts["failed"] += 1
+199: 
+200:         _append_log(log_path, row)
+201:         print(
+202:             f"[{index}/{len(recordings)}] {row['status']}: "
+203:             f"{recording.relative_path}"
+204:             + (f" — {row['message']}" if row["message"] else "")
+205:         )
+206: 
+207:     print(
+208:         "\nCohort preprocessing summary: "
+209:         f"processed={counts['processed']}, "
+210:         f"skipped_valid={counts['skipped_valid']}, failed={counts['failed']}"
+211:     )
+212:     print(f"Run log: {log_path}")
+213:     return counts
+214: 
+215: 
+216: def inspect_dataset():
+217:     if not DATASET_DIR.exists():
+218:         raise FileNotFoundError(f"Dataset folder not found: {DATASET_DIR}\nDownload and extract CHB-MIT into dataset/chbmit.")
+219:     edfs = sorted(DATASET_DIR.rglob("*.edf"))
+220:     print(f"Dataset directory: {DATASET_DIR}")
+221:     print(f"EDF files found: {len(edfs)}")
+222:     for path in edfs[:20]:
+223:         print(f"  {path.relative_to(DATASET_DIR)}")
+224:     if len(edfs) > 20:
+225:         print(f"  ... and {len(edfs) - 20} more")
+226: 
+227: 
+228: def main():
+229:     parser = argparse.ArgumentParser(description="EEG seizure data preparation")
+230:     group = parser.add_mutually_exclusive_group(required=True)
+231:     group.add_argument("--inspect", action="store_true")
+232:     group.add_argument("--edf", type=str, help="Process one EDF file")
+233:     group.add_argument("--all", action="store_true", help="Legacy: process every EDF without the audited cohort policy")
+234:     group.add_argument("--prepare-cohort", action="store_true", help="Process the audited 17-channel primary cohort with resume support")
+235:     parser.add_argument("--audit", type=Path, help="Path to full_annotation_audit.csv (required with --prepare-cohort)")
+236:     parser.add_argument("--force", action="store_true", help="Reprocess recordings even when existing outputs pass validation")
+237:     args = parser.parse_args()
+238: 
+239:     if args.prepare_cohort:
+240:         if args.audit is None:
+241:             parser.error("--audit is required with --prepare-cohort")
+242:         counts = prepare_primary_cohort(args.audit, force=args.force)
+243:         if counts["failed"]:
+244:             raise SystemExit(1)
+245:     elif args.audit is not None or args.force:
+246:         parser.error("--audit and --force can only be used with --prepare-cohort")
+247:     elif args.inspect:
+248:         inspect_dataset()
+249:     elif args.edf:
+250:         process_edf(args.edf)
+251:     elif args.all:
+252:         print("WARNING: --all bypasses the audited primary-cohort filter; use --prepare-cohort instead.")
+253:         edfs = sorted(DATASET_DIR.rglob("*.edf"))
+254:         if not edfs:
+255:             raise FileNotFoundError(f"No EDF files found under {DATASET_DIR}")
+256:         processed = skipped = 0
+257:         for path in edfs:
+258:             try:
+259:                 result = process_edf(path)
+260:                 processed += result is not None
+261:                 skipped += result is None
+262:             except Exception as exc:
+263:                 skipped += 1
+264:                 print(f"SKIPPED {path}: {exc}")
+265:         print(f"\nDataset processing finished: processed={processed}, skipped={skipped}")
+266: 
+267: 
+268: if __name__ == "__main__":
+269:     main()
+
+======================================================================
+CHANNEL STANDARDIZER TRANSFORM
+======================================================================
+File: preprocessing\normalization.py
+180:             raise TypeError("batch_factory must be callable.")
+181:         if int(total_batches) <= 0:
+182:             raise ValueError("total_batches must be positive.")
+183:         if not signature:
+184:             raise ValueError("A non-empty scaler checkpoint signature is required.")
+185:         if int(progress_every) <= 0:
+186:             raise ValueError("progress_every must be positive.")
+187:         if self._count or self.mean_ is not None:
+188:             raise RuntimeError("Checkpointed fitting requires a fresh, unfitted scaler.")
+189: 
+190:         root = Path(checkpoint_dir)
+191:         root.mkdir(parents=True, exist_ok=True)
+192:         manifest_path = root / "manifest.json"
+193:         completed = 0
+194: 
+195:         if manifest_path.is_file():
+196:             try:
+197:                 manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+198:                 if manifest.get("schema_version") != _SCALER_CHECKPOINT_VERSION:
+199:                     raise ValueError("unsupported checkpoint schema")
+200:                 if manifest.get("signature") != signature:
+201:                     raise ValueError("checkpoint signature mismatch")
+202:                 completed = int(manifest["completed_recordings"])
+203:                 state_name = manifest["state_file"]
+204:                 if not isinstance(state_name, str) or Path(state_name).name != state_name:
+205:                     raise ValueError("invalid checkpoint state filename")
+206:                 if not 0 < completed <= int(total_batches):
+207:                     raise ValueError("invalid completed-recording cursor")
+208:                 if bool(manifest.get("complete")) != (completed == int(total_batches)):
+209:                     raise ValueError("checkpoint completion flag mismatch")
+210:                 state_path = root / state_name
+211:                 with np.load(state_path, allow_pickle=False) as saved:
+212:                     state = {
+213:                         "count": int(saved["count"]),
+214:                         "n_channels": int(saved["n_channels"]),
+215:                         "mean": saved["mean"],
+216:                         "m2": saved["m2"],
+217:                     }
+218:                 self.load_state_dict(state)
+219:                 if int(manifest["sample_count"]) != self._count:
+220:                     raise ValueError("checkpoint sample count mismatch")
+221:                 print(
+222:                     f"    resuming channel-scaler checkpoint: "
+223:                     f"{completed}/{total_batches} recordings",
+224:                     flush=True,
+225:                 )
+226:             except (OSError, EOFError, ValueError, TypeError, KeyError, zipfile.BadZipFile, json.JSONDecodeError) as exc:
+227:                 print(
+228:                     f"    rejecting invalid scaler checkpoint ({exc}); restarting scaler fit",
+229:                     flush=True,
+230:                 )
+231:                 self._reset_accumulator()
+232:                 completed = 0
+233: 
+234:         if completed == int(total_batches):
+235:             return self.finalize()
+236: 
+237:         processed_count = completed
+238:         for index, batch in enumerate(batch_factory(completed), start=completed + 1):
+239:             if index > int(total_batches):
+240:                 raise RuntimeError("Scaler batch factory yielded too many recordings.")
+241:             self.partial_fit(batch)
+242:             state_name = f"state_{index:06d}.npz"
+243:             state_path = root / state_name
+244:             temporary_state = root / (state_name + ".tmp")
+245:             with temporary_state.open("wb") as handle:
+246:                 np.savez_compressed(
+247:                     handle,
+248:                     count=np.asarray(self._count, dtype=np.int64),
+249:                     n_channels=np.asarray(self._n_channels, dtype=np.int64),
+250:                     mean=self._mean,
+251:                     m2=self._m2,
+252:                 )
+253:                 handle.flush()
+254:                 os.fsync(handle.fileno())
+255:             os.replace(temporary_state, state_path)
+256: 
+257:             manifest = {
+258:                 "schema_version": _SCALER_CHECKPOINT_VERSION,
+259:                 "signature": signature,
+260:                 "completed_recordings": index,
+261:                 "sample_count": self._count,
+262:                 "state_file": state_name,
+263:                 "complete": index == int(total_batches),
+264:             }
+265:             temporary_manifest = manifest_path.with_suffix(".json.tmp")
+266:             with temporary_manifest.open("w", encoding="utf-8") as handle:
+267:                 handle.write(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
+268:                 handle.flush()
+269:                 os.fsync(handle.fileno())
+270:             os.replace(temporary_manifest, manifest_path)
+271:             processed_count = index
+272: 
+273:             if index % int(progress_every) == 0 or index == int(total_batches):
+274:                 print(
+275:                     f"    {progress_label}: {index}/{total_batches} recordings",
+276:                     flush=True,
+277:                 )
+278: 
+279:         if processed_count != int(total_batches):
+280:             raise RuntimeError(
+281:                 f"Scaler batch factory ended at {processed_count}/{total_batches} recordings."
+282:             )
+283:         return self.finalize()
+284: 
+285:     def _reset_accumulator(self):
+286:         self.mean_ = None
+287:         self.scale_ = None
+288:         self.n_channels_ = None
+289:         self.n_values_per_channel_ = None
+290:         self._count = 0
+291:         self._mean = None
+292:         self._m2 = None
+293:         self._n_channels = None
+294: 
+295:     def transform(self, windows):
+296:         if self.mean_ is None or self.scale_ is None:
+297:             raise RuntimeError("Standardizer must be fitted before transform().")
+298:         values = self._validate_windows(windows)
+299:         if values.shape[1] != self.n_channels_:
+300:             raise ValueError(
